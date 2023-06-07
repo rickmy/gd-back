@@ -18,8 +18,8 @@ model User {
   lastName      String
   email         String         @unique
   password      String
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   state         Boolean        @default(true)
   idRol         Int            @default(1)
   rol           Rol            @relation(fields: [idRol], references: [id])
@@ -30,8 +30,8 @@ model User {
 model Rol {
   id               Int                @id @default(autoincrement())
   name             String             @unique
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   state            Boolean            @default(true)
   users            User[]
   RolHasPermission RolHasPermission[]
@@ -40,8 +40,8 @@ model Rol {
 model Permission {
   id               Int                @id @default(autoincrement())
   name             String             @unique
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   state            Boolean            @default(true)
   RolHasPermission RolHasPermission[]
 }
@@ -51,8 +51,8 @@ model RolHasPermission {
   idPermission Int
   rol          Rol        @relation(fields: [idRol], references: [id])
   permission   Permission @relation(fields: [idPermission], references: [id])
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   state        Boolean    @default(true)
 
   @@id([idRol, idPermission])
@@ -64,8 +64,8 @@ model AcademicTutor {
   user       User      @relation(fields: [idUser], references: [id])
   idCareer   Int
   career     Career    @relation(fields: [idCareer], references: [id])
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   state      Boolean   @default(true)
   Project    Project[]
 }
@@ -76,8 +76,8 @@ model BusinessTutor {
   user       User      @relation(fields: [idUser], references: [id])
   idCompany  Int
   company    Company   @relation(fields: [idCompany], references: [id])
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   state      Boolean   @default(true)
   Project    Project[]
 }
@@ -93,8 +93,8 @@ model Company {
   email                  String
   address                String
   password               String
-  created_at             DateTime               @default(now())
-  updated_at             DateTime               @updatedAt
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   state                  Boolean                @default(true)
   status                 StatusCompany          @default(PENDIENTE)
   BusinessTutor          BusinessTutor[]
@@ -112,8 +112,8 @@ model Career {
   dateStart               DateTime
   dateEnd                 DateTime
   timeRenovationAgreement Int
-  created_at              DateTime        @default(now())
-  updated_at              DateTime        @updatedAt
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
   state                   Boolean         @default(true)
   coordinator             String          @unique
   viceCoordinator         String          @unique
@@ -135,8 +135,8 @@ model Student {
   academicPeriod       String
   email                String                 @unique
   password             String
-  created_at           DateTime               @default(now())
-  updated_at           DateTime               @updatedAt
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
   state                Boolean                @default(true)
   status               StatusStudent          @default(PENDIENTE)
   idCareer             Int
@@ -150,8 +150,8 @@ model Project {
   id              Int           @id @default(autoincrement())
   name            String
   description     String
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   state           Boolean       @default(true)
   status          StatusProject @default(PENDIENTE)
   Student         Student[]
@@ -168,8 +168,8 @@ model CompaniesHasStudents {
   idStudent  Int
   company    Company  @relation(fields: [idCompany], references: [id])
   student    Student  @relation(fields: [idStudent], references: [id])
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   state      Boolean  @default(true)
 
   @@id([idCompany, idStudent])
@@ -181,8 +181,8 @@ model Agreement {
   dateStart  DateTime
   dateEnd    DateTime
   documents  String
-  created_at DateTime      @default(now())
-  updated_at DateTime      @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   state      Boolean       @default(true)
   status     StatusProject @default(PENDIENTE)
   idCompany  Int

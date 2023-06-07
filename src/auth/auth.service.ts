@@ -1,5 +1,5 @@
-import { HttpException, HttpStatus,
-  Injectable, UnprocessableEntityException,
+import {
+  Injectable,
   UnauthorizedException,
   UnprocessableEntityException,
   HttpException,
@@ -74,7 +74,6 @@ export class AuthService {
   create(createAuthDto: CreateAuthDto) {
     return '';
   }
-
 
   findAll() {
     return `This action returns all auth`;

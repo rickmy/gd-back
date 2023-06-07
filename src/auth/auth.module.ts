@@ -8,6 +8,12 @@ import config from 'src/core/config';
 import { PassportModule } from '@nestjs/passport';
 import { JWTstrategy } from './strategy/jwt.strategy';
 import { UserModule } from 'src/modules/user/user.module';
+import { MailModule } from 'src/modules/mail/mail.module';
+import { JwtModule } from '@nestjs/jwt';
+import config from 'src/core/config';
+import { PassportModule } from '@nestjs/passport';
+import { JWTstrategy } from './strategy/jwt.strategy';
+import { UserModule } from 'src/modules/user/user.module';
 
 @Module({
   imports: [

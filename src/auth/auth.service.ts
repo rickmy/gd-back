@@ -1,5 +1,5 @@
-import {
-  Injectable,
+import { HttpException, HttpStatus,
+  Injectable, UnprocessableEntityException,
   UnauthorizedException,
   UnprocessableEntityException,
   HttpException,
@@ -75,8 +75,9 @@ export class AuthService {
     return '';
   }
 
+
   findAll() {
-    return 'this._prismaService.rol.findMany();';
+    return `This action returns all auth`;
   }
 
   findOne(id: number) {

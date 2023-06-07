@@ -12,7 +12,7 @@ import { PayloadModel } from './models/payloadModel';
 import { UserService } from 'src/modules/user/user.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
-import { ResponseAuth } from './models/ResponseAuth';
+import { ResponseAuth } from './models/responseAuth';
 @Injectable()
 export class AuthService {
   constructor(

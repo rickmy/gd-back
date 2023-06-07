@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { PayloadModel } from 'src/auth/models/payloadModel';
 
 @Injectable()
 export class UserService {
@@ -31,6 +32,14 @@ export class UserService {
     storedPasswordHash: string,
   ): Promise<boolean> {
     return bcrypt.compareSync(password, storedPasswordHash);
+  }
+
+  async validateUser(payload: PayloadModel): Promise<boolean> {
+    const user = await this.findByEmail(payload.email);
+    if (!user) {
+      throw new UnprocessableEntityException('Usuario no existe');
+    }
+    return !!user;
   }
 
   findAll() {

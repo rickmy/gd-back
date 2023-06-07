@@ -96,10 +96,6 @@ export class AuthService {
   }
 
   validateUser(payload: PayloadModel): Promise<boolean> {
-    console.log(payload);
-    return new Promise((resolve, reject) => {
-      resolve(true);
-      reject(false);
-    });
+    return this._userService.validateUser(payload);
   }
 }

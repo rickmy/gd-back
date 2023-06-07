@@ -1,3 +1,3 @@
 export interface ResponseAuth {
-    accessToken: string;
+  accessToken: string;
 }

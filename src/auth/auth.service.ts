@@ -1,14 +1,18 @@
-import { HttpException, HttpStatus, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { HttpException, HttpStatus,
+  Injectable, UnprocessableEntityException,
+  UnauthorizedException,
+  UnprocessableEntityException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { MailService } from 'src/modules/mail/mail.service';
-import { resolve } from 'path';
 import { PayloadModel } from './models/payloadModel';
 import { UserService } from 'src/modules/user/user.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
-import { ResponseAuth } from './models/responseAuth';
-
+import { ResponseAuth } from './models/ResponseAuth';
 @Injectable()
 export class AuthService {
   constructor(
@@ -17,60 +21,58 @@ export class AuthService {
     private _jwtService: JwtService,
   ) {}
 
-
-  async login(credentials: CredentialsDto): Promise<ResponseAuth>{
-
+  async login(credentials: CredentialsDto): Promise<ResponseAuth> {
     const user = await this._userService.findByEmail(credentials.email);
-    if(!user) {
+    if (!user) {
       throw new UnprocessableEntityException('Usuario no existe');
-
     }
     const isMatch = await this._userService.comparePassword(
       credentials.password,
       user.password,
     );
-    if(!isMatch){
-      throw new Error('Credenciales inválidas');
+    if (!isMatch) {
+      throw new UnauthorizedException('Credenciales invalidas');
     }
-
     const payload: PayloadModel = {
-      id:user.id,
+      id: user.id,
       email: user.email,
       role: user.idRol,
     };
-    
-    return{ accessToken: await this._jwtService.sign(payload)};
 
+    return { accessToken: await this._jwtService.sign(payload) };
   }
 
-  async forgetPassword(email: string): Promise<null> {
-    const userExists = await this._userService.findByEmail(email);
-    if (!userExists) throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
-    if (!userExists.state)
+  async forgetPassword(email: string): Promise<HttpException> {
+    const userExist = await this._userService.findByEmail(email);
+    if (!userExist)
+      throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
+    if (!userExist.state)
       throw new HttpException(
         'El usuario se encuentra inactivo/bloqueado',
         HttpStatus.CONFLICT,
       );
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
     const token = this._jwtService.sign(
       {
-        id: userExists.id,
-        email: userExists.email,
+        id: userExist.id,
+        email: userExist.email,
       },
       { expiresIn: '5m' },
     );
-    const fullName = `${userExists.firstName} ${userExists.lastName}`
-    const send = await this._mailService.sendForgetPasswordEmail(email, token,fullName);
+    const fullName = `${userExist.firstName} ${userExist.lastName}`;
+    const send = await this._mailService.sendForgetPasswordEmail(
+      email,
+      token,
+      fullName,
+    );
     if (!send)
       throw new HttpException(
         'Error al enviar el correo',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    return;
+    return new HttpException('Correo enviado exitosamente', HttpStatus.OK);
   }
-
   create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+    return '';
   }
 
 
@@ -94,10 +96,7 @@ export class AuthService {
     return this._mailService.sendTestEmail('fiedrojas87@gmail.com');
   }
 
-  validateUser(payload: PayloadModel) {
-    return new Promise((resolve, reject) => {
-      resolve(true);
-      reject(false);
-    });
+  validateUser(payload: PayloadModel): Promise<boolean> {
+    return this._userService.validateUser(payload);
   }
 }

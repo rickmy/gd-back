@@ -8,6 +8,7 @@ import { PayloadModel } from 'src/auth/models/payloadModel';
 
 @Injectable()
 export class UserService {
+ 
   constructor(private _prismaService: PrismaService) {}
   async create(createUserDto: CreateUserDto): Promise<User | null> {
     const { dni, email } = createUserDto;
@@ -42,6 +43,16 @@ export class UserService {
     return !!user;
   }
 
+//
+  async hashPassword(newPassword: string): Promise<string> {
+
+    const saltRounds = 10;
+    const hash2 = await bcrypt.hash(newPassword, saltRounds);
+    
+
+    throw new Error('Method not implemented.');
+  }
+
   findAll() {
     return `This action returns all user`;
   }
@@ -50,6 +61,13 @@ export class UserService {
     return `This action returns a #${id} user`;
   }
 
+  findByID(id: number) {
+    return this._prismaService.user.findUnique({
+      where: {
+       id,
+      },
+    });
+  }
   findByEmail(email: string) {
     return this._prismaService.user.findUnique({
       where: {

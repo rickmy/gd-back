@@ -75,23 +75,42 @@ export class AuthService {
     return new HttpException('Correo enviado exitosamente', HttpStatus.OK);
   }
 
-  async changePassword(changePasswordDto: ChangePasswordDto, user: User): Promise<void>{
-    const {oldPassword, newPassword} = changePasswordDto;
-    if (await this.encoderService.checkPassword(oldPassword, user.password)) {
-      user.password = await this.encoderService.encodePassword(newPassword);
-      this.userRepository.save(user);
-    } else {
-      throw new BadRequestException('la contraseña antigua no coincide!');
-    }
-       
-    
+  async changePassword(data: {
+    userId: number;
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<HttpException> {
+    const user = await this._userService.findByID(data.userId);
+    if (!user)
+      throw new HttpException('El usuario no existe', HttpStatus.BAD_REQUEST);
+    if (!user.state)
+      throw new HttpException(
+        'El usuario actualmente se encuentra inactivo/bloqueado',
+        HttpStatus.CONFLICT,
+      );
+    const isMatch = await this._userService.comparePassword(
+      data.currentPassword,
+      user.password,
+    );
+
+    if (!isMatch)
+      throw new HttpException(
+        'Credenciales incorrectas',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+     
+    const newPassword = await this._userService.hashPassword(data.newPassword);
+    user.password = newPassword;
+    const updatePassword = await this._userService.update(user.id, user);
+    if (!updatePassword)
+      throw new HttpException(
+        'Error al actualizar contraseña',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+
+      return new HttpException('Contraeña actualizada exitosamente', HttpStatus.OK);
   }
-
-
-  
-
-
-
 
 
   create(createAuthDto: CreateAuthDto) {

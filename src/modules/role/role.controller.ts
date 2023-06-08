@@ -18,7 +18,7 @@ import { RoleEntity } from './entities/role.entity';
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
-  @Post()
+  @Post('/Post')
   @ApiOkResponse({ description: 'Rol creado', type: RoleEntity })
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.roleService.create(createRoleDto);
@@ -29,17 +29,17 @@ export class RoleController {
     return this.roleService.findAll();
   }
 
-  @Get(':id')
+  @Get('/All/:id')
   findOne(@Param('id') id: string) {
     return this.roleService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('/Update/:id')
   update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
     return this.roleService.update(+id, updateRoleDto);
   }
 
-  @Delete(':id')
+  @Delete('/Delete/:id')
   remove(@Param('id') id: string) {
     return this.roleService.remove(+id);
   }

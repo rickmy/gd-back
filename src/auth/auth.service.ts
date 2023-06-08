@@ -4,6 +4,7 @@ import {
   UnprocessableEntityException,
   HttpException,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -13,6 +14,8 @@ import { UserService } from 'src/modules/user/user.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ResponseAuth } from './models/responseAuth';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { User } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
@@ -71,6 +74,26 @@ export class AuthService {
       );
     return new HttpException('Correo enviado exitosamente', HttpStatus.OK);
   }
+
+  async changePassword(changePasswordDto: ChangePasswordDto, user: User): Promise<void>{
+    const {oldPassword, newPassword} = changePasswordDto;
+    if (await this.encoderService.checkPassword(oldPassword, user.password)) {
+      user.password = await this.encoderService.encodePassword(newPassword);
+      this.userRepository.save(user);
+    } else {
+      throw new BadRequestException('la contraseña antigua no coincide!');
+    }
+       
+    
+  }
+
+
+  
+
+
+
+
+
   create(createAuthDto: CreateAuthDto) {
     return '';
   }

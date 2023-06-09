@@ -1,9 +1,11 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { CredentialsDto } from './dto/credentials.dto';
 
 @Controller('auth')
+@ApiTags('Auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -11,11 +13,17 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @ApiOperation({ summary: 'Iniciar sesión' })
+  @ApiResponse({ status: 200, description: 'Usuario autenticado correctamente' })
+  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   login(@Body() credentials: CredentialsDto) {
     return this.authService.login(credentials);
   }
 
   @Post('forget-password')
+  @ApiOperation({ summary: 'Olvidar contraseña' })
+  @ApiBody({ type: String, description: 'Correo electrónico del usuario' })
+  @ApiResponse({ status: 200, description: 'Solicitud de restablecimiento de contraseña enviada correctamente' })
   forgetPassword(@Body('email') email: string) {
     return this.authService.forgetPassword(email);
   }
@@ -23,41 +31,7 @@ export class AuthController {
   @Get()
   findAll() {
     return this.authService.sendEmailTest();
-    return this.authService.sendEmailTest();
   }
 
-  /*
-  @Post('reset')
-  async requestPasswordReset(@Body() body: { email: string }) {
-    const user = await this.authService.findUserByEmail(body.email);
-    if (!user) {
-      throw new Error('Usuario no encontrado');
-    }
-    const resetToken = this.jwtService.sign({ sub: user.id });
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'fiedrojas87@gmail.com',
-        pass: 'mastercheef123',
-      },
-    });
-
-    const mailOptions = {
-      from: 'a@gmail.com',
-      to: user.email,
-      subject: 'restablecimiento de contraseña',
-      text: `Para restablecer tu contraseña, haz clic en el siguiente enlace: 
-      http://tudominio.com/reset-password?token=${resetToken}`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        throw new Error('Error al enviar el correo electrónico');
-      } else {
-        console.log('Correo electrónico enviado:', info.response);
-      }
-    });
-  }
-  */
+ 
 }

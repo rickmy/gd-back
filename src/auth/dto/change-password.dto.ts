@@ -1,14 +1,18 @@
-import { IsNotEmpty, Length } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class ChangePasswordDto {
 
+  @IsNumber()
+  userId: number;
 
   @IsNotEmpty()
-  @Length(6, 20)
-  oldPassword: String;
+  //@Length(6, 20)
+  @IsString()
+  currentPassword: string;
   
   @IsNotEmpty()
-  @Length(6, 20)
-  newPassword: String;
+  //@Length(6, 20)
+  @IsString()
+  newPassword: string;
 
 }

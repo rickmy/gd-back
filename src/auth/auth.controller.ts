@@ -1,11 +1,9 @@
-import { Controller, Get, Post, Body, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, UseGuards, HttpException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { GetUser } from './get-user.decorator';
-import { User } from '@prisma/client';
-import { AuthGuard } from '@nestjs/passport';
+
 
 @Controller('auth')
 export class AuthController {
@@ -25,13 +23,11 @@ export class AuthController {
   }
 
 
-  @Patch('/change-password')
-  @UseGuards(AuthGuard())
+  @Patch('change-password')
   changePassword(
-    @Body() ChangePasswordDto: ChangePasswordDto,
-    @GetUser() user: User
-  ): Promise<void> {
-    return this.authService.changePassword(ChangePasswordDto, user);
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<HttpException> {
+    return this.authService.changePassword(changePasswordDto);
   }
 
   @Get()

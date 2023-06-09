@@ -75,11 +75,7 @@ export class AuthService {
     return new HttpException('Correo enviado exitosamente', HttpStatus.OK);
   }
 
-  async changePassword(data: {
-    userId: number;
-    currentPassword: string;
-    newPassword: string;
-  }): Promise<HttpException> {
+  async changePassword(data:ChangePasswordDto): Promise<HttpException> {
     const user = await this._userService.findByID(data.userId);
     if (!user)
       throw new HttpException('El usuario no existe', HttpStatus.BAD_REQUEST);

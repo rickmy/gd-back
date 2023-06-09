@@ -45,12 +45,7 @@ export class UserService {
 
 //
   async hashPassword(newPassword: string): Promise<string> {
-
-    const saltRounds = 10;
-    const hash2 = await bcrypt.hash(newPassword, saltRounds);
-    
-
-    throw new Error('Method not implemented.');
+    return bcrypt.hashSync(newPassword, 10);
   }
 
   findAll() {

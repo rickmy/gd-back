@@ -1,4 +1,4 @@
 export class CreatePermissionDto {
-    name: string;
-    endpoint: string;
+  name: string;
+  endpoint: string;
 }

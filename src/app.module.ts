@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 import config from './core/config';
 
 @Module({
@@ -20,6 +21,7 @@ import config from './core/config';
     AuthModule,
     UserModule,
     RoleModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

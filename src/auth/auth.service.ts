@@ -132,7 +132,7 @@ export class AuthService {
   sendEmailTest(): Promise<boolean> {
     return this._mailService.sendTestEmail('fiedrojas87@gmail.com');
   }
-
+  
   validateUser(payload: PayloadModel): Promise<boolean> {
     return this._userService.validateUser(payload);
   }

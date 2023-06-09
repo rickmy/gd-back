@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, UseGuards, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
-import { ChangePasswordDto } from './dto/change-password.dto';
-
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { CredentialsDto } from './dto/credentials.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -28,18 +28,10 @@ export class AuthController {
     return this.authService.forgetPassword(email);
   }
 
-
-  @Patch('change-password')
-  changePassword(
-    @Body() changePasswordDto: ChangePasswordDto,
-  ): Promise<HttpException> {
-    return this.authService.changePassword(changePasswordDto);
-  }
-
   @Get()
   findAll() {
     return this.authService.sendEmailTest();
   }
 
+ 
 }
-

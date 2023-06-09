@@ -4,6 +4,7 @@ import {
   UnprocessableEntityException,
   HttpException,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -13,6 +14,8 @@ import { UserService } from 'src/modules/user/user.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ResponseAuth } from './models/responseAuth';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { User } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
@@ -71,6 +74,41 @@ export class AuthService {
       );
     return new HttpException('Correo enviado exitosamente', HttpStatus.OK);
   }
+
+  async changePassword(data:ChangePasswordDto): Promise<HttpException> {
+    const user = await this._userService.findByID(data.userId);
+    if (!user)
+      throw new HttpException('El usuario no existe', HttpStatus.BAD_REQUEST);
+    if (!user.state)
+      throw new HttpException(
+        'El usuario actualmente se encuentra inactivo/bloqueado',
+        HttpStatus.CONFLICT,
+      );
+    const isMatch = await this._userService.comparePassword(
+      data.currentPassword,
+      user.password,
+    );
+
+    if (!isMatch)
+      throw new HttpException(
+        'Credenciales incorrectas',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+     
+    const newPassword = await this._userService.hashPassword(data.newPassword);
+    user.password = newPassword;
+    const updatePassword = await this._userService.update(user.id, user);
+    if (!updatePassword)
+      throw new HttpException(
+        'Error al actualizar contraseña',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+
+      return new HttpException('Contraeña actualizada exitosamente', HttpStatus.OK);
+  }
+
+
   create(createAuthDto: CreateAuthDto) {
     return '';
   }

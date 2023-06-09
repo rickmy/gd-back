@@ -12,34 +12,34 @@ export class PermissionsController {
 
   @Post()
   @ApiResponse({ status: 201, description: 'Crea un nuevo permiso' })
-  async create(@Body() permission: PermissionEntity): Promise<PermissionEntity> {
+   create(@Body() permission: CreatePermissionDto): Promise<PermissionEntity> {
     return this.permissionsService.create(permission);
   }
 
   @Get()
   @ApiResponse({ status: 200, description: 'Obtiene todos los permisos' })
-  async findAll(): Promise<PermissionEntity[]> {
+   findAll(): Promise<CreatePermissionDto[]> {
     return this.permissionsService.findAll();
   }
 
   @Get(':id')
   @ApiResponse({ status: 200, description: 'Obtiene un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
-  async findOne(@Param('id') id: number): Promise<PermissionEntity> {
+   findOne(@Param('id') id: string): Promise<PermissionEntity> {
     return this.permissionsService.findOne(id);
   }
 
   @Patch(':id')
   @ApiResponse({ status: 200, description: 'Actualiza un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
-  async update(@Param('id') id: number, @Body() permission: PermissionEntity): Promise<PermissionEntity> {
+   update(@Param('id') id: string, @Body() permission: PermissionEntity): Promise<PermissionEntity> {
     return this.permissionsService.update(id, permission);
   }
 
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
-  async remove(@Param('id') id: number): Promise<void> {
+   remove(@Param('id') id: string): Promise<void> {
 
     return this.permissionsService.remove(id);
 

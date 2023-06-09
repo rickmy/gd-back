@@ -20,30 +20,33 @@ export class PermissionsService {
     return await this._prismaService.permission.findMany();
   }
 
-  async findOne(id: number): Promise<PermissionEntity> {
+  async findOne(id: string): Promise<PermissionEntity> {
     return await this._prismaService.permission.findUnique({
       where: {
-        id: parseInt(id.toString()),
+        id: parseInt(id),
       }
     });
   }
 
 
-  async update(id: number, permission: PermissionEntity): Promise<PermissionEntity> {
+  async update(id: string, permission: PermissionEntity): Promise<PermissionEntity> {
     return await this._prismaService.permission.update({
       where: {
-        id: parseInt(id.toString()),
+        id: parseInt(id),
       },
       data: permission
     });
   }
 
-  async remove(id: number): Promise<void> {
-    await this._prismaService.permission.delete({
+  async remove(id: string): Promise<void> {
+    await this._prismaService.permission.update({
       where: {
-        id: parseInt(id.toString()),
-        
+        id: parseInt(id),
       },
-    });
-  }
+      data: {
+        state: false
+      }
+
+  });
+}
 }

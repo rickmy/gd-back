@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
@@ -39,7 +39,7 @@ export class PermissionsController {
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
-   remove(@Param('id') id: string): Promise<void> {
+   remove(@Param('id') id: string): Promise<HttpException> {
 
     return this.permissionsService.remove(id);
 

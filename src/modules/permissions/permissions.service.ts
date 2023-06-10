@@ -3,22 +3,22 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PermissionEntity } from './entities/permission.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { HttpException, HttpStatus } from '@nestjs/common';
 @Injectable()
 export class PermissionsService {
-  constructor(
-    private _prismaService: PrismaService
-  ) { }
+  constructor(private _prismaService: PrismaService) {}
 
   async create(permission: CreatePermissionDto): Promise<PermissionEntity> {
     try {
       const createdPermission = await this._prismaService.permission.create({
-        data: permission
+        data: permission,
       });
 
       return createdPermission;
     } catch (error) {
-      throw new HttpException('No se pudo crear el permiso', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'No se pudo crear el permiso',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -102,7 +102,7 @@ export class PermissionsService {
         id: parseInt(id),
       },
       data: {
-        state: false
+        state: false,
       },
     });
     return new HttpException(`Permiso:${id} eliminado`, HttpStatus.OK);

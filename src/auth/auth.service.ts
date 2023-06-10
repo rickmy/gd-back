@@ -13,6 +13,7 @@ import { UserService } from 'src/modules/user/user.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ResponseAuth } from './models/responseAuth';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -71,6 +72,36 @@ export class AuthService {
       );
     return new HttpException('Correo enviado exitosamente', HttpStatus.OK);
   }
+
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<HttpException> {
+    const payload = this._jwtService.verify(resetPasswordDto.token);
+    if (!payload)
+      throw new HttpException(
+        'El token no es valido',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    const userExist = await this._userService.findByEmail(payload.email);
+    if (!userExist)
+      throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
+    if (!userExist.state)
+      throw new HttpException(
+        'El usuario se encuentra inactivo/bloqueado',
+        HttpStatus.CONFLICT,
+      );
+    userExist.password = this._userService.hashPassword(
+      resetPasswordDto.newPassword,
+    );
+    const ok = await this._userService.update(userExist.id, userExist);
+    if (!ok)
+      throw new HttpException(
+        'Error al actualizar la contraseña',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    return new HttpException('Contraseña actualizada', HttpStatus.OK);
+  }
+
   create(createAuthDto: CreateAuthDto) {
     return '';
   }
@@ -94,7 +125,7 @@ export class AuthService {
   sendEmailTest(): Promise<boolean> {
     return this._mailService.sendTestEmail('fiedrojas87@gmail.com');
   }
-  
+
   validateUser(payload: PayloadModel): Promise<boolean> {
     return this._userService.validateUser(payload);
   }

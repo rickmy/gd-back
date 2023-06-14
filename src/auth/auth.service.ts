@@ -5,14 +5,13 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { MailService } from 'src/modules/mail/mail.service';
 import { PayloadModel } from './models/payloadModel';
 import { UserService } from 'src/modules/user/user.service';
-import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
-import { ResponseAuth } from './models/responseAuth';
+import { ResponseAuthModel } from './models/responseAuth';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 @Injectable()
 export class AuthService {
@@ -22,11 +21,10 @@ export class AuthService {
     private _jwtService: JwtService,
   ) {}
 
-  async login(credentials: CredentialsDto): Promise<ResponseAuth> {
+  async login(credentials: CredentialsDto): Promise<ResponseAuthModel> {
     const user = await this._userService.findByEmail(credentials.email);
-    if (!user) {
-      throw new UnprocessableEntityException('Usuario no existe');
-    }
+    if (!user) throw new UnprocessableEntityException('Usuario no existe');
+    if (!user.state) throw new UnauthorizedException('Usuario inactivo');
     const isMatch = await this._userService.comparePassword(
       credentials.password,
       user.password,
@@ -39,8 +37,29 @@ export class AuthService {
       email: user.email,
       role: user.idRol,
     };
+    user.password = undefined;
 
-    return { accessToken: await this._jwtService.sign(payload) };
+    return { accessToken: await this.createToken(payload), user };
+  }
+
+  async createToken(payload: PayloadModel): Promise<string> {
+    try {
+      const token = await this._jwtService.signAsync(payload);
+      return token;
+    } catch (error) {
+      //this.loggerService.error('Error al crear el token JWT', error.stack);
+      throw new UnauthorizedException(`Error en el token JWT ${error}`);
+    }
+  }
+
+  verifyToken(token: string): any {
+    try {
+      const payload = this._jwtService.verify(token);
+      return payload;
+    } catch (error) {
+      //this.loggerService.error('Error en el token JWT', error.stack);
+      throw new UnauthorizedException(`Error en el token JWT ${error}`);
+    }
   }
 
   async forgetPassword(email: string): Promise<HttpException> {
@@ -52,7 +71,7 @@ export class AuthService {
         'El usuario se encuentra inactivo/bloqueado',
         HttpStatus.CONFLICT,
       );
-    const token = this._jwtService.sign(
+    const token = await this._jwtService.signAsync(
       {
         id: userExist.id,
         email: userExist.email,
@@ -76,13 +95,13 @@ export class AuthService {
   async resetPassword(
     resetPasswordDto: ResetPasswordDto,
   ): Promise<HttpException> {
-    const payload = this._jwtService.verify(resetPasswordDto.token);
+    const payload = await this.verifyToken(resetPasswordDto.token);
     if (!payload)
       throw new HttpException(
         'El token no es valido',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    const userExist = await this._userService.findByEmail(payload.email);
+    const userExist = await this._userService.findOne(payload.id);
     if (!userExist)
       throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
     if (!userExist.state)
@@ -102,28 +121,36 @@ export class AuthService {
     return new HttpException('Contraseña actualizada', HttpStatus.OK);
   }
 
-  create(createAuthDto: CreateAuthDto) {
-    return '';
-  }
-
-  findAll() {
-    return `This action returns all auth`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
-  }
-
-  sendEmailTest(): Promise<boolean> {
-    return this._mailService.sendTestEmail('fiedrojas87@gmail.com');
+  async changePassword(
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<HttpException> {
+    const userExist = await this._userService.findOne(changePasswordDto.userId);
+    if (!userExist)
+      throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
+    if (!userExist.state)
+      throw new HttpException(
+        'El usuario se encuentra inactivo/bloqueado',
+        HttpStatus.CONFLICT,
+      );
+    const isMatch = await this._userService.comparePassword(
+      changePasswordDto.currentPassword,
+      userExist.password,
+    );
+    if (!isMatch)
+      throw new HttpException(
+        'La contraseña actual no coincide',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    userExist.password = this._userService.hashPassword(
+      changePasswordDto.newPassword,
+    );
+    const changed = await this._userService.update(userExist.id, userExist);
+    if (!changed)
+      throw new HttpException(
+        'Error al actualizar la contraseña',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    return new HttpException('Contraseña actualizada', HttpStatus.OK);
   }
 
   validateUser(payload: PayloadModel): Promise<boolean> {

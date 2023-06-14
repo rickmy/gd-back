@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  UnprocessableEntityException,
+  HttpException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -9,17 +13,15 @@ import { PayloadModel } from 'src/auth/models/payloadModel';
 @Injectable()
 export class UserService {
   constructor(private _prismaService: PrismaService) {}
+
   async create(createUserDto: CreateUserDto): Promise<User | null> {
     const { dni, email } = createUserDto;
     const existDni = await this.findByDni(dni);
-    console.log(existDni);
     if (existDni)
       throw new UnprocessableEntityException('El usuario ya existe');
-
     const existEmail = await this.findByEmail(email);
     if (existEmail)
       throw new UnprocessableEntityException('El usuario ya existe');
-
     createUserDto.password = bcrypt.hashSync(createUserDto.password, 10);
     const newUser = this._prismaService.user.create({
       data: createUserDto,
@@ -51,17 +53,29 @@ export class UserService {
   }
 
   findOne(id: number) {
-    return this._prismaService.user.findUnique({
-      where: {
-        id,
-      },
-    });
+    try {
+      return this._prismaService.user.findUnique({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error, 500);
+    }
   }
 
   findByEmail(email: string) {
     return this._prismaService.user.findUnique({
       where: {
         email,
+      },
+      include: {
+        rol: {
+          select: {
+            name: true,
+            state: true,
+          },
+        },
       },
     });
   }
@@ -77,13 +91,17 @@ export class UserService {
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
     const user = await this.findOne(id);
     if (!user) throw new UnprocessableEntityException('El usuario no existe');
-    const updatedUser = await this._prismaService.user.update({
-      where: {
-        id,
-      },
-      data: updateUserDto,
-    });
-    return updatedUser;
+    try {
+      const updatedUser = await this._prismaService.user.update({
+        where: {
+          id,
+        },
+        data: { ...updateUserDto },
+      });
+      return updatedUser;
+    } catch (error) {
+      throw new HttpException(error, 500);
+    }
   }
 
   remove(id: number) {

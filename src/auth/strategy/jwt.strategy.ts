@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AuthService } from '../auth.service';
@@ -16,5 +16,12 @@ export class JWTstrategy extends PassportStrategy(Strategy) {
   }
   async validate(payload: PayloadModel) {
     return await this._authService.validateUser(payload);
+  }
+  handleRequest(err: any, user: any, info: Error): any {
+    if (err || !user) {
+      //this.loggerService.error('Error en la estrategia de autenticación', err?.stack || info?.stack);
+      throw err || new UnauthorizedException('No autorizado');
+    }
+    return user;
   }
 }

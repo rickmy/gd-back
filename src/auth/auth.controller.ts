@@ -1,11 +1,17 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JwtService } from '@nestjs/jwt';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 import { CredentialsDto } from './dto/credentials.dto';
-import { RequestResetPasswordDto } from './dto/request-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResponseAuthModel } from './models/responseAuth';
+import { JwtAuthGuard } from './guards/auth/auth.guard';
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
@@ -13,9 +19,13 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Iniciar sesión' })
-  @ApiResponse({
-    status: 200,
-    description: 'Usuario autenticado correctamente',
+  @ApiBody({
+    type: CredentialsDto,
+    description: 'Correo electrónico y contraseña del usuario',
+  })
+  @ApiOkResponse({
+    description: 'Inicio de sesión exitoso',
+    type: ResponseAuthModel,
   })
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   login(@Body() credentials: CredentialsDto) {
@@ -30,12 +40,6 @@ export class AuthController {
     description:
       'Solicitud de restablecimiento de contraseña enviada correctamente',
   })
-  @Post('reset-password')
-  @ApiOperation({ summary: 'Restablecer contraseña' })
-  @ApiBody({
-    type: RequestResetPasswordDto,
-    description: 'Token y nueva contraseña del usuario',
-  })
   forgetPassword(@Body('email') email: string) {
     return this.authService.forgetPassword(email);
   }
@@ -46,12 +50,19 @@ export class AuthController {
     type: ResetPasswordDto,
     description: 'Token y nueva contraseña del usuario',
   })
+  @ApiOkResponse({ description: 'Contraseña restablecida correctamente' })
   resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
-
-  @Get()
-  findAll() {
-    return this.authService.sendEmailTest();
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @ApiOperation({ summary: 'Cambiar contraseña' })
+  @ApiBody({
+    type: ChangePasswordDto,
+    description: 'Id, contraseña actual y nueva contraseña del usuario',
+  })
+  @ApiOkResponse({ description: 'Contraseña cambiada correctamente' })
+  changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(changePasswordDto);
   }
 }

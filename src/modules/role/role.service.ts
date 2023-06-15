@@ -1,26 +1,204 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { RoleWithPermission } from './dto/roleWithPermission.dto';
+import { PermissionEntity } from '../permissions/entities/permission.entity';
+import { RoleEntity } from './entities/role.entity';
 
 @Injectable()
 export class RoleService {
-  create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role';
+  constructor(private prismaService: PrismaService) {}
+
+  async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
+    const { name, permissions } = createRoleDto;
+    const role = await this.prismaService.rol.create({
+      data: {
+        name,
+      },
+    });
+    if (!role) throw new HttpException('Error al crear el rol', 500);
+    const rolHasPermission = permissions.map((permission) => {
+      return {
+        idPermission: permission.id,
+        idRol: role.id,
+      };
+    });
+    const rolesWithPermission =
+      await this.prismaService.rolHasPermission.createMany({
+        data: rolHasPermission,
+      });
+    if (!rolesWithPermission)
+      throw new HttpException('Error al enlazar el rol con sus permisos', 500);
+    return new HttpException('Rol creado correctamente', 201);
   }
 
-  findAll() {
-    return `This action returns all role`;
+  async findAll(allActive?: boolean): Promise<RoleEntity[]> {
+    try {
+      return await this.prismaService.rol.findMany({
+        where: {
+          state: allActive ? true : undefined,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} role`;
+  async findOne(id: number) {
+    try {
+      return await this.prismaService.rol.findFirstOrThrow({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error.message, 404);
+    }
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
+  async findRoleWithPermissions(
+    id: number,
+    all?: boolean,
+  ): Promise<RoleWithPermission> {
+    const role = await this.findOne(id);
+    let permissionsWithRole = [];
+    try {
+      permissionsWithRole = await this.prismaService.rolHasPermission.findMany({
+        where: {
+          idRol: id,
+          state: all ? undefined : true,
+        },
+        include: {
+          permission: true,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
+    const permissions: PermissionEntity[] = permissionsWithRole.map(
+      (permission) => {
+        return {
+          ...permission.permission,
+        };
+      },
+    );
+    return {
+      role,
+      permissions,
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} role`;
+  async update(
+    id: number,
+    updateRoleDto: UpdateRoleDto,
+  ): Promise<RoleWithPermission> {
+    const { permissions } = updateRoleDto;
+    const roleUpdate = await this.updateOnlyRole(id, updateRoleDto);
+    if (!roleUpdate) throw new HttpException('Error al actualizar el rol', 500);
+
+    const permissionDB = (await this.findRoleWithPermissions(id, true))
+      .permissions;
+    const permissionDelete = permissionDB.filter((permission) => {
+      return permissions.some((permissionUpdate) => {
+        return permissionUpdate.id === permission.id && permissionUpdate.state;
+      });
+    });
+    const permissionUpdate = permissionDB.filter((permission) => {
+      return !permissions.some((permissionUpdate) => {
+        return permissionUpdate.id === permission.id && !permissionUpdate.state;
+      });
+    });
+    const permissionCreate = permissions.filter((permission) => {
+      return !permissionDB.some((permissionUpdate) => {
+        return permissionUpdate.id === permission.id;
+      });
+    });
+    if (permissionDelete.length > 0) {
+      try {
+        await this.prismaService.rolHasPermission.updateMany({
+          where: {
+            idRol: id,
+            idPermission: {
+              in: permissionDelete.map((permission) => permission.id),
+            },
+          },
+          data: {
+            state: false,
+          },
+        });
+      } catch (error) {
+        throw new HttpException(error.message, 500);
+      }
+    }
+    if (permissionUpdate.length > 0) {
+      try {
+        await this.prismaService.rolHasPermission.updateMany({
+          where: {
+            idRol: id,
+            idPermission: {
+              in: permissionDelete.map((permission) => permission.id),
+            },
+          },
+          data: {
+            state: true,
+          },
+        });
+      } catch (error) {
+        throw new HttpException(error.message, 500);
+      }
+    }
+    if (permissionCreate.length > 0) {
+      const rolHasPermission = permissionCreate.map((permission) => {
+        return {
+          idPermission: permission.id,
+          idRol: id,
+        };
+      });
+
+      try {
+        await this.prismaService.rolHasPermission.createMany({
+          data: rolHasPermission,
+        });
+      } catch (error) {
+        throw new HttpException(error.message, 500);
+      }
+    }
+    return await this.findRoleWithPermissions(id);
+  }
+
+  async updateOnlyRole(
+    id: number,
+    updateRoleDto: UpdateRoleDto,
+  ): Promise<RoleEntity> {
+    const { name } = updateRoleDto;
+    try {
+      return await this.prismaService.rol.update({
+        where: {
+          id,
+        },
+        data: {
+          name,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
+  }
+
+  async remove(id: number): Promise<HttpException> {
+    try {
+      await this.prismaService.rol.update({
+        where: {
+          id,
+        },
+        data: {
+          state: false,
+        },
+      });
+      return new HttpException('Rol eliminado correctamente', 200);
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
   }
 }

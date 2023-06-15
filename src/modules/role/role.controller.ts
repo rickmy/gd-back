@@ -3,15 +3,14 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { RoleEntity } from './entities/role.entity';
 
 @ApiTags('role')
 @Controller('role')
@@ -19,7 +18,7 @@ export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post()
-  @ApiOkResponse({ description: 'Rol creado', type: RoleEntity })
+  @ApiOkResponse({ description: 'Rol creado' })
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.roleService.create(createRoleDto);
   }
@@ -28,13 +27,17 @@ export class RoleController {
   findAll() {
     return this.roleService.findAll();
   }
+  @Get('active')
+  findAllActive() {
+    return this.roleService.findAll(true);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.roleService.findOne(+id);
+    return this.roleService.findRoleWithPermissions(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
     return this.roleService.update(+id, updateRoleDto);
   }

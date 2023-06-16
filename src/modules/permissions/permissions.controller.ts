@@ -7,13 +7,16 @@ import {
   Delete,
   HttpException,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PermissionEntity } from './entities/permission.entity';
 import { ApiTags, ApiResponse, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('permissions')
 @Controller('permissions')
 export class PermissionsController {

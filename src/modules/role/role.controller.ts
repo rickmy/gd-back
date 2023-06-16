@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOkResponse,
@@ -16,8 +17,9 @@ import { RoleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RoleEntity } from './entities/role.entity';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
-
+@UseGuards(JwtAuthGuard)
 @ApiTags('role')
 @Controller('role')
 export class RoleController {

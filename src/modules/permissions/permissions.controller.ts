@@ -3,16 +3,16 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   HttpException,
+  Put,
 } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PermissionEntity } from './entities/permission.entity';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 
 @ApiTags('permissions')
 @Controller('permissions')
@@ -20,27 +20,31 @@ export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 
   @Post()
-  @ApiResponse({ status: 201, description: 'Crea un nuevo permiso' })
+  @ApiOkResponse({ type:CreatePermissionDto , status: 201, description: 'Crea un nuevo permiso' })
+  @ApiOperation({ summary: 'Crear permiso' })
   create(@Body() permission: CreatePermissionDto): Promise<PermissionEntity> {
     return this.permissionsService.create(permission);
   }
 
   @Get()
-  @ApiResponse({ status: 200, description: 'Obtiene todos los permisos' })
+  @ApiResponse({ type:PermissionEntity, status: 200, description: 'Obtiene todos los permisos' })
+  @ApiOperation({ summary: 'Obtener todos los permisos' })
   findAll(): Promise<CreatePermissionDto[]> {
     return this.permissionsService.findAll();
   }
 
   @Get(':id')
-  @ApiResponse({ status: 200, description: 'Obtiene un permiso por su ID' })
+  @ApiResponse({type: PermissionEntity, status: 200, description: 'Obtiene un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
+  @ApiOperation({ summary: 'Obtener permiso por su ID' })
   findOne(@Param('id') id: string): Promise<PermissionEntity> {
     return this.permissionsService.findOne(id);
   }
 
-  @Patch(':id')
-  @ApiResponse({ status: 200, description: 'Actualiza un permiso por su ID' })
+  @Put(':id')
+  @ApiResponse({type:UpdatePermissionDto, status: 200, description: 'Actualiza un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
+  @ApiOperation({ summary: 'Actualizar permiso por su ID' })
   update(
     @Param('id') id: string,
     @Body() permission: UpdatePermissionDto,
@@ -51,6 +55,7 @@ export class PermissionsController {
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
+  @ApiOperation({ summary: 'Eliminar permiso por su ID' })
   remove(@Param('id') id: string): Promise<HttpException> {
     return this.permissionsService.remove(id);
   }

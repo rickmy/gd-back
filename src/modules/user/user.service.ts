@@ -2,6 +2,7 @@ import {
   Injectable,
   UnprocessableEntityException,
   HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -48,8 +49,22 @@ export class UserService {
     return bcrypt.hashSync(password, 10);
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(isAll?:boolean): Promise<User[]> {
+    try {
+      const users = await this._prismaService.user.findMany({
+        where: {
+          state: isAll ? undefined : true,
+        },
+      });
+      if (users.length === 0)
+        throw new HttpException('No hay usuarios activos', HttpStatus.NO_CONTENT);
+      return users.map((user) => {
+        delete user.password;
+        return user;
+      });
+    } catch (error) {
+      throw new HttpException(error, 500);
+    }
   }
 
   findOne(id: number) {

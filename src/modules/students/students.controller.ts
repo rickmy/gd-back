@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
-import { ApiOkResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('students')
 export class StudentsController {
@@ -13,6 +14,16 @@ export class StudentsController {
   @Post()
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentsService.create(createStudentDto);
+  }
+
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOkResponse({ description: 'Estudiantes subidos', type: CreateStudentDto, isArray: true })
+  @ApiBody({required: true, type: FileInterceptor })
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Subir excel de los estudiantes' })
+  @Post('upload')
+  uploadStudents(@UploadedFile() file: Express.Multer.File) {
+    return this.studentsService.uploadStudents(file);
   }
 
   @ApiOkResponse({ description: 'Estudiantes encontrados', type: StudentEntity })

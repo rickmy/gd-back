@@ -13,6 +13,7 @@ import { ResponseAuthModel } from './models/responseAuth';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,7 +26,7 @@ export class AuthService {
     const user = await this._userService.findByEmail(credentials.email);
     if (!user) throw new UnprocessableEntityException('Usuario no existe');
     if (!user.state) throw new UnauthorizedException('Usuario inactivo');
-    const isMatch = await this._userService.comparePassword(
+    const isMatch = await this.comparePassword(
       credentials.password,
       user.password,
     );
@@ -52,9 +53,9 @@ export class AuthService {
     }
   }
 
-  verifyToken(token: string): any {
+  async verifyToken(token: string): Promise<PayloadModel> {
     try {
-      const payload = this._jwtService.verify(token);
+      const payload = await this._jwtService.verifyAsync(token);
       return payload;
     } catch (error) {
       //this.loggerService.error('Error en el token JWT', error.stack);
@@ -109,7 +110,7 @@ export class AuthService {
         'El usuario se encuentra inactivo/bloqueado',
         HttpStatus.CONFLICT,
       );
-    userExist.password = this._userService.hashPassword(
+    userExist.password = this.hashPassword(
       resetPasswordDto.newPassword,
     );
     const ok = await this._userService.update(userExist.id, userExist);
@@ -132,7 +133,7 @@ export class AuthService {
         'El usuario se encuentra inactivo/bloqueado',
         HttpStatus.CONFLICT,
       );
-    const isMatch = await this._userService.comparePassword(
+    const isMatch = await this.comparePassword(
       changePasswordDto.currentPassword,
       userExist.password,
     );
@@ -141,7 +142,7 @@ export class AuthService {
         'La contraseña actual no coincide',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    userExist.password = this._userService.hashPassword(
+    userExist.password = this.hashPassword(
       changePasswordDto.newPassword,
     );
     const changed = await this._userService.update(userExist.id, userExist);
@@ -153,7 +154,19 @@ export class AuthService {
     return new HttpException('Contraseña actualizada', HttpStatus.OK);
   }
 
-  validateUser(payload: PayloadModel): Promise<boolean> {
-    return this._userService.validateUser(payload);
+  async validateUser(payload: PayloadModel): Promise<boolean> {
+    return await this._userService.validateUser(payload);
+  }
+
+
+  hashPassword(password: string): string {
+    return bcrypt.hashSync(password, 10);
+  }
+
+  async comparePassword(
+    password: string,
+    storedPasswordHash: string,
+  ): Promise<boolean> {
+    return bcrypt.compareSync(password, storedPasswordHash);
   }
 }

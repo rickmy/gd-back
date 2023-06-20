@@ -11,10 +11,10 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix('/api');
   const config = new DocumentBuilder()
-    .setTitle('NestJS Prisma')
+    .setTitle('Api Rest Complexivo')
     .setDescription('The NestJS Prisma API description')
     .setVersion('1.0')
-    .addTag('nestjs-prisma')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);

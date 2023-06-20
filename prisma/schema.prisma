@@ -142,8 +142,8 @@ model Student {
   status               StatusStudent          @default(PENDIENTE)
   idCareer             Int
   career               Career                 @relation(fields: [idCareer], references: [id])
-  idProject            Int
-  project              Project                @relation(fields: [idProject], references: [id])
+  idProject            Int?
+  project              Project?                @relation(fields: [idProject], references: [id])
   CompaniesHasStudents CompaniesHasStudents[]
 }
 

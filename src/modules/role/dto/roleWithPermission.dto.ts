@@ -4,11 +4,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
 
 export class RoleWithPermission {
-
-  @ApiProperty({ type: RoleEntity, description: 'Role',  })
+  @ApiProperty({ type: RoleEntity, description: 'Role' })
   role: RoleEntity;
-  
-  @ApiProperty({ type: [PermissionEntity], isArray: true, description: 'Permissions',  })
-  permissions: PermissionEntity[];
 
+  @ApiProperty({
+    type: [PermissionEntity],
+    isArray: true,
+    description: 'Permissions',
+  })
+  permissions: PermissionEntity[];
 }

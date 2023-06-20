@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { StatusStudent, TypeDNI } from "@prisma/client";
+import { IsEmpty, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+
 
 export class CreateStudentDto {
 
@@ -36,8 +38,23 @@ export class CreateStudentDto {
     @ApiProperty({ description: 'correo electrónico estudiante', example: 'has.ruiz@yavirac.edu.ec' })
     email: string;
     @IsString({ message: 'la contraseña debe ser un string' })
-    @IsNotEmpty({ message: 'la contraseña no debe estar vacio' })
+    @IsEmpty({ message: 'la contraseña puede ser nula' })
     @ApiProperty({ description: 'contraseña estudiante', example: 'passwordHugo123' })
     password: string;
+    @IsEnum(TypeDNI, { message: 'El tipo de DNI es inválido' })
+    @ApiProperty({ description: 'Tipo de DNI', enum: TypeDNI, default: TypeDNI.CEDULA })
+    typeDni: TypeDNI;
+    @IsEnum(StatusStudent, { message: 'El estado del estudiante es inválido' })
+    @ApiProperty({ description: 'Estado del estudiante', enum: StatusStudent, default: StatusStudent.PENDIENTE })
+    status: StatusStudent;
+    @IsNumber( {}, { message: 'La carrera debe ser un número' })
+    @ApiProperty({ description: 'ID carrera', example: 1 })
+    idCareer: number;
+    @IsNumber( {}, { message: 'El proyecto debe ser un número'  })
+    @IsOptional()
+    @ApiProperty({ description: 'ID proyecto', example: 1 })
+    idProject: number;
+    
+
     
 }

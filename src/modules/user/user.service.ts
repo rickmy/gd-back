@@ -49,7 +49,7 @@ export class UserService {
     return bcrypt.hashSync(password, 10);
   }
 
-  async findAll(isAll?:boolean): Promise<User[]> {
+  async findAll(isAll?: boolean): Promise<User[]> {
     try {
       const users = await this._prismaService.user.findMany({
         where: {
@@ -57,7 +57,10 @@ export class UserService {
         },
       });
       if (users.length === 0)
-        throw new HttpException('No hay usuarios activos', HttpStatus.NO_CONTENT);
+        throw new HttpException(
+          'No hay usuarios activos',
+          HttpStatus.NO_CONTENT,
+        );
       return users.map((user) => {
         delete user.password;
         return user;

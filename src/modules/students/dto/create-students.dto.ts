@@ -1,4 +1,4 @@
-import { StatusStudent } from "@prisma/client";
+import { StatusStudent } from '@prisma/client';
 
 export class CreateStudentsDto {
   dni: string;

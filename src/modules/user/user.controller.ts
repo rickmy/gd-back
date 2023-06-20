@@ -11,7 +11,13 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 @ApiTags('user')
@@ -26,18 +32,34 @@ export class UserController {
   }
 
   @Get()
-  @ApiOkResponse({ description: 'Usuarios encontrados', isArray: true, type: UserEntity })
-  @ApiNoContentResponse({ description:'Usuarios no econtrados', isArray: true, type: null})
-  @ApiOperation({ summary: 'Econtrar usuarios'})
+  @ApiOkResponse({
+    description: 'Usuarios encontrados',
+    isArray: true,
+    type: UserEntity,
+  })
+  @ApiNoContentResponse({
+    description: 'Usuarios no econtrados',
+    isArray: true,
+    type: null,
+  })
+  @ApiOperation({ summary: 'Econtrar usuarios' })
   @UseGuards(JwtAuthGuard)
   findAll() {
     return this.userService.findAll();
   }
 
   @Get('active')
-  @ApiOkResponse({ description: 'Usuarios encontrados', isArray: true, type: UserEntity })
-  @ApiNoContentResponse({ description:'Usuarios no econtrados', isArray: true, type: null})
-  @ApiOperation({ summary: 'Econtrar usuarios activos'})
+  @ApiOkResponse({
+    description: 'Usuarios encontrados',
+    isArray: true,
+    type: UserEntity,
+  })
+  @ApiNoContentResponse({
+    description: 'Usuarios no econtrados',
+    isArray: true,
+    type: null,
+  })
+  @ApiOperation({ summary: 'Econtrar usuarios activos' })
   @UseGuards(JwtAuthGuard)
   findAllActive() {
     return this.userService.findAll(true);

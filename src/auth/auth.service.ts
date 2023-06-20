@@ -110,9 +110,7 @@ export class AuthService {
         'El usuario se encuentra inactivo/bloqueado',
         HttpStatus.CONFLICT,
       );
-    userExist.password = this.hashPassword(
-      resetPasswordDto.newPassword,
-    );
+    userExist.password = this.hashPassword(resetPasswordDto.newPassword);
     const ok = await this._userService.update(userExist.id, userExist);
     if (!ok)
       throw new HttpException(
@@ -142,9 +140,7 @@ export class AuthService {
         'La contraseña actual no coincide',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    userExist.password = this.hashPassword(
-      changePasswordDto.newPassword,
-    );
+    userExist.password = this.hashPassword(changePasswordDto.newPassword);
     const changed = await this._userService.update(userExist.id, userExist);
     if (!changed)
       throw new HttpException(
@@ -157,7 +153,6 @@ export class AuthService {
   async validateUser(payload: PayloadModel): Promise<boolean> {
     return await this._userService.validateUser(payload);
   }
-
 
   hashPassword(password: string): string {
     return bcrypt.hashSync(password, 10);

@@ -21,10 +21,8 @@ export class StudentEntity implements Student {
     @ApiProperty({ example: '2023-1', description: 'Student academic period', readOnly: true })
     academicPeriod: string;
     @ApiProperty({ example: 'hts.ruiz@yavirac.edu.ec', description: 'Student email', readOnly: true })
-
     email: string;
     @ApiProperty({ example: 'passexample', description: 'Student password', readOnly: true })
-
     password: string;
     createdAt: Date;
     updatedAt: Date;

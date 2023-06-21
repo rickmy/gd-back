@@ -8,11 +8,11 @@ import { RoleEntity } from './entities/role.entity';
 
 @Injectable()
 export class RoleService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private _prismaService: PrismaService) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
     const { name, permissions } = createRoleDto;
-    const role = await this.prismaService.rol.create({
+    const role = await this._prismaService.rol.create({
       data: {
         name,
       },
@@ -25,7 +25,7 @@ export class RoleService {
       };
     });
     const rolesWithPermission =
-      await this.prismaService.rolHasPermission.createMany({
+      await this._prismaService.rolHasPermission.createMany({
         data: rolHasPermission,
       });
     if (!rolesWithPermission)
@@ -35,7 +35,7 @@ export class RoleService {
 
   async findAll(allActive?: boolean): Promise<RoleEntity[]> {
     try {
-      return await this.prismaService.rol.findMany({
+      return await this._prismaService.rol.findMany({
         where: {
           state: allActive ? true : undefined,
         },
@@ -47,7 +47,7 @@ export class RoleService {
 
   async findOne(id: number) {
     try {
-      return await this.prismaService.rol.findFirstOrThrow({
+      return await this._prismaService.rol.findFirstOrThrow({
         where: {
           id,
         },
@@ -64,7 +64,7 @@ export class RoleService {
     const role = await this.findOne(id);
     let permissionsWithRole = [];
     try {
-      permissionsWithRole = await this.prismaService.rolHasPermission.findMany({
+      permissionsWithRole = await this._prismaService.rolHasPermission.findMany({
         where: {
           idRol: id,
           state: all ? undefined : true,
@@ -116,7 +116,7 @@ export class RoleService {
     });
     if (permissionDelete.length > 0) {
       try {
-        await this.prismaService.rolHasPermission.updateMany({
+        await this._prismaService.rolHasPermission.updateMany({
           where: {
             idRol: id,
             idPermission: {
@@ -133,7 +133,7 @@ export class RoleService {
     }
     if (permissionUpdate.length > 0) {
       try {
-        await this.prismaService.rolHasPermission.updateMany({
+        await this._prismaService.rolHasPermission.updateMany({
           where: {
             idRol: id,
             idPermission: {
@@ -157,7 +157,7 @@ export class RoleService {
       });
 
       try {
-        await this.prismaService.rolHasPermission.createMany({
+        await this._prismaService.rolHasPermission.createMany({
           data: rolHasPermission,
         });
       } catch (error) {
@@ -173,7 +173,7 @@ export class RoleService {
   ): Promise<RoleEntity> {
     const { name } = updateRoleDto;
     try {
-      return await this.prismaService.rol.update({
+      return await this._prismaService.rol.update({
         where: {
           id,
         },
@@ -188,7 +188,7 @@ export class RoleService {
 
   async remove(id: number): Promise<HttpException> {
     try {
-      await this.prismaService.rol.update({
+      await this._prismaService.rol.update({
         where: {
           id,
         },

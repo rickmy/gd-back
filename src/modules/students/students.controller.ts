@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -20,8 +21,10 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 
+@UseGuards(JwtAuthGuard)
 @Controller('students')
 @ApiTags('student')
 export class StudentsController {

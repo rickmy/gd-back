@@ -9,6 +9,7 @@ import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { StudentsModule } from './modules/students/students.module';
+import { CareerModule } from './modules/career/career.module';
 import config from './core/config';
 
 @Module({
@@ -24,6 +25,7 @@ import config from './core/config';
     RoleModule,
     PermissionsModule,
     StudentsModule,
+    CareerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

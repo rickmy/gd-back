@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('students')
 @ApiTags('student')
 export class StudentsController {

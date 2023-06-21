@@ -19,12 +19,15 @@ import {
   ApiOperation,
   ApiTags,
   ApiResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { StudentsDto } from './dto/students.dto';
 
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 @Controller('students')
 @ApiTags('student')
 export class StudentsController {
@@ -54,11 +57,23 @@ export class StudentsController {
   @ApiOkResponse({
     description: 'Estudiantes encontrados',
     type: StudentEntity,
+    isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes' })
   @Get()
   findAll() {
     return this.studentsService.findAll();
+  }
+
+  @Get('active')
+  @ApiOkResponse({
+    description: 'Estudiantes activos encontrados',
+    type: StudentsDto,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los estudiantes activos' })
+  findAllActive() {
+    return this.studentsService.findAllActive();
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentEntity })

@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -20,6 +21,7 @@ import { RoleEntity } from './entities/role.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 @ApiTags('role')
 @Controller('role')
 export class RoleController {

@@ -1,9 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  UseGuards,
+} from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
-import { ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard)
 @Controller('students')
@@ -18,13 +37,29 @@ export class StudentsController {
     return this.studentsService.create(createStudentDto);
   }
 
-  @ApiOkResponse({ description: 'Estudiantes encontrados', type: StudentEntity })
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOkResponse({
+    description: 'Estudiantes subidos',
+    type: CreateStudentDto,
+    isArray: true,
+  })
+  @ApiBody({ required: true, type: FileInterceptor })
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Subir excel de los estudiantes' })
+  @Post('upload')
+  uploadStudents(@UploadedFile() file: Express.Multer.File) {
+    return this.studentsService.uploadStudents(file);
+  }
+
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados',
+    type: StudentEntity,
+  })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes' })
   @Get()
   findAll() {
     return this.studentsService.findAll();
   }
-
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentEntity })
   @ApiOperation({ summary: 'Encontrar un estudiante por su ID' })
@@ -33,7 +68,10 @@ export class StudentsController {
     return this.studentsService.findOne(+id);
   }
 
-  @ApiOkResponse({ description: 'Estudiante Actualizado', type: CreateStudentDto })
+  @ApiOkResponse({
+    description: 'Estudiante Actualizado',
+    type: CreateStudentDto,
+  })
   @ApiOperation({ summary: 'Actualizar un estudiante por su ID' })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {

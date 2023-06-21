@@ -1,4 +1,3 @@
-
 import {
   HttpException,
   HttpStatus,
@@ -13,11 +12,11 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StatusStudent } from '@prisma/client';
 import { StudentEntity } from './entities/student.entity';
+import { StudentsDto } from './dto/students.dto';
 @Injectable()
 export class StudentsService {
   constructor(private _prismaService: PrismaService) {}
 
- 
   async uploadStudents(file: Express.Multer.File) {
     let newStudentsExcel = [];
     const listDni = [];
@@ -136,17 +135,7 @@ export class StudentsService {
       });
     });
 
-    return await this._prismaService.student.findMany({
-      where: {
-        state: true,
-      },
-      include: {
-        career: true,
-      },
-      orderBy: {
-        lastName: 'asc',
-      },
-    });
+    return await this.findAll();
   }
 
   async create(createStudentDto: CreateStudentDto): Promise<StudentEntity> {
@@ -160,7 +149,10 @@ export class StudentsService {
         data: createStudentDto,
       });
     } catch (error) {
-      throw new HttpException('Error al crear el estudiante', HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(
+        'Error al crear el estudiante',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
   }
 
@@ -170,9 +162,42 @@ export class StudentsService {
         where: {
           state: allActive ? true : undefined,
         },
+        orderBy: {
+          lastName: 'asc',
+        },
+        include: {
+          career: true,
+        },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async findAllActive(): Promise<StudentsDto[]> {
+    try {
+      const students = await this.findAll();
+      console.log(students);
+      const studentsDto: StudentsDto[] = [];
+      students.forEach((student) => {
+        const studentDto: StudentsDto = {
+          id: student.id,
+          dni: student.dni,
+          completeNames: `${student.lastName} ${student.secondLastName} ${student.firstName} ${student.secondName}`,
+          career: student.career.name,
+          parallel: 'A',
+          email: student.email,
+          periodElective: student.electivePeriod,
+          periodAcademic: student.academicPeriod,
+          status: student.status,
+        };
+        
+        studentsDto.push(studentDto);
+      });
+      return studentsDto;
+      
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -189,23 +214,22 @@ export class StudentsService {
   }
 
   async findStudentByDni(dni: string) {
-
-      
-      return await this._prismaService.student.findFirst({
-        where: {
-          dni,
-        },
-      });
-    
+    return await this._prismaService.student.findFirst({
+      where: {
+        dni,
+      },
+    });
   }
 
-  async update(id: number, updateStudentDto: UpdateStudentDto):Promise<StudentEntity> {
-      
-      const studentExists = await this.findOne(id);
-      if (!studentExists) {
-        throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
-      }
-    try{
+  async update(
+    id: number,
+    updateStudentDto: UpdateStudentDto,
+  ): Promise<StudentEntity> {
+    const studentExists = await this.findOne(id);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    try {
       return await this._prismaService.student.update({
         where: {
           id: id,
@@ -227,7 +251,10 @@ export class StudentsService {
           state: false,
         },
       });
-      return new HttpException('Estudiante eliminado correctamente', HttpStatus.OK);
+      return new HttpException(
+        'Estudiante eliminado correctamente',
+        HttpStatus.OK,
+      );
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }

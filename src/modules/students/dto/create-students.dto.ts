@@ -8,6 +8,7 @@ export class CreateStudentsDto {
   secondLastName: string;
   electivePeriod: string;
   academicPeriod: string;
+  parallel: string;
   email: string;
   password: string;
   idCareer: number;

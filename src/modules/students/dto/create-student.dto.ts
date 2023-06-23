@@ -47,6 +47,10 @@ export class CreateStudentDto {
     example: '2022-1',
   })
   academicPeriod: string;
+  @IsString({ message: 'el paralelo debe ser un string' })
+  @IsNotEmpty({ message: 'el paralelo no debe estar vacio' })
+  @ApiProperty({ description: 'paralelo estudiante', example: 'A' })
+  parallel: string;
   @IsString({ message: 'el correo electrónico debe ser un string' })
   @IsNotEmpty({ message: 'el correo electrónico no debe estar vacio' })
   @ApiProperty({

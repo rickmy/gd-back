@@ -42,6 +42,11 @@ export class StudentEntity implements Student {
   })
   academicPeriod: string;
   @ApiProperty({
+    example: 'A',
+    description: 'Student parallel',
+  })
+  parallel: string;
+  @ApiProperty({
     example: 'hts.ruiz@yavirac.edu.ec',
     description: 'Student email',
     readOnly: true,

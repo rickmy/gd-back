@@ -34,6 +34,7 @@ export class StudentsService {
       careerName: '',
       careerCode: '',
       periodAcademic: '',
+      parallel: '',
       finalNotes: [],
       statusNotes: [],
     };
@@ -49,6 +50,7 @@ export class StudentsService {
           careerName: student['__EMPTY_4'],
           careerCode: student['__EMPTY_5'],
           periodAcademic: student['__EMPTY_6'],
+          parallel: student['__EMPTY_8'],
           finalNotes: [],
           statusNotes: [],
         };
@@ -79,6 +81,7 @@ export class StudentsService {
         secondLastName: student.names.split(' ')[1],
         electivePeriod: periodElective,
         academicPeriod: student.periodAcademic,
+        parallel: student.parallel,
         email: '@yavirac.edu.ec',
         password: this.hashPassword(student.dni),
         idCareer: 1,
@@ -177,7 +180,6 @@ export class StudentsService {
   async findAllActive(): Promise<StudentsDto[]> {
     try {
       const students = await this.findAll();
-      console.log(students);
       const studentsDto: StudentsDto[] = [];
       students.forEach((student) => {
         const studentDto: StudentsDto = {
@@ -185,17 +187,15 @@ export class StudentsService {
           dni: student.dni,
           completeNames: `${student.lastName} ${student.secondLastName} ${student.firstName} ${student.secondName}`,
           career: student.career.name,
-          parallel: 'A',
+          parallel: student.parallel,
           email: student.email,
           periodElective: student.electivePeriod,
           periodAcademic: student.academicPeriod,
           status: student.status,
         };
-        
         studentsDto.push(studentDto);
       });
       return studentsDto;
-      
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

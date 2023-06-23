@@ -66,7 +66,7 @@ export class StudentsController {
     type: CreateStudentDto,
   })
   @ApiOperation({ summary: 'Actualizar el status de un estudiante por su ID' })
-  @Put(':id')
+  @Put('status/:id')
   updateStatusStudent(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
     return this.studentsService.updateStatusStudent(+id, updateStudentDto.status);
   }

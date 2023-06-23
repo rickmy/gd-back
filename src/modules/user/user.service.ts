@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
+import { error } from 'console';
 
 @Injectable()
 export class UserService {
@@ -66,7 +67,7 @@ export class UserService {
         return user;
       });
     } catch (error) {
-      throw new HttpException(error, 500);
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 
@@ -114,15 +115,29 @@ export class UserService {
         where: {
           id,
         },
-        data: { ...updateUserDto },
+        data: updateUserDto ,
       });
       return updatedUser;
     } catch (error) {
-      throw new HttpException(error, 500);
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+  try {
+      return this._prismaService.user.update({
+        where: {
+          id,
+        },
+        data: {
+          state: false,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
+   
+    
+  
 }

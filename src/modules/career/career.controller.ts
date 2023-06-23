@@ -1,16 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CareerService } from './career.service';
 import { CreateCareerDto } from './dto/create-career.dto';
 import { UpdateCareerDto } from './dto/update-career.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CareerEntity } from './entities/career.entity';
+import { CareerDto } from './dto/career.dto';
 @ApiTags('career')
 @Controller('career')
 export class CareerController {
   constructor(private readonly careerService: CareerService) {}
 
   @Post()
-  @ApiOkResponse({ description: 'Carrera creada correctamente', type: CareerEntity })
+  @ApiOkResponse({
+    description: 'Carrera creada correctamente',
+    type: CareerDto,
+  })
   create(@Body() createCareerDto: CreateCareerDto) {
     return this.careerService.create(createCareerDto);
   }

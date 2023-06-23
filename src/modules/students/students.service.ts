@@ -13,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StatusStudent } from '@prisma/client';
 import { StudentEntity } from './entities/student.entity';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 @Injectable()
 export class StudentsService {
   constructor(private _prismaService: PrismaService) {}
@@ -164,11 +165,10 @@ export class StudentsService {
     }
   }
 
-  async findAll(options: { page: number; limit: number; allActive?: boolean }): Promise<StudentEntity[]> {
-    const { page, limit, allActive } = options;
+  async findAll(options: PaginationOptions, allActive?: boolean ): Promise<StudentEntity[]> {
+    const { page, limit } = options;
     try {
       const skip = (page - 1) * limit;
-
       return await this._prismaService.student.findMany({
         take: limit,
         skip,

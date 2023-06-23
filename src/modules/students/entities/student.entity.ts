@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { StatusStudent, Student, TypeDNI } from '@prisma/client';
+import { CareerEntity } from 'src/modules/career/entities/career.entity';
 
 export class StudentEntity implements Student {
   @ApiProperty({ example: 1, description: 'Student id' })
@@ -56,5 +57,6 @@ export class StudentEntity implements Student {
   updatedAt: Date;
   state: boolean;
   idCareer: number;
+  career?: CareerEntity;
   idProject: number;
 }

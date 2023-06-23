@@ -64,15 +64,17 @@ export class RoleService {
     const role = await this.findOne(id);
     let permissionsWithRole = [];
     try {
-      permissionsWithRole = await this._prismaService.rolHasPermission.findMany({
-        where: {
-          idRol: id,
-          state: all ? undefined : true,
+      permissionsWithRole = await this._prismaService.rolHasPermission.findMany(
+        {
+          where: {
+            idRol: id,
+            state: all ? undefined : true,
+          },
+          include: {
+            permission: true,
+          },
         },
-        include: {
-          permission: true,
-        },
-      });
+      );
     } catch (error) {
       throw new HttpException(error.message, 500);
     }

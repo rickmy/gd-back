@@ -9,6 +9,9 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  Put,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -19,12 +22,14 @@ import {
   ApiOperation,
   ApiTags,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateStudentDto } from './dto/update-student.dto';
 
-@UseGuards(JwtAuthGuard)
+
 @Controller('students')
 @ApiTags('student')
 export class StudentsController {
@@ -52,13 +57,30 @@ export class StudentsController {
   }
 
   @ApiOkResponse({
+    description: 'Status del estudiante actualizado',
+    type: CreateStudentDto,
+  })
+  @ApiOperation({ summary: 'Actualizar el status de un estudiante por su ID' })
+  @Put(':id')
+  updateStatusStudent(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
+    return this.studentsService.updateStatusStudent(+id, updateStudentDto.status);
+  }
+
+  @ApiOkResponse({
     description: 'Estudiantes encontrados',
     type: StudentEntity,
+    isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @Get()
-  findAll() {
-    return this.studentsService.findAll();
+  findAll(@Query('page', ParseIntPipe) page: number, @Query('limit', ParseIntPipe) limit: number) {
+    const options = {
+      page: page || 1,
+      limit: limit || 10,
+    };
+    return this.studentsService.findAll(options);
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentEntity })
@@ -68,12 +90,15 @@ export class StudentsController {
     return this.studentsService.findOne(+id);
   }
 
+  
+
+  
   @ApiOkResponse({
     description: 'Estudiante Actualizado',
     type: CreateStudentDto,
   })
   @ApiOperation({ summary: 'Actualizar un estudiante por su ID' })
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
     return this.studentsService.update(+id, updateStudentDto);
   }

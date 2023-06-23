@@ -164,9 +164,14 @@ export class StudentsService {
     }
   }
 
-  async findAll(allActive?: boolean): Promise<StudentEntity[]> {
+  async findAll(options: { page: number; limit: number; allActive?: boolean }): Promise<StudentEntity[]> {
+    const { page, limit, allActive } = options;
     try {
+      const skip = (page - 1) * limit;
+
       return await this._prismaService.student.findMany({
+        take: limit,
+        skip,
         where: {
           state: allActive ? true : undefined,
         },
@@ -175,6 +180,7 @@ export class StudentsService {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
+
 
   async findOne(id: number) {
     try {
@@ -211,6 +217,25 @@ export class StudentsService {
           id: id,
         },
         data: updateStudentDto,
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async updateStatusStudent(id: number, status: StatusStudent): Promise<StudentEntity> {
+    const studentExists = await this.findOne(id);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    try {
+      return await this._prismaService.student.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: status,
+        },
       });
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);

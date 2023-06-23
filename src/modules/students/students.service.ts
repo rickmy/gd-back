@@ -7,18 +7,37 @@ import {
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import * as XLSX from 'xlsx';
-import { CreateStudentsDto } from './dto/create-students.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { StatusStudent } from '@prisma/client';
+import { StatusStudent, TypeDNI } from '@prisma/client';
 import { StudentEntity } from './entities/student.entity';
-import { StudentsDto } from './dto/students.dto';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { UserService } from '../user/user.service';
+import { RoleService } from '../role/role.service';
+import { CareerService } from '../career/career.service';
+import { CreateStudentsDto } from './dto/create-students.dto';
 @Injectable()
 export class StudentsService {
-  constructor(private _prismaService: PrismaService) {}
+  constructor(
+    private _prismaService: PrismaService,
+    private _userService: UserService,
+    private _roleService: RoleService,
+    private _careerService: CareerService,
+  ) {}
 
-  async uploadStudents(file: Express.Multer.File) {
-    let newStudentsExcel = [];
+  async uploadStudents(file: Express.Multer.File): Promise<HttpException> {
+    let newStudentsExcel: {
+      dni: string,
+      names: string,
+      careerName: string,
+      careerCode: string,
+      periodAcademic: string,
+      parallel: string,
+      finalNotes: number[],
+      statusNotes: string[],
+    } [] = [];
+    const role = await this._roleService.findRoleByName('EST');
     const listDni = [];
     if (!file) throw new UnprocessableEntityException('No file uploaded');
     const workBook = XLSX.read(file.buffer, {
@@ -68,136 +87,161 @@ export class StudentsService {
       }
     });
 
-    const newStudents: CreateStudentsDto[] = [];
+    const newUsers: CreateUserDto[] = [];
     const studentsWithStatus = newStudentsExcel.filter((student) =>
       student.statusNotes.some((status: string) => status === 'APROBADO'),
     );
-    studentsWithStatus.forEach((student) => {
-      const newStudent: CreateStudentsDto = {
+    studentsWithStatus.forEach(async (student) => {
+      const newUser: CreateUserDto = {
         dni: student.dni,
         firstName: student.names.split(' ')[2],
         secondName: student.names.split(' ')[3],
         lastName: student.names.split(' ')[0],
         secondLastName: student.names.split(' ')[1],
-        electivePeriod: periodElective,
-        academicPeriod: student.periodAcademic,
-        parallel: student.parallel,
-        email: '@yavirac.edu.ec',
+        email: '',
         password: this.hashPassword(student.dni),
-        idCareer: 1,
-        status: student.statusNotes.every(
-          (status: string) => status === 'APROBADO',
-        )
-          ? StatusStudent.ACTIVO
-          : StatusStudent.PERDIDO,
-        state: true,
+        userName: student.dni,
+        idRol: role.id,
+        typeDni: TypeDNI.CEDULA,
       };
-      newStudent.email = `${newStudent.firstName
+      newUser.email = `${newUser.firstName
         ?.toLowerCase()
-        .charAt(0)}${newStudent.secondName
+        .charAt(0)}${newUser.secondName
         ?.toLowerCase()
-        .charAt(0)}${newStudent.secondLastName
+        .charAt(0)}${newUser.secondLastName
         ?.toLowerCase()
-        .charAt(0)}.${newStudent.lastName.toLowerCase()}@yavirac.edu.ec`;
-      newStudents.push(newStudent);
+        .charAt(0)}.${newUser.lastName.toLowerCase()}@yavirac.edu.ec`;
+      newUsers.push(newUser);
     });
 
+    const usersDB = await this._userService.findAll(null, role.id);
+
+    const onlyNewsUser = newUsers.filter(
+      (user) => !usersDB.some((userDB) => userDB.dni === user.dni),
+    );
+
+    const existingStudents = newUsers.filter((user) =>
+      usersDB.some((userDB) => userDB.dni === user.dni && userDB.state === true && userDB.email === user.email),
+    );
+
+    if (onlyNewsUser.length > 0) {
+      await this._prismaService.user.createMany({
+        data: onlyNewsUser,
+      });
+      const usersDB = await this._prismaService.user.findMany({
+        where: {
+          dni: { in: onlyNewsUser.map((user) => user.dni) },
+        },
+      });
+      usersDB.forEach(async (user) => {
+        const student = newStudentsExcel.find(
+          (student) => student.dni === user.dni
+        );
+        const career = await this._careerService.findByCode(student.careerCode);
+        await this._prismaService.student.create({
+          data: {
+            userDNI: user.dni,
+            idCareer: career.id,
+            status: student.statusNotes.every(
+              (status: string) => status === 'APROBADO'
+            ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
+          },
+        });
+      });
+    }
+    
     const studentsDB = await this._prismaService.student.findMany({
       where: {
-        state: true,
+        userDNI: { in: existingStudents.map((user) => user.dni) },
       },
     });
 
-    const onlyNewsStudents = newStudents.filter(
-      (student) =>
-        !studentsDB.some((studentDB) => studentDB.dni === student.dni),
-    );
-    const existingStudents = newStudents.filter((student) =>
-      studentsDB.some((studentDB) => studentDB.dni === student.dni),
-    );
-    if (onlyNewsStudents.length > 0) {
-      await this._prismaService.student.createMany({
-        data: onlyNewsStudents,
+
+    if(studentsDB.length === 0) {
+      existingStudents.forEach(async (user) => {
+        const student = newStudentsExcel.find(
+          (student) => student.dni === user.dni
+        );
+        const career = await this._careerService.findByCode(student.careerCode);
+        await this._prismaService.student.create({
+          data: {
+            userDNI: user.dni,
+            idCareer: career.id,
+            status: student.statusNotes.every(
+              (status: string) => status === 'APROBADO'
+            ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
+          },
+        });
       });
     }
-    existingStudents.forEach(async (student) => {
-      const studentDB = studentsDB.find(
-        (studentDB) => studentDB.dni === student.dni,
+
+    studentsDB.forEach(async (studentDB) => {
+      const student = newStudentsExcel.find(
+        (student) => student.dni === studentDB.userDNI
       );
-      const studentData = {
-        ...studentDB,
-        status: student.status,
-        academicPeriod: student.academicPeriod,
-        electivePeriod: student.electivePeriod,
-      };
-      await this._prismaService.student.update({
-        where: {
-          id: studentData.id,
-        },
-        data: studentData,
-      });
+      try {
+        await this._prismaService.student.update({
+          where: {
+            id: studentDB.id,
+          },
+          data: {
+            status: student.statusNotes.every(
+              (status: string) => status === 'APROBADO'
+            ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+        throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      //TODO: Actualizar el periodo academico y electivo
     });
 
-    return await this.findAll();
+    return new HttpException(
+      'Estudiantes cargados correctamente',
+      HttpStatus.OK,
+    );
   }
 
   async create(createStudentDto: CreateStudentDto): Promise<StudentEntity> {
-    const studentExists = await this.findStudentByDni(createStudentDto.dni);
-    if (studentExists) {
-      throw new HttpException('El estudiante ya existe', HttpStatus.CONFLICT);
-    }
-    createStudentDto.password = bcrypt.hashSync(createStudentDto.dni, 10);
-    try {
-      return await this._prismaService.student.create({
-        data: createStudentDto,
-      });
-    } catch (error) {
-      throw new HttpException(
-        'Error al crear el estudiante',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
+    // const studentExists = await this.findStudentByDni(createStudentDto.dni);
+    // if (studentExists) {
+    //   throw new HttpException('El estudiante ya existe', HttpStatus.CONFLICT);
+    // }
+    // createStudentDto.password = bcrypt.hashSync(createStudentDto.dni, 10);
+    // try {
+    //   return await this._prismaService.student.create({
+    //     data: createStudentDto,
+    //   });
+    // } catch (error) {
+    //   throw new HttpException(
+    //     'Error al crear el estudiante',
+    //     HttpStatus.UNPROCESSABLE_ENTITY,
+    //   );
+    // }
+    return null;
   }
 
-  async findAll(allActive?: boolean): Promise<StudentEntity[]> {
+  async findAll(
+    options: PaginationOptions,
+    allActive?: boolean,
+  ): Promise<StudentEntity[]> {
+    const { page, limit } = options;
     try {
+      const skip = (page - 1) * limit;
       return await this._prismaService.student.findMany({
+        take: limit,
+        skip,
         where: {
           state: allActive ? true : undefined,
         },
-        orderBy: {
-          lastName: 'asc',
-        },
         include: {
+          user: true,
           career: true,
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async findAllActive(): Promise<StudentsDto[]> {
-    try {
-      const students = await this.findAll();
-      const studentsDto: StudentsDto[] = [];
-      students.forEach((student) => {
-        const studentDto: StudentsDto = {
-          id: student.id,
-          dni: student.dni,
-          completeNames: `${student.lastName} ${student.secondLastName} ${student.firstName} ${student.secondName}`,
-          career: student.career.name,
-          parallel: student.parallel,
-          email: student.email,
-          periodElective: student.electivePeriod,
-          periodAcademic: student.academicPeriod,
-          status: student.status,
-        };
-        studentsDto.push(studentDto);
-      });
-      return studentsDto;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 
@@ -214,11 +258,11 @@ export class StudentsService {
   }
 
   async findStudentByDni(dni: string) {
-    return await this._prismaService.student.findFirst({
-      where: {
-        dni,
-      },
-    });
+    // return null;  await this._prismaService.student.findFirst({
+    //   where: {
+    //     dni,
+    //   },
+    // });
   }
 
   async update(
@@ -235,6 +279,28 @@ export class StudentsService {
           id: id,
         },
         data: updateStudentDto,
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async updateStatusStudent(
+    id: number,
+    status: StatusStudent,
+  ): Promise<StudentEntity> {
+    const studentExists = await this.findOne(id);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    try {
+      return await this._prismaService.student.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: status,
+        },
       });
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);

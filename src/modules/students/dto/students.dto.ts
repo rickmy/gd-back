@@ -25,7 +25,7 @@ export class StudentsDto {
   @ApiProperty({ example: 'TERCERO', description: 'Periodo academico' })
   periodAcademic: string;
   @ApiProperty({
-    example: StatusStudent.ACTIVO,
+    example: StatusStudent.APROBADO,
     description: 'Estado del estudiante',
   })
   status: StatusStudent;

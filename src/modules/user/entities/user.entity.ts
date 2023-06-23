@@ -13,15 +13,32 @@ export class UserEntity implements User {
     type: 'string',
   })
   typeDni: TypeDNI;
-  @ApiProperty({ example: 'Juan', description: 'Nombre', type: 'string' })
-  firstName: string;
-  @ApiProperty({ example: 'Perez', description: 'Apellido', type: 'string' })
-  lastName: string;
   @ApiProperty({
-    example: 'example@yavirac.edu.ec',
-    description: 'Correo',
+    example: 'hector.ruiz',
+    description: 'Nombre de usuario',
     type: 'string',
   })
+  userName: string;
+  @ApiProperty({ example: 'Hector', description: 'Student first name' })
+  firstName: string;
+  @ApiProperty({
+    example: 'Hugo',
+    description: 'Student second name',
+    readOnly: true,
+  })
+  secondName: string;
+  @ApiProperty({
+    example: 'Ruiz',
+    description: 'Student last name',
+    readOnly: true,
+  })
+  lastName: string;
+  @ApiProperty({
+    example: 'Sánchez',
+    description: 'Student secont last name',
+    readOnly: true,
+  })
+  secondLastName: string;
   email: string;
   @ApiProperty({ example: '', description: 'Contraseña', type: 'string' })
   password: string;

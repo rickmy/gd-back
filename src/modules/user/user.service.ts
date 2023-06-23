@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
+import { error } from 'console';
 
 @Injectable()
 export class UserService {
@@ -40,7 +41,7 @@ export class UserService {
   async validateUser(payload: PayloadModel): Promise<boolean> {
     const user = await this.findByEmail(payload.email);
     if (!user) {
-      throw new UnprocessableEntityException('Usuario no existe');
+      throw new HttpException('Usuario no existe', HttpStatus.UNAUTHORIZED);
     }
     return !!user;
   }
@@ -49,24 +50,20 @@ export class UserService {
     return bcrypt.hashSync(password, 10);
   }
 
-  async findAll(isAll?: boolean): Promise<User[]> {
+  async findAll(onlyActive?: boolean, idRole?: number): Promise<User[]> {
     try {
       const users = await this._prismaService.user.findMany({
         where: {
-          state: isAll ? undefined : true,
+          state: onlyActive ? true : undefined,
+          idRol: idRole ? idRole : undefined,
         },
       });
-      if (users.length === 0)
-        throw new HttpException(
-          'No hay usuarios activos',
-          HttpStatus.NO_CONTENT,
-        );
       return users.map((user) => {
         delete user.password;
         return user;
       });
     } catch (error) {
-      throw new HttpException(error, 500);
+      throw new HttpException(error, error.status || 500);
     }
   }
 
@@ -114,15 +111,26 @@ export class UserService {
         where: {
           id,
         },
-        data: { ...updateUserDto },
+        data: updateUserDto,
       });
       return updatedUser;
     } catch (error) {
-      throw new HttpException(error, 500);
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+    try {
+      return this._prismaService.user.update({
+        where: {
+          id,
+        },
+        data: {
+          state: false,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 }

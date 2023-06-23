@@ -16,16 +16,20 @@ import {
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+
 @ApiTags('user')
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiOkResponse({ description: 'Usuario Creado', type: CreateUserDto })
+  @ApiOperation({ summary: 'Crear usuario' })
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
@@ -38,11 +42,11 @@ export class UserController {
     type: UserEntity,
   })
   @ApiNoContentResponse({
-    description: 'Usuarios no econtrados',
+    description: 'Usuarios no encontrados',
     isArray: true,
     type: null,
   })
-  @ApiOperation({ summary: 'Econtrar usuarios' })
+  @ApiOperation({ summary: 'Encontrar todos los usuarios' })
   @UseGuards(JwtAuthGuard)
   findAll() {
     return this.userService.findAll();
@@ -59,18 +63,32 @@ export class UserController {
     isArray: true,
     type: null,
   })
-  @ApiOperation({ summary: 'Econtrar usuarios activos' })
+  @ApiOperation({ summary: 'Encontrar todos los usuarios activos' })
   @UseGuards(JwtAuthGuard)
   findAllActive() {
     return this.userService.findAll(true);
   }
 
+  @ApiOkResponse({
+    description: 'Usuario encontrado',
+    type: UserEntity,
+  })
+  @ApiNoContentResponse({
+    description: 'Usuario no encontrado',
+    type: null,
+  })
+  @ApiOperation({ summary: 'Encontrar usuario por su ID' })
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
+  @ApiOkResponse({
+    description: 'Usuario Actualizado',
+    type: CreateUserDto,
+  })
+  @ApiOperation({ summary: 'Actualizar un usuario por su ID' })
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -78,6 +96,9 @@ export class UserController {
   }
 
   @Delete(':id')
+  @ApiResponse({ status: 200, description: 'Elimina un usuario por su ID' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  @ApiOperation({ summary: 'Eliminar usuario por su ID' })
   @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);

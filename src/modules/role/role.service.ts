@@ -57,6 +57,22 @@ export class RoleService {
     }
   }
 
+  async findRoleByName(name: string): Promise<RoleEntity> {
+    try {
+      const role = await this._prismaService.rol.findFirst({
+        where: {
+          name: {
+            contains: name,
+          },
+        },
+      });
+      if (!role) throw new HttpException('El rol no existe', 404);
+      return role;
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
+  }
+
   async findRoleWithPermissions(
     id: number,
     all?: boolean,

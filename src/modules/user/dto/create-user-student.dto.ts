@@ -1,31 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TypeDNI } from '@prisma/client';
-import {
-  IsEmail,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsNumber, IsString } from 'class-validator';
+import { CreateStudentsDto } from 'src/modules/students/dto/create-students.dto';
 
-export class CreateUserDto {
+export class CreateUserStudentDto {
   @ApiProperty({ example: '12345678', description: 'DNI', type: 'string' })
   @IsString({ message: 'el campo debe ser un string' })
   dni: string;
-  @ApiProperty({
-    example: 'CEDULA',
-    description: 'Tipo de DNI',
-    enum: TypeDNI,
-    type: 'string',
-  })
-  @IsOptional()
-  typeDni: TypeDNI;
   @ApiProperty({
     example: 'hector.ruiz',
     description: 'Nombre de usuario',
     type: 'string',
   })
-  @IsString({ message: 'el nombre de usuario debe ser un string' })
+  @IsString({ message: 'el campo debe ser un string' })
   userName: string;
   @ApiProperty({ example: 'Juan', description: 'Nombre', type: 'string' })
   @IsString({ message: 'el campo debe ser un string' })
@@ -35,7 +21,7 @@ export class CreateUserDto {
     description: 'Segundo Nombre',
     type: 'string',
   })
-  @IsOptional()
+  @IsString({ message: 'el campo debe ser un string' })
   secondName: string;
   @ApiProperty({ example: 'Perez', description: 'Apellido', type: 'string' })
   @IsString({ message: 'el campo debe ser un string' })
@@ -45,8 +31,7 @@ export class CreateUserDto {
     description: 'Segundo Apellido',
     type: 'string',
   })
-  @IsString({ message: 'el segundo nombre debe ser un string' })
-  @IsOptional({ message: 'el segundo nombre puede estar vacio' })
+  @IsString({ message: 'el campo debe ser un string' })
   secondLastName: string;
   @ApiProperty({
     example: 'example@yavirac.edu.ec',
@@ -68,4 +53,5 @@ export class CreateUserDto {
     { message: 'El rol debe ser un número' },
   )
   idRol: number;
+  Student: CreateStudentsDto;
 }

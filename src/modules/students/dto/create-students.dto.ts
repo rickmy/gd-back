@@ -1,17 +1,7 @@
 import { StatusStudent } from '@prisma/client';
 
 export class CreateStudentsDto {
-  dni: string;
-  firstName: string;
-  secondName: string;
-  lastName: string;
-  secondLastName: string;
-  electivePeriod: string;
-  academicPeriod: string;
-  parallel: string;
-  email: string;
-  password: string;
+  userDNI: string;
   idCareer: number;
   status: StatusStudent;
-  state: boolean;
 }

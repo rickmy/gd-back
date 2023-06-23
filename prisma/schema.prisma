@@ -11,20 +11,25 @@ datasource db {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  dni           String         @unique
-  typeDni       TypeDNI        @default(CEDULA)
-  firstName     String
-  lastName      String
-  email         String         @unique
-  password      String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  state         Boolean        @default(true)
-  idRol         Int            @default(1)
-  rol           Rol            @relation(fields: [idRol], references: [id])
-  academicTutor AcademicTutor?
-  BusinessTutor BusinessTutor?
+  id             Int            @id @default(autoincrement())
+  dni            String         @unique
+  typeDni        TypeDNI        @default(CEDULA)
+  userName       String         @unique
+  firstName      String
+  secondName     String?
+  lastName       String
+  secondLastName String?
+  email          String         @unique
+  password       String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  state          Boolean        @default(true)
+  idRol          Int            @default(1)
+  rol            Rol            @relation(fields: [idRol], references: [id])
+  academicTutor  AcademicTutor?
+  BusinessTutor  BusinessTutor?
+  Student        Student?
+  Company        Company[]
 }
 
 model Rol {
@@ -84,26 +89,26 @@ model BusinessTutor {
 }
 
 model Company {
-  id                     Int                    @id @default(autoincrement())
-  ruc                    String                 @unique
-  name                   String                 @unique
-  dniRepresentLegal      String                 @unique
-  nameRepresentLegal     String
-  lastNameRepresentLegal String
-  phone                  String
-  email                  String
-  address                String
-  password               String
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
-  state                  Boolean                @default(true)
-  status                 StatusCompany          @default(PENDIENTE)
-  BusinessTutor          BusinessTutor[]
-  idCareer               Int
-  career                 Career                 @relation(fields: [idCareer], references: [id])
-  Project                Project[]
-  CompaniesHasStudents   CompaniesHasStudents[]
-  Agreement              Agreement[]
+  id                       Int                        @id @default(autoincrement())
+  ruc                      String                     @unique
+  name                     String                     @unique
+  dniRepresentLegal        String                     @unique
+  nameRepresentLegal       String
+  lastNameRepresentLegal   String
+  phone                    String
+  address                  String
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  state                    Boolean                    @default(true)
+  status                   StatusCompany              @default(PENDIENTE)
+  BusinessTutor            BusinessTutor[]
+  idCareer                 Int
+  career                   Career                     @relation(fields: [idCareer], references: [id])
+  Project                  Project[]
+  Agreement                Agreement[]
+  userId                   Int
+  user                     User                       @relation(fields: [userId], references: [id])
+  studentAssignedToCompany studentAssignedToCompany[]
 }
 
 model Career {
@@ -125,56 +130,50 @@ model Career {
 }
 
 model Student {
-  id                   Int                    @id @default(autoincrement())
-  dni                  String                 @unique
-  typeDni              TypeDNI                @default(CEDULA)
-  firstName            String
-  secondName           String
-  lastName             String
-  secondLastName       String
-  electivePeriod       String
-  academicPeriod       String
-  parallel             String
-  email                String                 @unique
-  password             String
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  state                Boolean                @default(true)
-  status               StatusStudent          @default(PENDIENTE)
-  idCareer             Int
-  career               Career                 @relation(fields: [idCareer], references: [id])
-  idProject            Int?
-  project              Project?               @relation(fields: [idProject], references: [id])
-  CompaniesHasStudents CompaniesHasStudents[]
+  id                       Int                        @id @default(autoincrement())
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  state                    Boolean                    @default(true)
+  status                   StatusStudent              @default(APROBADO)
+  userDNI                  String                     @unique
+  user                     User                       @relation(fields: [userDNI], references: [dni])
+  idCareer                 Int
+  career                   Career                     @relation(fields: [idCareer], references: [id])
+  studentAssignedToCompany studentAssignedToCompany[]
 }
 
 model Project {
-  id              Int           @id @default(autoincrement())
-  name            String
-  description     String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  state           Boolean       @default(true)
-  status          StatusProject @default(PENDIENTE)
-  Student         Student[]
-  idAcademicTutor Int
-  academicTutor   AcademicTutor @relation(fields: [idAcademicTutor], references: [id])
-  idBusinessTutor Int
-  businessTutor   BusinessTutor @relation(fields: [idBusinessTutor], references: [id])
-  idCompany       Int
-  company         Company       @relation(fields: [idCompany], references: [id])
+  id                       Int                        @id @default(autoincrement())
+  name                     String
+  description              String
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  state                    Boolean                    @default(true)
+  status                   StatusProject              @default(PENDIENTE)
+  idAcademicTutor          Int
+  academicTutor            AcademicTutor              @relation(fields: [idAcademicTutor], references: [id])
+  idBusinessTutor          Int
+  businessTutor            BusinessTutor              @relation(fields: [idBusinessTutor], references: [id])
+  idCompany                Int
+  company                  Company                    @relation(fields: [idCompany], references: [id])
+  studentAssignedToCompany studentAssignedToCompany[]
 }
 
-model CompaniesHasStudents {
-  idCompany Int
-  idStudent Int
-  company   Company  @relation(fields: [idCompany], references: [id])
-  student   Student  @relation(fields: [idStudent], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  state     Boolean  @default(true)
+model studentAssignedToCompany {
+  idCompany      Int?
+  company        Company? @relation(fields: [idCompany], references: [id])
+  idStudent      Int
+  student        Student  @relation(fields: [idStudent], references: [id])
+  idProject      Int?
+  project        Project? @relation(fields: [idProject], references: [id])
+  electivePeriod String
+  academicPeriod String
+  parallel       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  state          Boolean  @default(true)
 
-  @@id([idCompany, idStudent])
+  @@id([idStudent])
 }
 
 model Agreement {
@@ -207,11 +206,9 @@ enum StatusCompany {
 
 enum StatusStudent {
   ASIGNADO
+  APROBADO
   RETIRADO
-  PENDIENTE
-  ACTIVO
-  INACTIVO
-  PERDIDO
+  REPROBADO
 }
 
 enum StatusProject {

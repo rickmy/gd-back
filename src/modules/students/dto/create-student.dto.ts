@@ -76,7 +76,7 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Estado del estudiante',
     enum: StatusStudent,
-    default: StatusStudent.PENDIENTE,
+    default: StatusStudent.APROBADO,
   })
   status: StatusStudent;
   @IsNumber({}, { message: 'La carrera debe ser un número' })

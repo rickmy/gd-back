@@ -2,8 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { StatusStudent } from '@prisma/client';
 
 export class StudentsDto {
-  @ApiProperty({ example: 1, description: 'Student id' })
-  id: number;
   @ApiProperty({ example: '1727373644', description: 'dni del estudiante' })
   dni: string;
   @ApiProperty({ example: 'Hector Gonzales', description: 'Nombres Completos' })

@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -18,8 +19,10 @@ import { RoleService } from '../role/role.service';
 import { CareerService } from '../career/career.service';
 import { CreateStudentsDto } from './dto/create-students.dto';
 import { CreateStudentAssignedToCompanyDto } from './dto/create-student-assigned-to-company.dto';
+import { StudentsDto } from './dto/students.dto';
 @Injectable()
 export class StudentsService {
+  private logger = new Logger(StudentsService.name);
   constructor(
     private _prismaService: PrismaService,
     private _userService: UserService,
@@ -131,14 +134,14 @@ export class StudentsService {
       });
       try {
         const usersDB = await this._prismaService.user.findMany({
-        where: {
-          dni: { in: onlyNewsUser.map((user) => user.dni) },
-        },
-      });
+          where: {
+            dni: { in: onlyNewsUser.map((user) => user.dni) },
+          },
+        });
       } catch (error) {
         throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
       }
-      
+
       usersDB.forEach(async (user) => {
         const student = newStudentsExcel.find(
           (student) => student.dni === user.dni
@@ -146,18 +149,18 @@ export class StudentsService {
         const career = await this._careerService.findByCode(student.careerCode);
         try {
           await this._prismaService.student.create({
-          data: {
-            idUser: user.dni,
-            idCareer: career.id,
-            status: student.statusNotes.every(
-              (status: string) => status === 'APROBADO'
-            ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
-          },
-        });
+            data: {
+              idUser: user.dni,
+              idCareer: career.id,
+              status: student.statusNotes.every(
+                (status: string) => status === 'APROBADO'
+              ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
+            },
+          });
         } catch (error) {
           throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
         }
-        
+
       });
 
       const newStudentsDB = await this._prismaService.student.findMany({
@@ -197,18 +200,18 @@ export class StudentsService {
         const career = await this._careerService.findByCode(student.careerCode);
         try {
           await this._prismaService.student.create({
-          data: {
-            idUser: user.dni,
-            idCareer: career.id,
-            status: student.statusNotes.every(
-              (status: string) => status === 'APROBADO'
-            ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
-          },
-        });
-        } catch (error){
+            data: {
+              idUser: user.dni,
+              idCareer: career.id,
+              status: student.statusNotes.every(
+                (status: string) => status === 'APROBADO'
+              ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
+            },
+          });
+        } catch (error) {
           throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
         }
-        
+
       });
 
       const newStudentsDB = await this._prismaService.student.findMany({
@@ -259,7 +262,10 @@ export class StudentsService {
             idStudent: studentDB.idUser,
           },
           data: {
-            state: false,
+            electivePeriod: periodElective,
+            academicPeriod: newStudentsExcel.find((studentExcel) => studentExcel.dni === studentDB.idUser).periodAcademic,
+            parallel: newStudentsExcel.find((studentExcel) => studentExcel.dni === studentDB.idUser).parallel,
+            state: true,
           },
         });
 
@@ -267,25 +273,6 @@ export class StudentsService {
       } catch (error) {
         throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       }
-      
-      try {
-
-        await this._prismaService.studentAssignedToCompany.create({
-          data: {
-            idStudent: student.dni,
-            idCompany: null,
-            electivePeriod: periodElective,
-            academicPeriod: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.dni).periodAcademic,
-            idProject: null,
-            parallel: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.dni).parallel,
-            state: true,
-          },
-        });
-
-      } catch (error) {
-        throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
-      }
-      //TODO: Actualizar el periodo academico y electivo
 
     });
 
@@ -297,7 +284,7 @@ export class StudentsService {
   }
 
   async create(createStudentDto: CreateStudentDto): Promise<StudentEntity> {
-    // const studentExists = await this.findStudentByDni(createStudentDto.dni);
+    // const studentExists = await this.findStudentByDni(createStudentDto.dni); 
     // if (studentExists) {
     //   throw new HttpException('El estudiante ya existe', HttpStatus.CONFLICT);
     // }
@@ -318,22 +305,52 @@ export class StudentsService {
   async findAll(
     options: PaginationOptions,
     allActive?: boolean,
-  ): Promise<StudentEntity[]> {
+  ): Promise<StudentsDto[]> {
     const { page, limit } = options;
     try {
       const skip = (page - 1) * limit;
-      return await this._prismaService.student.findMany({
+      
+      const users = await this._prismaService.user.findMany({
         take: limit,
         skip,
         where: {
           state: allActive ? true : undefined,
         },
         include: {
-          user: true,
-          career: true,
+          student: {
+            include: {
+              career: true,
+            },
+          },
         },
       });
+      
+      const registrations = await this._prismaService.studentAssignedToCompany.findMany({
+        where: {
+          idStudent: {
+            in: users.map((user) => user.dni),
+          },
+        },
+      });
+
+      return users.map((user) => {
+        const registration = registrations.find(
+          (registration) => registration.idStudent === user.dni,
+        );
+        return {
+          dni: user.dni,
+          completeNames: `${user.firstName} ${user.secondName} ${user.lastName} ${user.secondLastName}`,
+          career: user.student.career.name,
+          parallel: registration.parallel,
+          email: user.email,
+          periodElective: registration.electivePeriod,
+          periodAcademic: registration.academicPeriod,
+          status: user.student.status,
+        };
+      });
+
     } catch (error) {
+      this.logger.error(error);
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }

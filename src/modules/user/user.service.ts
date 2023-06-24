@@ -91,6 +91,26 @@ export class UserService {
             state: true,
           },
         },
+        student: {
+          include:{
+            career: true,
+          }
+        },
+        company:{
+          include:{
+            career: true,
+          }
+        },
+        academicTutor: {
+          include:{
+            career: true,
+          }
+        },
+        businessTutor: {
+          include:{
+            company: true,
+          }
+        }
       },
     });
   }

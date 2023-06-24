@@ -17,6 +17,7 @@ import { UserService } from '../user/user.service';
 import { RoleService } from '../role/role.service';
 import { CareerService } from '../career/career.service';
 import { CreateStudentsDto } from './dto/create-students.dto';
+import { CreateStudentAssignedToCompanyDto } from './dto/create-student-assigned-to-company.dto';
 @Injectable()
 export class StudentsService {
   constructor(
@@ -24,7 +25,7 @@ export class StudentsService {
     private _userService: UserService,
     private _roleService: RoleService,
     private _careerService: CareerService,
-  ) {}
+  ) { }
 
   async uploadStudents(file: Express.Multer.File): Promise<HttpException> {
     let newStudentsExcel: {
@@ -36,7 +37,7 @@ export class StudentsService {
       parallel: string,
       finalNotes: number[],
       statusNotes: string[],
-    } [] = [];
+    }[] = [];
     const role = await this._roleService.findRoleByName('EST');
     const listDni = [];
     if (!file) throw new UnprocessableEntityException('No file uploaded');
@@ -107,10 +108,10 @@ export class StudentsService {
       newUser.email = `${newUser.firstName
         ?.toLowerCase()
         .charAt(0)}${newUser.secondName
-        ?.toLowerCase()
-        .charAt(0)}${newUser.secondLastName
-        ?.toLowerCase()
-        .charAt(0)}.${newUser.lastName.toLowerCase()}@yavirac.edu.ec`;
+          ?.toLowerCase()
+          .charAt(0)}${newUser.secondLastName
+            ?.toLowerCase()
+            .charAt(0)}.${newUser.lastName.toLowerCase()}@yavirac.edu.ec`;
       newUsers.push(newUser);
     });
 
@@ -120,7 +121,7 @@ export class StudentsService {
       (user) => !usersDB.some((userDB) => userDB.dni === user.dni),
     );
 
-    const existingStudents = newUsers.filter((user) =>
+    const existingUsers = newUsers.filter((user) =>
       usersDB.some((userDB) => userDB.dni === user.dni && userDB.state === true && userDB.email === user.email),
     );
 
@@ -140,7 +141,7 @@ export class StudentsService {
         const career = await this._careerService.findByCode(student.careerCode);
         await this._prismaService.student.create({
           data: {
-            userDNI: user.dni,
+            idUser: user.dni,
             idCareer: career.id,
             status: student.statusNotes.every(
               (status: string) => status === 'APROBADO'
@@ -148,24 +149,45 @@ export class StudentsService {
           },
         });
       });
+
+      const newStudentsDB = await this._prismaService.student.findMany({
+        where: {
+          idUser: { in: usersDB.map((user) => user.dni) },
+        },
+      });
+
+      const studentHasCompany: CreateStudentAssignedToCompanyDto[] = newStudentsDB.map((student) => {
+        return {
+          idStudent: student.idUser,
+          idCompany: null,
+          electivePeriod: periodElective,
+          academicPeriod: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.idUser).periodAcademic,
+          idProject: null,
+          parallel: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.idUser).parallel,
+        };
+      });
+
+      await this._prismaService.studentAssignedToCompany.createMany({
+        data: studentHasCompany,
+      });
     }
-    
+
     const studentsDB = await this._prismaService.student.findMany({
       where: {
-        userDNI: { in: existingStudents.map((user) => user.dni) },
+        idUser: { in: existingUsers.map((user) => user.dni) },
       },
     });
 
 
-    if(studentsDB.length === 0) {
-      existingStudents.forEach(async (user) => {
+    if (studentsDB.length === 0) {
+      existingUsers.forEach(async (user) => {
         const student = newStudentsExcel.find(
           (student) => student.dni === user.dni
         );
         const career = await this._careerService.findByCode(student.careerCode);
         await this._prismaService.student.create({
           data: {
-            userDNI: user.dni,
+            idUser: user.dni,
             idCareer: career.id,
             status: student.statusNotes.every(
               (status: string) => status === 'APROBADO'
@@ -173,16 +195,37 @@ export class StudentsService {
           },
         });
       });
+
+      const newStudentsDB = await this._prismaService.student.findMany({
+        where: {
+          idUser: { in: existingUsers.map((user) => user.dni) },
+        },
+      });
+
+      const studentHasCompany: CreateStudentAssignedToCompanyDto[] = newStudentsDB.map((student) => {
+        return {
+          idStudent: student.idUser,
+          idCompany: null,
+          electivePeriod: periodElective,
+          academicPeriod: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.idUser).periodAcademic,
+          idProject: null,
+          parallel: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.idUser).parallel,
+        };
+      });
+
+      await this._prismaService.studentAssignedToCompany.createMany({
+        data: studentHasCompany,
+      });
     }
 
     studentsDB.forEach(async (studentDB) => {
       const student = newStudentsExcel.find(
-        (student) => student.dni === studentDB.userDNI
+        (student) => student.dni === studentDB.idUser
       );
       try {
         await this._prismaService.student.update({
           where: {
-            id: studentDB.id,
+            idUser: studentDB.idUser,
           },
           data: {
             status: student.statusNotes.every(
@@ -190,12 +233,47 @@ export class StudentsService {
             ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
           },
         });
+
       } catch (error) {
-        console.log(error);
+        throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      try {
+        await this._prismaService.studentAssignedToCompany.updateMany({
+          where: {
+            idStudent: studentDB.idUser,
+          },
+          data: {
+            state: false,
+          },
+        });
+
+
+      } catch (error) {
+        throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      
+      try {
+
+        await this._prismaService.studentAssignedToCompany.create({
+          data: {
+            idStudent: student.dni,
+            idCompany: null,
+            electivePeriod: periodElective,
+            academicPeriod: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.dni).periodAcademic,
+            idProject: null,
+            parallel: newStudentsExcel.find((studentExcel) => studentExcel.dni === student.dni).parallel,
+            state: true,
+          },
+        });
+
+      } catch (error) {
         throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       }
       //TODO: Actualizar el periodo academico y electivo
+
     });
+
 
     return new HttpException(
       'Estudiantes cargados correctamente',
@@ -258,11 +336,15 @@ export class StudentsService {
   }
 
   async findStudentByDni(dni: string) {
-    // return null;  await this._prismaService.student.findFirst({
-    //   where: {
-    //     dni,
-    //   },
-    // });
+    try {
+      return await this._prismaService.student.findFirst({
+        where: {
+          idUser: dni,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   async update(
@@ -276,7 +358,7 @@ export class StudentsService {
     try {
       return await this._prismaService.student.update({
         where: {
-          id: id,
+          idUser: studentExists.idUser,
         },
         data: updateStudentDto,
       });
@@ -296,7 +378,7 @@ export class StudentsService {
     try {
       return await this._prismaService.student.update({
         where: {
-          id: id,
+          idUser: studentExists.idUser,
         },
         data: {
           status: status,
@@ -307,11 +389,11 @@ export class StudentsService {
     }
   }
 
-  async remove(id: number): Promise<HttpException> {
+  async remove(idUser: string): Promise<HttpException> {
     try {
       await this._prismaService.student.update({
         where: {
-          id,
+          idUser,
         },
         data: {
           state: false,

@@ -12,6 +12,6 @@ export class StudentEntity implements Student {
   status: StatusStudent;
   idCareer: number;
   career?: CareerEntity;
-  userDNI: string;
+  idUser: string;
   user?: UserEntity;
 }

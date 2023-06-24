@@ -67,11 +67,11 @@ export class UserService {
     }
   }
 
-  findOne(id: number) {
+  findOne(dni: string) {
     try {
       return this._prismaService.user.findUnique({
         where: {
-          id,
+          dni,
         },
       });
     } catch (error) {
@@ -103,13 +103,13 @@ export class UserService {
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
-    const user = await this.findOne(id);
+  async update(dni: string, updateUserDto: UpdateUserDto): Promise<User | null> {
+    const user = await this.findOne(dni);
     if (!user) throw new UnprocessableEntityException('El usuario no existe');
     try {
       const updatedUser = await this._prismaService.user.update({
         where: {
-          id,
+          dni: user.dni,
         },
         data: updateUserDto,
       });
@@ -119,11 +119,11 @@ export class UserService {
     }
   }
 
-  remove(id: number) {
+  remove(dni: string) {
     try {
       return this._prismaService.user.update({
         where: {
-          id,
+          dni,
         },
         data: {
           state: false,

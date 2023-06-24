@@ -114,9 +114,9 @@ export class StudentsController {
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentEntity })
-  @ApiOperation({ summary: 'Encontrar un estudiante por su ID' })
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @ApiOperation({ summary: 'Encontrar un estudiante por su DNI' })
+  @Get(':dni')
+  findOne(@Param('dni') id: string) {
     return this.studentsService.findOne(+id);
   }
 
@@ -124,17 +124,17 @@ export class StudentsController {
     description: 'Estudiante Actualizado',
     type: CreateStudentDto,
   })
-  @ApiOperation({ summary: 'Actualizar un estudiante por su ID' })
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
+  @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
+  @Put(':dni')
+  update(@Param('dni') id: string, @Body() updateStudentDto: StudentEntity) {
     return this.studentsService.update(+id, updateStudentDto);
   }
 
-  @Delete(':id')
-  @ApiResponse({ status: 200, description: 'Elimina un estudiante por su ID' })
+  @Delete(':dni')
+  @ApiResponse({ status: 200, description: 'Elimina un estudiante por su DNI' })
   @ApiResponse({ status: 404, description: 'Estudiante no encontrado' })
   @ApiOperation({ summary: 'Eliminar estudiante por su ID' })
-  remove(@Param('id') id: string) {
-    return this.studentsService.remove(+id);
+  remove(@Param('dni') idUser: string) {
+    return this.studentsService.remove(idUser);
   }
 }

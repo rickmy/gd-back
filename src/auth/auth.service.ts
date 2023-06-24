@@ -4,6 +4,8 @@ import {
   UnprocessableEntityException,
   HttpException,
   HttpStatus,
+  BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { MailService } from 'src/modules/mail/mail.service';
 import { PayloadModel } from './models/payloadModel';
@@ -14,32 +16,43 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import * as bcrypt from 'bcrypt';
+import { StudentsService } from 'src/modules/students/students.service';
 @Injectable()
 export class AuthService {
+  private logger = new Logger(AuthService.name);
   constructor(
     private _mailService: MailService,
     private _userService: UserService,
     private _jwtService: JwtService,
-  ) {}
+    private _studentService: StudentsService,
+  ) { }
 
   async login(credentials: CredentialsDto): Promise<ResponseAuthModel> {
+    this.logger.log(`Login attempt for ${credentials.email}`);
     const user = await this._userService.findByEmail(credentials.email);
-    if (!user) throw new UnprocessableEntityException('Usuario no existe');
+    if (!user) {
+      this.logger.log(`User not found ${credentials.email}`);
+      throw new HttpException({
+        status: HttpStatus.NOT_FOUND,
+        error: 'Usuario no encontrado',
+      }, HttpStatus.NOT_FOUND);
+    }
     if (!user.state) throw new UnauthorizedException('Usuario inactivo');
     const isMatch = await this.comparePassword(
       credentials.password,
       user.password,
     );
     if (!isMatch) {
-      throw new UnauthorizedException('Credenciales invalidas');
+      throw new BadRequestException('Credenciales invalidas');
     }
     const payload: PayloadModel = {
       id: user.id,
+      dni: user.dni,
       email: user.email,
       role: user.idRol,
     };
     user.password = undefined;
-
+    this.logger.log(`Login success for ${credentials.email}`);
     return { accessToken: await this.createToken(payload), user };
   }
 
@@ -102,7 +115,7 @@ export class AuthService {
         'El token no es valido',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    const userExist = await this._userService.findOne(payload.id);
+    const userExist = await this._userService.findOne(payload.dni);
     if (!userExist)
       throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
     if (!userExist.state)
@@ -111,7 +124,7 @@ export class AuthService {
         HttpStatus.CONFLICT,
       );
     userExist.password = this.hashPassword(resetPasswordDto.newPassword);
-    const ok = await this._userService.update(userExist.id, userExist);
+    const ok = await this._userService.update(userExist.dni, userExist);
     if (!ok)
       throw new HttpException(
         'Error al actualizar la contraseña',
@@ -141,7 +154,7 @@ export class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     userExist.password = this.hashPassword(changePasswordDto.newPassword);
-    const changed = await this._userService.update(userExist.id, userExist);
+    const changed = await this._userService.update(userExist.dni, userExist);
     if (!changed)
       throw new HttpException(
         'Error al actualizar la contraseña',

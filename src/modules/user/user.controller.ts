@@ -77,30 +77,30 @@ export class UserController {
     description: 'Usuario no encontrado',
     type: null,
   })
-  @ApiOperation({ summary: 'Encontrar usuario por su ID' })
-  @Get(':id')
+  @ApiOperation({ summary: 'Encontrar usuario por su DNI' })
+  @Get(':dni')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  findOne(@Param('dni') dni: string) {
+    return this.userService.findOne(dni);
   }
 
   @ApiOkResponse({
     description: 'Usuario Actualizado',
     type: CreateUserDto,
   })
-  @ApiOperation({ summary: 'Actualizar un usuario por su ID' })
-  @Patch(':id')
+  @ApiOperation({ summary: 'Actualizar un usuario por su DNI' })
+  @Patch(':dni')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  update(@Param('dni') dni: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(dni, updateUserDto);
   }
 
-  @Delete(':id')
-  @ApiResponse({ status: 200, description: 'Elimina un usuario por su ID' })
+  @Delete(':dni')
+  @ApiResponse({ status: 200, description: 'Elimina un usuario por su DNI' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   @ApiOperation({ summary: 'Eliminar usuario por su ID' })
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  remove(@Param('id') dni: string) {
+    return this.userService.remove(dni);
   }
 }

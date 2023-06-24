@@ -9,6 +9,7 @@ import { CareerModule } from '../career/career.module';
 @Module({
   controllers: [StudentsController],
   providers: [StudentsService],
+  exports: [StudentsService],
   imports: [PrismaModule, UserModule, RoleModule, CareerModule],
 })
 export class StudentsModule {}

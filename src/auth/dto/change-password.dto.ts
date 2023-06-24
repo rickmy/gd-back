@@ -5,9 +5,9 @@ export class ChangePasswordDto {
   @IsNumber({}, { message: 'El campo debe ser numérico' })
   @ApiProperty({
     description: 'Id del usuario',
-    example: 1,
+    example: '12121212',
   })
-  userId: number;
+  userId: string;
   @IsString({ message: 'El campo debe ser string' })
   @ApiProperty({
     description: 'actual contraseña del usuario',

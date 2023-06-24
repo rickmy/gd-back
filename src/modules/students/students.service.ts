@@ -129,17 +129,23 @@ export class StudentsService {
       await this._prismaService.user.createMany({
         data: onlyNewsUser,
       });
-      const usersDB = await this._prismaService.user.findMany({
+      try {
+        const usersDB = await this._prismaService.user.findMany({
         where: {
           dni: { in: onlyNewsUser.map((user) => user.dni) },
         },
       });
+      } catch (error) {
+        throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
+      }
+      
       usersDB.forEach(async (user) => {
         const student = newStudentsExcel.find(
           (student) => student.dni === user.dni
         );
         const career = await this._careerService.findByCode(student.careerCode);
-        await this._prismaService.student.create({
+        try {
+          await this._prismaService.student.create({
           data: {
             idUser: user.dni,
             idCareer: career.id,
@@ -148,6 +154,10 @@ export class StudentsService {
             ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
           },
         });
+        } catch (error) {
+          throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
+        }
+        
       });
 
       const newStudentsDB = await this._prismaService.student.findMany({
@@ -185,7 +195,8 @@ export class StudentsService {
           (student) => student.dni === user.dni
         );
         const career = await this._careerService.findByCode(student.careerCode);
-        await this._prismaService.student.create({
+        try {
+          await this._prismaService.student.create({
           data: {
             idUser: user.dni,
             idCareer: career.id,
@@ -194,6 +205,10 @@ export class StudentsService {
             ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
           },
         });
+        } catch (error){
+          throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
+        }
+        
       });
 
       const newStudentsDB = await this._prismaService.student.findMany({
@@ -268,7 +283,7 @@ export class StudentsService {
         });
 
       } catch (error) {
-        throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
       }
       //TODO: Actualizar el periodo academico y electivo
 

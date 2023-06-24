@@ -31,7 +31,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 
 import { StudentsDto } from './dto/students.dto';
 
-@UseGuards(JwtAuthGuard)
+
 @ApiBearerAuth()
 @Controller('students')
 @ApiTags('student')

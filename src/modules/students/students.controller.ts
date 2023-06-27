@@ -32,6 +32,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 
 import { StudentsDto } from './dto/students.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
+import { StudentDto } from './dto/student.dto';
 
 
 @ApiBearerAuth()
@@ -111,8 +112,8 @@ export class StudentsController {
     return this.studentsService.findAll(options, true);
   }
 
-  @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentEntity })
-  @ApiOperation({ summary: 'Encontrar un estudiante por su DNI' })
+  @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })
+  @ApiOperation({ summary: 'Encontrar un estudiante por su Id' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentsService.findOne(+id);

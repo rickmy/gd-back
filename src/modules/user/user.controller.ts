@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { ListUserDto } from './dto/list-user.dto';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -39,12 +40,7 @@ export class UserController {
   @ApiOkResponse({
     description: 'Usuarios encontrados',
     isArray: true,
-    type: UserEntity,
-  })
-  @ApiNoContentResponse({
-    description: 'Usuarios no encontrados',
-    isArray: true,
-    type: null,
+    type: ListUserDto,
   })
   @ApiOperation({ summary: 'Encontrar todos los usuarios' })
   @UseGuards(JwtAuthGuard)

@@ -81,6 +81,14 @@ export class UserService {
         where: {
           id,
         },
+        include: {
+          rol: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+        }
       });
     } catch (error) {
       throw new HttpException(error, 500);

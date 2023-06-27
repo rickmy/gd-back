@@ -31,6 +31,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateStudentDto } from './dto/update-student.dto';
 
 import { StudentsDto } from './dto/students.dto';
+import { PaginationResult } from 'src/core/models/paginationResult';
 
 
 @ApiBearerAuth()
@@ -74,14 +75,13 @@ export class StudentsController {
     );
   }
 
-  @ApiOkResponse({
-    description: 'Estudiantes encontrados',
-    type: StudentEntity,
-    isArray: true,
-  })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados',
+    type: PaginationResult<StudentsDto>,
+  })
   @Get()
   findAll(
     @Query('page', ParseIntPipe) page: number,
@@ -96,9 +96,8 @@ export class StudentsController {
 
   @Get('active')
   @ApiOkResponse({
-    description: 'Estudiantes activos encontrados',
-    type: StudentsDto,
-    isArray: true,
+    description: 'Estudiantes encontrados',
+    type: PaginationResult<StudentsDto>,
   })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes activos' })
   findAllActive(
@@ -114,8 +113,8 @@ export class StudentsController {
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentEntity })
   @ApiOperation({ summary: 'Encontrar un estudiante por su DNI' })
-  @Get(':dni')
-  findOne(@Param('dni') id: string) {
+  @Get(':id')
+  findOne(@Param('id') id: string) {
     return this.studentsService.findOne(+id);
   }
 
@@ -124,8 +123,8 @@ export class StudentsController {
     type: CreateStudentDto,
   })
   @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
-  @Put(':dni')
-  update(@Param('dni') id: string, @Body() updateStudentDto: StudentEntity) {
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
     return this.studentsService.update(+id, updateStudentDto);
   }
 

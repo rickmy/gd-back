@@ -28,8 +28,8 @@ export class CompanyEntity implements Company {
     @ApiProperty({ example: 1, description: 'ID carrera' })
     idCareer: number;
     career?: CareerEntity;
-    @ApiProperty({ example: '1', description: 'ID Usuario' })
-    idUser: string;
+    @ApiProperty({ example: 1, description: 'ID Usuario' })
+    idUser: number;
     user?: UserEntity;
 
     

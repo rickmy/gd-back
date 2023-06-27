@@ -21,6 +21,7 @@ import { CreateStudentsDto } from './dto/create-students.dto';
 import { CreateStudentAssignedToCompanyDto } from './dto/create-student-assigned-to-company.dto';
 import { StudentsDto } from './dto/students.dto';
 import { StudentExcel } from './models/studentExcel';
+import { PaginationResult } from 'src/core/models/paginationResult';
 @Injectable()
 export class StudentsService {
   private logger = new Logger(StudentsService.name);
@@ -317,7 +318,7 @@ export class StudentsService {
   async findAll(
     options: PaginationOptions,
     allActive?: boolean,
-  ): Promise<StudentsDto[]> {
+  ): Promise<PaginationResult<StudentsDto>> {
     const { page, limit } = options;
     try {
       const skip = (page - 1) * limit;
@@ -332,7 +333,6 @@ export class StudentsService {
         },
       });
 
-      this.logger.log(students[3]);
       this.logger.log('Buscando estudiantes asignados a empresa');
 
       const registrations = await this._prismaService.studentAssignedToCompany.findMany({
@@ -344,21 +344,31 @@ export class StudentsService {
       });
       this.logger.log('Estudiantes asignados a empresa encontrados');
 
-      return students.map((student) => {
-        const registration = registrations.find(
-          (registration) => registration.idStudent === student.id,
-        );
-        return {
-          dni: student.dni,
-          completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
-          career: student.career.name,
-          parallel: registration.parallel,
-          email: student.email,
-          periodElective: registration.electivePeriod,
-          periodAcademic: registration.academicPeriod,
-          status: student.status,
-        };
-      });
+      return {
+        results: students.map((student) => {
+          const registration = registrations.find(
+            (registration) => registration.idStudent === student.id,
+          );
+          return {
+            dni: student.dni,
+            completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
+            career: student.career.name,
+            parallel: registration.parallel,
+            email: student.email,
+            periodElective: registration.electivePeriod,
+            periodAcademic: registration.academicPeriod,
+            status: student.status,
+          };
+        }),
+        limit,
+        page,
+        total: await this._prismaService.student.count({
+          where: {
+            state: allActive ? true : undefined
+          },
+        }),
+
+      };
 
     } catch (error) {
       this.logger.error(error);

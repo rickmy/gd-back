@@ -33,14 +33,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const errorResponse = {
       statusCode: status,
-      message: errorMsg.message || errorMsg.error || null,
+      message: errorMsg,
       timestamp: new Date().toISOString(),
       currentId: request['X-Correlation-Id'],
       path: request.url,
       method: request.method,
     }
 
-    const errorLog = `Response Code: ${errorResponse.statusCode} - Method: ${errorResponse.method} - Path: ${errorResponse.path} - Message: ${errorResponse.message} - Timestamp: ${errorResponse.timestamp} - CorrelationId: ${errorResponse.currentId}`;
+    const errorLog = `Response Code: ${errorResponse.statusCode} - Method: ${errorResponse.method} - Path: ${errorResponse.path} - Message: ${JSON.stringify(errorMsg)} - Timestamp: ${errorResponse.timestamp} - CorrelationId: ${errorResponse.currentId}`;
 
     logger.error(errorLog);
     

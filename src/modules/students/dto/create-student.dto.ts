@@ -10,6 +10,13 @@ import {
 } from 'class-validator';
 
 export class CreateStudentDto {
+  @IsEnum(TypeDNI, { message: 'El tipo de DNI es inválido' })
+  @ApiProperty({
+    description: 'Tipo de DNI',
+    enum: TypeDNI,
+    default: TypeDNI.CEDULA,
+  })
+  typeDni: TypeDNI;
   @IsString({ message: 'el dni debe ser un string' })
   @IsNotEmpty({ message: 'el dni no debe estar vacio' })
   @ApiProperty({ description: 'dni estudiante', example: '1724345645' })
@@ -33,24 +40,6 @@ export class CreateStudentDto {
     example: 'Sánchez',
   })
   secondLastName: string;
-  @IsString({ message: 'el periodo electivo debe ser un string' })
-  @IsNotEmpty({ message: 'el periodo electivo no debe estar vacio' })
-  @ApiProperty({
-    description: 'periodo electivo estudiante',
-    example: '2022-2023',
-  })
-  electivePeriod: string;
-  @IsString({ message: 'el periodo academico debe ser un string' })
-  @IsNotEmpty({ message: 'el periodo academico no debe estar vacio' })
-  @ApiProperty({
-    description: 'periodo academico estudiante',
-    example: '2022-1',
-  })
-  academicPeriod: string;
-  @IsString({ message: 'el paralelo debe ser un string' })
-  @IsNotEmpty({ message: 'el paralelo no debe estar vacio' })
-  @ApiProperty({ description: 'paralelo estudiante', example: 'A' })
-  parallel: string;
   @IsString({ message: 'el correo electrónico debe ser un string' })
   @IsNotEmpty({ message: 'el correo electrónico no debe estar vacio' })
   @ApiProperty({
@@ -58,20 +47,15 @@ export class CreateStudentDto {
     example: 'has.ruiz@yavirac.edu.ec',
   })
   email: string;
-  @IsString({ message: 'la contraseña debe ser un string' })
-  @IsEmpty({ message: 'la contraseña puede ser nula' })
-  @ApiProperty({
-    description: 'contraseña estudiante',
-    example: 'passwordHugo123',
-  })
-  password: string;
-  @IsEnum(TypeDNI, { message: 'El tipo de DNI es inválido' })
-  @ApiProperty({
-    description: 'Tipo de DNI',
-    enum: TypeDNI,
-    default: TypeDNI.CEDULA,
-  })
-  typeDni: TypeDNI;
+  @IsString({ message: 'el periodo académico debe ser un string' })
+  @ApiProperty({ description: 'Periodo académico', example: 'QUINTO' })
+  academicPeriod: string;
+  @IsString({ message: 'el periodo selectivo debe ser un string' })
+  @ApiProperty({ description: 'Periodo electivo', example: '2022-2P' })
+  electivePeriod: string;
+  @IsString({ message: 'el paralelo debe ser un string' })
+  @ApiProperty({ description: 'Paralelo', example: 'A' })
+  parallel: string;
   @IsEnum(StatusStudent, { message: 'El estado del estudiante es inválido' })
   @ApiProperty({
     description: 'Estado del estudiante',
@@ -79,11 +63,10 @@ export class CreateStudentDto {
     default: StatusStudent.APROBADO,
   })
   status: StatusStudent;
+  @IsOptional()
+  @ApiProperty({ description: 'ID usuario', example: 1 })
+  idUser: number;
   @IsNumber({}, { message: 'La carrera debe ser un número' })
   @ApiProperty({ description: 'ID carrera', example: 1 })
   idCareer: number;
-  @IsNumber({}, { message: 'El proyecto debe ser un número' })
-  @IsOptional()
-  @ApiProperty({ description: 'ID proyecto', example: 1 })
-  idProject: number;
 }

@@ -1,6 +1,6 @@
 export class CreateStudentAssignedToCompanyDto {
   idCompany: number | null
-  idStudent: string
+  idStudent: number
   idProject: number | null
   electivePeriod: string
   academicPeriod: string

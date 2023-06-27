@@ -3,6 +3,7 @@ import {
   UnprocessableEntityException,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,11 +11,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
-import { error } from 'console';
 
 @Injectable()
 export class UserService {
-  constructor(private _prismaService: PrismaService) {}
+  private logger = new Logger(UserService.name);
+  constructor(private _prismaService: PrismaService) { }
 
   async create(createUserDto: CreateUserDto): Promise<User | null> {
     const { dni, email } = createUserDto;
@@ -25,10 +26,17 @@ export class UserService {
     if (existEmail)
       throw new UnprocessableEntityException('El usuario ya existe');
     createUserDto.password = bcrypt.hashSync(createUserDto.password, 10);
-    const newUser = this._prismaService.user.create({
-      data: createUserDto,
-    });
-    return newUser;
+    try {
+      this.logger.log('Creando usuario');
+      const newUser = this._prismaService.user.create({
+        data: createUserDto,
+      });
+      this.logger.log('Usuario creado');
+      return newUser;
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
   async comparePassword(
@@ -67,11 +75,11 @@ export class UserService {
     }
   }
 
-  findOne(dni: string) {
+  findOne(id: number) {
     try {
       return this._prismaService.user.findUnique({
         where: {
-          dni,
+          id,
         },
       });
     } catch (error) {
@@ -91,26 +99,6 @@ export class UserService {
             state: true,
           },
         },
-        student: {
-          include:{
-            career: true,
-          }
-        },
-        company:{
-          include:{
-            career: true,
-          }
-        },
-        academicTutor: {
-          include:{
-            career: true,
-          }
-        },
-        businessTutor: {
-          include:{
-            company: true,
-          }
-        }
       },
     });
   }
@@ -123,13 +111,13 @@ export class UserService {
     });
   }
 
-  async update(dni: string, updateUserDto: UpdateUserDto): Promise<User | null> {
-    const user = await this.findOne(dni);
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
+    const user = await this.findOne(id);
     if (!user) throw new UnprocessableEntityException('El usuario no existe');
     try {
       const updatedUser = await this._prismaService.user.update({
         where: {
-          dni: user.dni,
+          id,
         },
         data: updateUserDto,
       });
@@ -139,11 +127,11 @@ export class UserService {
     }
   }
 
-  remove(dni: string) {
+  remove(id: number) {
     try {
       return this._prismaService.user.update({
         where: {
-          dni,
+          id,
         },
         data: {
           state: false,

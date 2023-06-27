@@ -23,6 +23,7 @@ import {
   ApiResponse,
   ApiQuery,
   ApiBearerAuth,
+  ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
@@ -38,7 +39,7 @@ import { StudentsDto } from './dto/students.dto';
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
-  @ApiOkResponse({ description: 'Estudiante creado', type: CreateStudentDto })
+  @ApiCreatedResponse({ description: 'Estudiante creado', type: CreateStudentDto })
   @ApiOperation({ summary: 'Crear estudiante' })
   @Post()
   create(@Body() createStudentDto: CreateStudentDto) {
@@ -47,9 +48,7 @@ export class StudentsController {
 
   @UseInterceptors(FileInterceptor('file'))
   @ApiOkResponse({
-    description: 'Estudiantes subidos',
-    type: CreateStudentDto,
-    isArray: true,
+    description: 'Estudiantes subidos'
   })
   @ApiBody({ required: true, type: FileInterceptor })
   @ApiConsumes('multipart/form-data')
@@ -67,7 +66,7 @@ export class StudentsController {
   @Put('status/:id')
   updateStatusStudent(
     @Param('id') id: string,
-    @Body() updateStudentDto: StudentEntity,
+    @Body() updateStudentDto: UpdateStudentDto,
   ) {
     return this.studentsService.updateStatusStudent(
       +id,
@@ -130,11 +129,11 @@ export class StudentsController {
     return this.studentsService.update(+id, updateStudentDto);
   }
 
-  @Delete(':dni')
+  @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un estudiante por su DNI' })
   @ApiResponse({ status: 404, description: 'Estudiante no encontrado' })
   @ApiOperation({ summary: 'Eliminar estudiante por su ID' })
-  remove(@Param('dni') idUser: string) {
-    return this.studentsService.remove(idUser);
+  remove(@Param('id') id: string) {
+    return this.studentsService.remove(+id);
   }
 }

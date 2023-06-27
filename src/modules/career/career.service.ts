@@ -35,7 +35,7 @@ export class CareerService {
     }
   }
 
-  async findAll(allActive?: boolean): Promise<CareerDto[]> {
+  async findAll(allActive?: boolean): Promise<CareerEntity[]> {
     try {
       const careersDB = await this._prismaService.career.findMany({
         where: {
@@ -45,21 +45,10 @@ export class CareerService {
           name: 'asc',
         },
       });
-      if (!careersDB)
-        throw new HttpException(
-          'No se encontraron carreras',
-          HttpStatus.NOT_FOUND,
-        );
-      const careersDto: CareerDto[] = careersDB.map((career) => {
-        return {
-          ...career,
-          coordinator: JSON.parse(career?.coordinator || ''),
-          viceCoordinator: JSON.parse(career?.viceCoordinator || ''),
-          respStepDual: JSON.parse(career?.respStepDual || ''),
-        };
-      });
-      return careersDto;
+      return careersDB;
     } catch (error) {
+      console.log(error);
+      
       throw new HttpException(error.message, error.status);
     }
   }
@@ -78,9 +67,21 @@ export class CareerService {
         );
       const careerDto: CareerDto = {
         ...careerDB,
-        coordinator: JSON.parse(careerDB?.coordinator || ''),
-        viceCoordinator: JSON.parse(careerDB?.viceCoordinator || ''),
-        respStepDual: JSON.parse(careerDB?.respStepDual || ''),
+        coordinator: {
+          id:0,
+          nameComplete: '',
+          email: '',
+        },//JSON.parse(careerDB?.coordinator || ''),
+        viceCoordinator: {
+          id:0,
+          nameComplete: '',
+          email: '',
+        },//JSON.parse(careerDB?.viceCoordinator || ''),
+        respStepDual: {
+          id:0,
+          nameComplete: '',
+          email: '',
+        },//JSON.parse(careerDB?.respStepDual || ''),
       };
       return careerDto;
     } catch (error) {

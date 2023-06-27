@@ -24,7 +24,6 @@ export class AuthService {
     private _mailService: MailService,
     private _userService: UserService,
     private _jwtService: JwtService,
-    private _studentService: StudentsService,
   ) { }
 
   async login(credentials: CredentialsDto): Promise<ResponseAuthModel> {
@@ -47,13 +46,12 @@ export class AuthService {
     }
     const payload: PayloadModel = {
       id: user.id,
-      dni: user.dni,
       email: user.email,
       role: user.idRol,
     };
     user.password = undefined;
     this.logger.log(`Login success for ${credentials.email}`);
-    return { accessToken: await this.createToken(payload), user };
+    return { accessToken: await this.createToken(payload) };
   }
 
   async createToken(payload: PayloadModel): Promise<string> {
@@ -92,7 +90,7 @@ export class AuthService {
       },
       { expiresIn: '5m' },
     );
-    const fullName = `${userExist.firstName} ${userExist.lastName}`;
+    const fullName = `${userExist.email }`;
     const send = await this._mailService.sendForgetPasswordEmail(
       email,
       token,
@@ -115,7 +113,7 @@ export class AuthService {
         'El token no es valido',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    const userExist = await this._userService.findOne(payload.dni);
+    const userExist = await this._userService.findOne(payload.id);
     if (!userExist)
       throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
     if (!userExist.state)
@@ -124,7 +122,7 @@ export class AuthService {
         HttpStatus.CONFLICT,
       );
     userExist.password = this.hashPassword(resetPasswordDto.newPassword);
-    const ok = await this._userService.update(userExist.dni, userExist);
+    const ok = await this._userService.update(userExist.id, userExist);
     if (!ok)
       throw new HttpException(
         'Error al actualizar la contraseña',
@@ -154,7 +152,7 @@ export class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     userExist.password = this.hashPassword(changePasswordDto.newPassword);
-    const changed = await this._userService.update(userExist.dni, userExist);
+    const changed = await this._userService.update(userExist.id, userExist);
     if (!changed)
       throw new HttpException(
         'Error al actualizar la contraseña',

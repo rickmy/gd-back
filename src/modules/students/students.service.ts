@@ -22,6 +22,7 @@ import { CreateStudentAssignedToCompanyDto } from './dto/create-student-assigned
 import { StudentsDto } from './dto/students.dto';
 import { StudentExcel } from './models/studentExcel';
 import { PaginationResult } from 'src/core/models/paginationResult';
+import { StudentDto } from './dto/student.dto';
 @Injectable()
 export class StudentsService {
   private logger = new Logger(StudentsService.name);
@@ -301,7 +302,7 @@ export class StudentsService {
           idStudent: student.id,
           idCompany: null,
           electivePeriod: createStudentDto.electivePeriod,
-          academicPeriod: createStudentDto.academicPeriod, 
+          academicPeriod: createStudentDto.academicPeriod,
           idProject: null,
           parallel: createStudentDto.parallel,
         },
@@ -350,6 +351,7 @@ export class StudentsService {
             (registration) => registration.idStudent === student.id,
           );
           return {
+            id: student.id,
             dni: student.dni,
             completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
             career: student.career.name,
@@ -376,13 +378,51 @@ export class StudentsService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<StudentDto> {
     try {
-      return await this._prismaService.student.findFirstOrThrow({
+      const student = await this._prismaService.student.findFirst({
         where: {
           id,
         },
+        include: {
+          career: true,
+        }
       });
+
+      if (!student) {
+        throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+      }
+      const registration = await this._prismaService.studentAssignedToCompany.findFirst({
+        where: {
+          idStudent: student.id,
+        },
+        include: {
+          company: true,
+          project: {
+            include: {
+              academicTutor: true,
+              businessTutor: true,
+            }
+          },
+        }
+      });
+
+      return {
+        id: student.id,
+        dni: student.dni,
+        completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
+        career: student.career.name,
+        parallel: registration.parallel,
+        email: student.email,
+        electivePeriod: registration.electivePeriod,
+        academicPeriod: registration.academicPeriod,
+        company: registration?.company?.name || null,
+        project: registration?.project?.name || null,
+        academicTutor: !!registration?.project?.academicTutor ? `${registration?.project?.academicTutor?.firstName } ${registration?.project?.academicTutor?.lastName}` : null,
+        businessTutor: !!registration?.project?.academicTutor ? `${registration?.project?.academicTutor?.firstName } ${registration?.project?.academicTutor?.lastName}` : null,
+        status: student.status,
+      };
+
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
@@ -462,7 +502,7 @@ export class StudentsService {
     try {
       return await this._prismaService.student.update({
         where: {
-          idUser: studentExists.idUser,
+          id
         },
         data: {
           status: status,
@@ -476,7 +516,11 @@ export class StudentsService {
   async remove(id: number): Promise<HttpException> {
     try {
 
-      const student = await this.findOne(id);
+      const student = await this._prismaService.student.findFirst({
+        where: {
+          id
+        },
+      });
       if (!student) {
         throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
       }

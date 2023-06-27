@@ -5,16 +5,18 @@ import { UserEntity } from 'src/modules/user/entities/user.entity';
 
 export class StudentEntity implements Student {
   @ApiProperty({ example: 1, description: 'Student id' })
-  id: number;
-  createdAt: Date;
-  updatedAt: Date;
-  state: boolean;
-  @ApiProperty({ example: 'Pendiente', description: 'Status student' })
-  status: StatusStudent;
-  @ApiProperty({ example: 1, description: 'Career Id' })
-  idCareer: number;
-  career?: CareerEntity;
-  @ApiProperty({ example: 1, description: 'User Id' })
-  idUser: string;
-  user?: UserEntity;
+  id: number
+  typeDni: TypeDNI
+  dni: string
+  firstName: string
+  secondName: string | null
+  lastName: string
+  secondLastName: string | null
+  email: string
+  idUser: number
+  createdAt: Date
+  updatedAt: Date
+  state: boolean
+  status: StatusStudent
+  idCareer: number
 }

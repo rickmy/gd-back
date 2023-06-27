@@ -78,10 +78,10 @@ export class UserController {
     type: null,
   })
   @ApiOperation({ summary: 'Encontrar usuario por su DNI' })
-  @Get(':dni')
+  @Get(':id')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('dni') dni: string) {
-    return this.userService.findOne(dni);
+  findOne(@Param('id') id: string) {
+    return this.userService.findOne(+id);
   }
 
   @ApiOkResponse({
@@ -89,18 +89,18 @@ export class UserController {
     type: CreateUserDto,
   })
   @ApiOperation({ summary: 'Actualizar un usuario por su DNI' })
-  @Patch(':dni')
+  @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('dni') dni: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(dni, updateUserDto);
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(+id, updateUserDto);
   }
 
-  @Delete(':dni')
+  @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un usuario por su DNI' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   @ApiOperation({ summary: 'Eliminar usuario por su ID' })
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') dni: string) {
-    return this.userService.remove(dni);
+  remove(@Param('id') id: string) {
+    return this.userService.remove(+id);
   }
 }

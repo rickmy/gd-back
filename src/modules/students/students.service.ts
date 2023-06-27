@@ -332,6 +332,9 @@ export class StudentsService {
         include: {
           career: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        }
       });
 
       this.logger.log('Buscando estudiantes asignados a empresa');

@@ -73,7 +73,10 @@ export class UserService {
               name: true,
             }
           }
-        }
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
       return users.map((user) => {
         delete user.password;

@@ -16,6 +16,7 @@ import config from './core/config';
 import { LoggerModule } from 'nestjs-pino';
 import { CorrelationIdMiddleware, correlationId } from './core/middleware/correlation-id/correlation-id.middleware';
 import { Request } from 'express';
+import { CompanyModule } from './modules/company/company.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { Request } from 'express';
         },
       }
     }),
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [

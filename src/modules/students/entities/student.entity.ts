@@ -9,9 +9,12 @@ export class StudentEntity implements Student {
   createdAt: Date;
   updatedAt: Date;
   state: boolean;
+  @ApiProperty({ example: 'Pendiente', description: 'Status student' })
   status: StatusStudent;
+  @ApiProperty({ example: 1, description: 'Career Id' })
   idCareer: number;
   career?: CareerEntity;
+  @ApiProperty({ example: 1, description: 'User Id' })
   idUser: string;
   user?: UserEntity;
 }

@@ -5,7 +5,11 @@ export class CreateStudentAssignedToCompanyDto {
   @IsNumber()
   @ApiProperty({ description: 'id empresa', example: '1' })
   idCompany: number | null
+  @IsNumber()
+  @ApiProperty({ description: 'id estudiante', example: '1' })
   idStudent: number
+  @IsNumber()
+  @ApiProperty({ description: 'id empresa', example: '1' })
   idProject: number | null
   @IsString()
   @ApiProperty({ description: 'Periodo electivo', example: '2022-2023' })

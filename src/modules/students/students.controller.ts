@@ -123,7 +123,7 @@ export class StudentsController {
     description: 'Estudiante Actualizado',
     type: CreateStudentDto,
   })
-  @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
+  @ApiOperation({ summary: 'Actualizar un estudiante por su DNI' })
   @Put(':dni')
   update(@Param('dni') id: string, @Body() updateStudentDto: StudentEntity) {
     return this.studentsService.update(+id, updateStudentDto);

@@ -314,57 +314,61 @@ export class StudentsService {
     }
   }
 
-  async findAll(
-    options: PaginationOptions,
-    allActive?: boolean,
-  ): Promise<StudentsDto[]> {
+  async findAll(options: PaginationOptions, allActive?: boolean): Promise<{ students: StudentsDto[]; total: number }> {
     const { page, limit } = options;
     try {
       const skip = (page - 1) * limit;
-      const students = await this._prismaService.student.findMany({
-        take: limit,
-        skip,
-        where: {
-          state: allActive ? true : undefined
-        },
-        include: {
-          career: true,
-        },
-      });
 
-      this.logger.log(students[3]);
+      const [students, total] = await Promise.all([
+        this._prismaService.student.findMany({
+          take: limit,
+          skip,
+          where: {
+            state: allActive ? true : undefined,
+          },
+          include: {
+            career: true,
+          },
+        }),
+        this._prismaService.student.count({
+          where: {
+            state: allActive ? true : undefined,
+          },
+        }),
+      ]);
+
       this.logger.log('Buscando estudiantes asignados a empresa');
-
+      const studentIds = students.map((student) => student.id);
       const registrations = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
           idStudent: {
-            in: students.map((student) => student.id),
+            in: studentIds,
           },
         },
       });
       this.logger.log('Estudiantes asignados a empresa encontrados');
 
-      return students.map((student) => {
-        const registration = registrations.find(
-          (registration) => registration.idStudent === student.id,
-        );
+      const result: StudentsDto[] = students.map((student) => {
+        const registration = registrations.find((registration) => registration.idStudent === student.id);
         return {
           dni: student.dni,
           completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
           career: student.career.name,
-          parallel: registration.parallel,
+          parallel: registration?.parallel,
           email: student.email,
-          periodElective: registration.electivePeriod,
-          periodAcademic: registration.academicPeriod,
+          periodElective: registration?.electivePeriod,
+          periodAcademic: registration?.academicPeriod,
           status: student.status,
         };
       });
 
+      return { students: result, total };
     } catch (error) {
       this.logger.error(error);
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
+
 
   async findOne(id: number) {
     try {

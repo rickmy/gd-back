@@ -86,6 +86,7 @@ model Company {
   nameRepresentLegal       String
   lastNameRepresentLegal   String
   phone                    String
+  email                    String                     @unique
   address                  String
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt

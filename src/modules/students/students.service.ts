@@ -338,11 +338,11 @@ export class StudentsService {
       });
 
       this.logger.log('Buscando estudiantes asignados a empresa');
-
+      const studentIds = students.map((student) => student.id);
       const registrations = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
           idStudent: {
-            in: students.map((student) => student.id),
+            in: studentIds,
           },
         },
       });
@@ -374,7 +374,6 @@ export class StudentsService {
         }),
 
       };
-
     } catch (error) {
       this.logger.error(error);
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);

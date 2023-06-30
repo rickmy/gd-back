@@ -103,14 +103,14 @@ export class UserService {
         include: {
           rol: {
             select: {
-              id: true,
               name: true,
+              code: true,
             }
           },
         }
       });
       if(!user) throw new HttpException('El usuario no existe', HttpStatus.NOT_FOUND);
-      delete user.password;
+      user.password = undefined;
       return user;
     } catch (error) {
       throw new HttpException(error, 500);

@@ -23,6 +23,8 @@ import { StudentsDto } from './dto/students.dto';
 import { StudentExcel } from './models/studentExcel';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { StudentDto } from './dto/student.dto';
+import { AssignedToProjectDto } from './dto/assigned-to-project.dto';
+import { AssignedToCompanyDto } from './dto/assigned-to-company.dto';
 @Injectable()
 export class StudentsService {
   private logger = new Logger(StudentsService.name);
@@ -35,7 +37,7 @@ export class StudentsService {
 
   async uploadStudents(file: Express.Multer.File): Promise<HttpException> {
     let newStudentsExcel: StudentExcel[] = [];
-    const role = await this._roleService.findRoleByName('EST');
+    const role = await this._roleService.findByCode('EST');
     const careers = await this._careerService.findAll();
     const listDni = [];
     if (!file) throw new UnprocessableEntityException('No file uploaded');
@@ -270,7 +272,7 @@ export class StudentsService {
   }
 
   async create(createStudentDto: CreateStudentDto): Promise<StudentEntity> {
-    const role = await this._roleService.findRoleByName('EST');
+    const role = await this._roleService.findByCode('EST');
     const career = await this._careerService.findOne(createStudentDto.idCareer);
     const newUser: CreateUserDto = {
       dni: createStudentDto.dni,
@@ -462,10 +464,95 @@ export class StudentsService {
     }
   }
 
-  async updateAssignedToCompany(
-    id: number,
-    updateStudentDto: CreateStudentAssignedToCompanyDto,
+  async assignToCompany(
+    updateStudentDto: AssignedToCompanyDto,
   ): Promise<HttpException> {
+    const studentExists = await this.findOne(updateStudentDto.idStudent);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
+      where: {
+        idStudent: updateStudentDto.idStudent,
+      },
+    });
+    try {
+      await this._prismaService.studentAssignedToCompany.update({
+        where: {
+          id: registrationExists.id,
+        },
+        data: {
+          idCompany: updateStudentDto.idCompany,
+        },
+      });
+      return new HttpException(
+        'Estudiante asignado a empresa o proyecto actualizado correctamente',
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async assignToProject(
+    updateStudentDto: AssignedToProjectDto,
+  ): Promise<HttpException> {
+    const studentExists = await this.findOne(updateStudentDto.idStudent);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
+      where: {
+        idStudent: updateStudentDto.idStudent,
+      },
+    });
+    try {
+      await this._prismaService.studentAssignedToCompany.update({
+        where: {
+          id: registrationExists.id,
+        },
+        data: {
+          idProject: updateStudentDto.idProject,
+        },
+      });
+      return new HttpException(
+        'Estudiante asignado a proyecto actualizado correctamente',
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async unassignToProject(id: number): Promise<HttpException> {
+    const studentExists = await this.findOne(id);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND); 
+    }
+    const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
+      where: {
+        idStudent: id,
+      },
+    });
+    try {
+      await this._prismaService.studentAssignedToCompany.update({
+        where: {
+          id: registrationExists.id,
+        },
+        data: {
+          idProject: null,
+        },
+      });
+      return new HttpException(
+        'Estudiante eliminado del proyecto correctamente',
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async unassignToCompany(id: number): Promise<HttpException> {
     const studentExists = await this.findOne(id);
     if (!studentExists) {
       throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
@@ -481,11 +568,12 @@ export class StudentsService {
           id: registrationExists.id,
         },
         data: {
-          idCompany: updateStudentDto.idCompany,
+          idCompany: null,
+          idProject: null,
         },
       });
       return new HttpException(
-        'Estudiante asignado a empresa o proyecto actualizado correctamente',
+        'Estudiante eliminado de la empresa correctamente',
         HttpStatus.OK,
       );
     } catch (error) {

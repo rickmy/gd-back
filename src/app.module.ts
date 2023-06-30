@@ -19,6 +19,7 @@ import { Request } from 'express';
 import { CompanyModule } from './modules/company/company.module';
 import { AgreementModule } from './modules/agreement/agreement.module';
 import { UploadFilesModule } from './modules/upload-files/upload-files.module';
+import { TutorModule } from './modules/tutor/tutor.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { UploadFilesModule } from './modules/upload-files/upload-files.module';
     CompanyModule,
     AgreementModule,
     UploadFilesModule,
+    TutorModule,
   ],
   controllers: [AppController],
   providers: [

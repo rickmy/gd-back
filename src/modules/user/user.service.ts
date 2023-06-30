@@ -94,9 +94,9 @@ export class UserService {
     }
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     try {
-      return this._prismaService.user.findUnique({
+      const user = await this._prismaService.user.findUnique({
         where: {
           id,
         },
@@ -109,6 +109,9 @@ export class UserService {
           },
         }
       });
+      if(!user) throw new HttpException('El usuario no existe', HttpStatus.NOT_FOUND);
+      delete user.password;
+      return user;
     } catch (error) {
       throw new HttpException(error, 500);
     }

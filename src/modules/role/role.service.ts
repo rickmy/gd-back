@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -8,6 +8,7 @@ import { RoleEntity } from './entities/role.entity';
 
 @Injectable()
 export class RoleService {
+  private logger = new Logger(RoleService.name);
   constructor(private _prismaService: PrismaService) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
@@ -59,14 +60,25 @@ export class RoleService {
 
   async findRoleByName(name: string): Promise<RoleEntity> {
     try {
+      let nameRole = '%'+name+'%';
+      const role = await this._prismaService.$queryRaw<RoleEntity>`SELECT * FROM "Rol" WHERE name LIKE ${nameRole}`;
+      if (!role) throw new HttpException('El rol no existe', 404);
+      this.logger.log('Rol encontrado');
+      return role;
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
+  }
+
+  async findByCode(code: string): Promise<RoleEntity> {
+    try {
       const role = await this._prismaService.rol.findFirst({
         where: {
-          name: {
-            contains: name,
-          },
+          code,
         },
       });
       if (!role) throw new HttpException('El rol no existe', 404);
+      this.logger.log('Rol encontrado');
       return role;
     } catch (error) {
       throw new HttpException(error.message, 500);

@@ -28,6 +28,7 @@ model User {
 
 model Rol {
   id               Int                @id @default(autoincrement())
+  code             String?             @unique
   name             String             @unique
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
@@ -67,10 +68,10 @@ model Tutor {
   isAcademic     Boolean   @default(true)
   idUser         Int       @unique
   user           User      @relation(fields: [idUser], references: [id])
-  idCareer       Int
-  career         Career    @relation(fields: [idCareer], references: [id])
-  idCompany      Int       @unique
-  company        Company   @relation(fields: [idCompany], references: [id])
+  idCareer       Int?
+  career         Career?    @relation(fields: [idCareer], references: [id])
+  idCompany      Int?       
+  company        Company?   @relation(fields: [idCompany], references: [id])
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   state          Boolean   @default(true)

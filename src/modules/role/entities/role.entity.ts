@@ -6,6 +6,8 @@ export class RoleEntity implements Rol {
   id: number;
   @ApiProperty({ example: '123456789', description: 'Rol name' })
   name: string;
+  @ApiProperty({ example: 'EST', description: 'Rol code' })
+  code: string;
   createdAt: Date;
   updatedAt: Date;
   state: boolean;

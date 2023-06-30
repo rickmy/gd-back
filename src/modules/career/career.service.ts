@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateCareerDto } from './dto/create-career.dto';
 import { UpdateCareerDto } from './dto/update-career.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,6 +7,7 @@ import { CareerEntity } from './entities/career.entity';
 
 @Injectable()
 export class CareerService {
+  private logger = new Logger(CareerService.name);
   constructor(private _prismaService: PrismaService) {}
   async create(createCareerDto: CreateCareerDto): Promise<CareerDto> {
     try {
@@ -45,6 +46,9 @@ export class CareerService {
           name: 'asc',
         },
       });
+      if(!careersDB || careersDB.length === 0)
+        throw new HttpException('No se encontraron carreras', HttpStatus.NOT_FOUND);
+      this.logger.log('Carreras encontradas correctamente');
       return careersDB;
     } catch (error) {
       console.log(error);

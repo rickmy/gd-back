@@ -414,7 +414,10 @@ export class StudentsService {
       return {
         id: student.id,
         dni: student.dni,
-        completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
+        firstName: student.firstName,
+        secondName: student.secondName,
+        lastName: student.lastName,
+        secondLastName: student.secondLastName,
         career: student.career.name,
         parallel: registration.parallel,
         email: student.email,

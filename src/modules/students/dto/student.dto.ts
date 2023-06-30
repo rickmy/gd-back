@@ -5,8 +5,17 @@ export class StudentDto {
   id: number;
   @ApiProperty({ example: '1727373644', description: 'dni del estudiante' })
   dni: string;
-  @ApiProperty({ example: 'Hector Gonzales', description: 'Nombres Completos' })
-  completeNames: string;
+  @ApiProperty({ description: 'primer nombre estudiante', example: 'Hugo' })
+  firstName: string;
+  @ApiProperty({ description: 'segundo nombre estudiante', example: 'Alberto' })
+  secondName: string;
+  @ApiProperty({ description: 'primer apellido estudiante', example: 'Ruiz' })
+  lastName: string;
+  @ApiProperty({
+    description: 'segundo apellido estudiante',
+    example: 'Sánchez',
+  })
+  secondLastName: string;
   @ApiProperty({ example: 'Desarrollo de software', description: 'Nombre de la carrera' })
   career: string;
   @ApiProperty({ example: 'A', description: 'Paralelo' })

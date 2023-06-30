@@ -46,8 +46,5 @@ export class CreateCompanyDto {
     @IsNumber()
     @ApiProperty({ description: 'id carrera', example: 1 })
     idCareer: number;
-    @IsNumber()
-    @ApiProperty({ description: 'id user', example: 1 })
-    idUser: number;
 
 }

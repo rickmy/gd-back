@@ -1,37 +1,59 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CompanyEntity } from './entities/company.entity';
 import { CompaniesDto } from './dto/companies.dto';
 import { StatusCompany } from '@prisma/client';
+import { RoleService } from '../role/role.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { UserService } from '../user/user.service';
+
 
 @Injectable()
 export class CompanyService {
-  constructor(private _prismaService: PrismaService) {}
+  private logger = new Logger(CompanyService.name);
+  
+  constructor(
+    private _prismaService: PrismaService,
+    private _roleService: RoleService,
+    private _userService: UserService,
+    ) {}
 
   async create(createCompanyDto: CreateCompanyDto): Promise<CompanyEntity> {
-
+    const role = await this._roleService.findRoleByName('EMP');
+    const newUser: CreateUserDto = {
+      dni: createCompanyDto.ruc,
+      userName: createCompanyDto.ruc,
+      email: createCompanyDto.email,
+      password: this.hashPassword(createCompanyDto.ruc),
+      idRol: role.id,
+    };
     try {
-      const createdCompany = await this._prismaService.company.create({
+      const user = await this._userService.create(newUser);
+      this.logger.log('Usuario Creado correctamente')
+      const company = await this._prismaService.company.create({
         data: {
           ruc: createCompanyDto.ruc,
           name: createCompanyDto.name,
-          address: createCompanyDto.address,
-          phone: createCompanyDto.phone,
-          email: createCompanyDto.email,
           dniRepresentLegal: createCompanyDto.dniRepresentLegal,
           nameRepresentLegal: createCompanyDto.nameRepresentLegal,
           lastNameRepresentLegal: createCompanyDto.lastNameRepresentLegal,
-          status: createCompanyDto.status,
+          phone: createCompanyDto.phone,
+          address: createCompanyDto.address,
+          email: createCompanyDto.email,
+          status: StatusCompany.ACTIVO,
           idCareer: createCompanyDto.idCareer,
-          idUser: createCompanyDto.idUser,
+          idUser: user.id,
         },
       });
-      return createdCompany;
+      return company;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
+
+    
   }
 
   async updateStatusCompany(
@@ -106,10 +128,15 @@ export class CompanyService {
           state: false,
         },
       });
+      await this._userService.remove(company.idUser);
       return new HttpException('La empresa ha sido eliminada', HttpStatus.OK);
 
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
+  }
+
+  hashPassword(password: string): string {
+    return bcrypt.hashSync(password, 10);
   }
 }

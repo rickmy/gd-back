@@ -19,19 +19,19 @@ export class AgreementService {
   }
 
   async findOne(id: number): Promise<AgreementEntity> {
-   const agreementExists = await this.findOne(id);
-    if(!agreementExists){
-      throw new HttpException('El convenio no existe', HttpStatus.NOT_FOUND);
-    }
-    try {
-      return await this._prismaService.agreement.findFirstOrThrow({
-        where: {
-          id: id,
-        },
-      });
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
+   
+    const agreement = await this._prismaService.agreement.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!agreement)
+      throw new HttpException(
+        `Convenio con el id: ${id}, no existe`,
+        HttpStatus.NOT_FOUND,
+      );
+    return agreement;
+
   }
 
   update(id: number, updateAgreementDto: UpdateAgreementDto) {

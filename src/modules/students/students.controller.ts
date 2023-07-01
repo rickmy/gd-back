@@ -24,6 +24,7 @@ import {
   ApiQuery,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiParam,
 } from '@nestjs/swagger';
 import { StudentEntity } from './entities/student.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
@@ -31,13 +32,17 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateStudentDto } from './dto/update-student.dto';
 
 import { StudentsDto } from './dto/students.dto';
+import { PaginationResult } from 'src/core/models/paginationResult';
+import { StudentDto } from './dto/student.dto';
+import { AssignedToProjectDto } from './dto/assigned-to-project.dto';
+import { AssignedToCompanyDto } from './dto/assigned-to-company.dto';
 
 
 @ApiBearerAuth()
 @Controller('students')
 @ApiTags('student')
 export class StudentsController {
-  constructor(private readonly studentsService: StudentsService) {}
+  constructor(private readonly studentsService: StudentsService) { }
 
   @ApiCreatedResponse({ description: 'Estudiante creado', type: CreateStudentDto })
   @ApiOperation({ summary: 'Crear estudiante' })
@@ -74,14 +79,13 @@ export class StudentsController {
     );
   }
 
-  @ApiOkResponse({
-    description: 'Estudiantes encontrados',
-    type: StudentEntity,
-    isArray: true,
-  })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados',
+    type: PaginationResult<StudentsDto>,
+  })
   @Get()
   findAll(
     @Query('page', ParseIntPipe) page: number,
@@ -96,9 +100,8 @@ export class StudentsController {
 
   @Get('active')
   @ApiOkResponse({
-    description: 'Estudiantes activos encontrados',
-    type: StudentsDto,
-    isArray: true,
+    description: 'Estudiantes encontrados',
+    type: PaginationResult<StudentsDto>,
   })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes activos' })
   findAllActive(
@@ -112,10 +115,10 @@ export class StudentsController {
     return this.studentsService.findAll(options, true);
   }
 
-  @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentEntity })
-  @ApiOperation({ summary: 'Encontrar un estudiante por su DNI' })
-  @Get(':dni')
-  findOne(@Param('dni') id: string) {
+  @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })
+  @ApiOperation({ summary: 'Encontrar un estudiante por su Id' })
+  @Get(':id')
+  findOne(@Param('id') id: string) {
     return this.studentsService.findOne(+id);
   }
 
@@ -123,10 +126,55 @@ export class StudentsController {
     description: 'Estudiante Actualizado',
     type: CreateStudentDto,
   })
-  @ApiOperation({ summary: 'Actualizar un estudiante por su DNI' })
-  @Put(':dni')
-  update(@Param('dni') id: string, @Body() updateStudentDto: StudentEntity) {
+  @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
     return this.studentsService.update(+id, updateStudentDto);
+  }
+  
+
+  @Put('assign-to-project')
+  @ApiOkResponse({
+    description: 'Estudiante asignado a proyecto',
+    type: CreateStudentDto,
+  })
+  @ApiOperation({ summary: 'Asignar un estudiante a un proyecto' })
+  @ApiBody({ type: AssignedToProjectDto })
+  assignToProject(@Body() body: AssignedToProjectDto) {
+    return this.studentsService.assignToProject(body);
+  }
+
+  @Put('unassign-to-project/:id')
+  @ApiOkResponse({
+    description: 'Estudiante desasignado a proyecto',
+    type: CreateStudentDto,
+  })
+  @ApiOperation({ summary: 'Desasignar un estudiante a un proyecto' })
+  @ApiParam({ name: 'id', required: true, type: Number })
+  unassignToProject(@Param('id') id: string) {
+    return this.studentsService.unassignToProject(+id);
+  }
+
+  @Put('assign-to-company')
+  @ApiOkResponse({
+    description: 'Estudiante asignado a empresa',
+    type: CreateStudentDto,
+  })
+  @ApiOperation({ summary: 'Asignar un estudiante a una empresa' })
+  @ApiBody({ type: AssignedToCompanyDto })
+  assignToCompany(@Body() body: AssignedToCompanyDto) {
+    return this.studentsService.assignToCompany(body);
+  }
+
+  @Put('unassign-to-company/:id')
+  @ApiOkResponse({
+    description: 'Estudiante desasignado a empresa',
+    type: CreateStudentDto,
+  })
+  @ApiOperation({ summary: 'Desasignar un estudiante a una empresa' })
+  @ApiParam({ name: 'id', required: true, type: Number })
+  unassignToCompany(@Param('id') id: string) {
+    return this.studentsService.unassignToCompany(+id);
   }
 
   @Delete(':id')

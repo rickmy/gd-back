@@ -11,6 +11,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
+import { ListUserDto } from './dto/list-user.dto';
 
 @Injectable()
 export class UserService {
@@ -58,28 +59,12 @@ export class UserService {
     return bcrypt.hashSync(password, 10);
   }
 
-  async findAll(onlyActive?: boolean, idRole?: number): Promise<User[]> {
+  async findAll(onlyActive?: boolean, idRole?: number): Promise<ListUserDto[]> {
     try {
       const users = await this._prismaService.user.findMany({
         where: {
           state: onlyActive ? true : undefined,
           idRol: idRole ? idRole : undefined,
-        },
-      });
-      return users.map((user) => {
-        delete user.password;
-        return user;
-      });
-    } catch (error) {
-      throw new HttpException(error, error.status || 500);
-    }
-  }
-
-  findOne(id: number) {
-    try {
-      return this._prismaService.user.findUnique({
-        where: {
-          id,
         },
         include: {
           rol: {
@@ -87,9 +72,46 @@ export class UserService {
               id: true,
               name: true,
             }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+      return users.map((user) => {
+        delete user.password;
+        return { 
+          id: user.id,
+          dni: user.dni,
+          userName: user.userName,
+          email: user.email,
+          state: user.state,
+          role: user.rol.name 
+        };
+      });
+    } catch (error) {
+      throw new HttpException(error, error.status || 500);
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const user = await this._prismaService.user.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          rol: {
+            select: {
+              name: true,
+              code: true,
+            }
           },
         }
       });
+      if(!user) throw new HttpException('El usuario no existe', HttpStatus.NOT_FOUND);
+      user.password = undefined;
+      return user;
     } catch (error) {
       throw new HttpException(error, 500);
     }

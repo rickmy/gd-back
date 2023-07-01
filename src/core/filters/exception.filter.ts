@@ -33,7 +33,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const errorResponse = {
       statusCode: status,
-      message: errorMsg,
+      message: errorMsg.message || errorMsg || 'Critical error in server',
       timestamp: new Date().toISOString(),
       currentId: request['X-Correlation-Id'],
       path: request.url,

@@ -80,19 +80,17 @@ export class CompanyService {
   }
 
   async findOne(id: number): Promise<CompanyEntity> {
-    const companyExists = await this.findOne(id);
-    if (!companyExists) {
-      throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
-    }
-    try {
-      return await this._prismaService.company.findFirstOrThrow({
-        where: {
-          id: id,
-        },
-      });
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
+    const company = await this._prismaService.company.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!company)
+      throw new HttpException(
+        `Empresa con el id: ${id}, no existe`,
+        HttpStatus.NOT_FOUND,
+      );
+    return company;
   }
 
   async update(id: number, updateCompanyDto: UpdateCompanyDto):Promise<CompanyEntity> {
@@ -114,7 +112,6 @@ export class CompanyService {
   }
 
   async remove(id: number): Promise<HttpException> {
-
     try {
       const company = await this.findOne(id);
       if (!company) {

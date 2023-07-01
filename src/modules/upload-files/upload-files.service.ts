@@ -4,23 +4,8 @@ import { UpdateUploadFileDto } from './dto/update-upload-file.dto';
 
 @Injectable()
 export class UploadFilesService {
-  create(createUploadFileDto: CreateUploadFileDto) {
-    return 'This action adds a new uploadFile';
+  async uploadFile(file: Express.Multer.File) {
+   // const { data, error } = await storage
   }
-
-  findAll() {
-    return `This action returns all uploadFiles`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} uploadFile`;
-  }
-
-  update(id: number, updateUploadFileDto: UpdateUploadFileDto) {
-    return `This action updates a #${id} uploadFile`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} uploadFile`;
-  }
+  
 }

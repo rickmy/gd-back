@@ -20,6 +20,7 @@ import { CompanyModule } from './modules/company/company.module';
 import { AgreementModule } from './modules/agreement/agreement.module';
 import { UploadFilesModule } from './modules/upload-files/upload-files.module';
 import { TutorModule } from './modules/tutor/tutor.module';
+import { ProjectModule } from './modules/project/project.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { TutorModule } from './modules/tutor/tutor.module';
     AgreementModule,
     UploadFilesModule,
     TutorModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [

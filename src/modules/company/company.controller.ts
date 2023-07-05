@@ -4,6 +4,7 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyEntity } from './entities/company.entity';
+import { CompaniesInfoDto } from './dto/companies-info.dto';
 
 @Controller('company')
 @ApiTags('company')
@@ -33,6 +34,27 @@ export class CompanyController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.companyService.findOne(+id);
+  }
+
+  @ApiOkResponse({
+    description: 'Obtener información de una empresa',
+    type: CompaniesInfoDto,
+  })
+  @ApiOperation({ summary: 'Obtener información de una empresa' })
+  @Get(':id')
+  getCompanyInfo(@Param('id') id: string) {
+    return this.companyService.findOneCompanyInfo(id);
+  }
+
+  @Get('active')
+  @ApiOkResponse({
+    description: 'Empresas encontradas',
+    type: CompanyEntity,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todas las empresas activas' })
+  findAllActive(state: boolean) {
+    return this.companyService.findAll(state);
   }
 
   @ApiOkResponse({

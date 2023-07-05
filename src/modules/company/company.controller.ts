@@ -41,7 +41,7 @@ export class CompanyController {
     type: CompaniesInfoDto,
   })
   @ApiOperation({ summary: 'Obtener información de una empresa' })
-  @Get(':id')
+  @Get('getCompanyInfo/:id')
   getCompanyInfo(@Param('id') id: string) {
     return this.companyService.findOneCompanyInfo(id);
   }

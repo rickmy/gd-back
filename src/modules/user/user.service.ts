@@ -100,17 +100,79 @@ export class UserService {
         where: {
           id,
         },
-        include: {
+        select: {
+          id: true,
+          dni: true,
+          userName: true,
+          email: true,
           rol: {
             select: {
+              id: true,
               name: true,
               code: true,
             }
           },
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              status: true,
+              career: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                }
+              }
+            }
+          },
+          tutor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              career: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                }
+              },
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  status: true,
+                  career: {
+                    select: {
+                      id: true,
+                      code: true,
+                      name: true,
+                    }
+                  }
+                }
+              }
+            }
+          },
+          company: {
+            select: {
+              id: true,
+              name: true,
+              ruc: true,
+              status: true,
+              career: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                }
+              }
+            }
+          }
         }
       });
       if(!user) throw new HttpException('El usuario no existe', HttpStatus.NOT_FOUND);
-      user.password = undefined;
       return user;
     } catch (error) {
       throw new HttpException(error, 500);

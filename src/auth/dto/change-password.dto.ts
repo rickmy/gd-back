@@ -1,13 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 export class ChangePasswordDto {
-  @IsNumber({}, { message: 'El campo debe ser numérico' })
-  @ApiProperty({
-    description: 'Id del usuario',
-    example: 123,
-  })
-  userId: number;
+  @IsEmail({}, { message: 'El campo debe ser numérico' })
+  @ApiProperty({ description: 'Email del usuario', example: 'r@yavirac.edu.ec'})
+  @IsEmail({}, { message: 'El campo debe ser numérico' })
+  email: string;
   @IsString({ message: 'El campo debe ser string' })
   @ApiProperty({
     description: 'actual contraseña del usuario',

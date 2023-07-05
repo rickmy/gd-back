@@ -123,33 +123,64 @@ export class CompanyService {
     }
   }
 
-  async findOneCompanyInfo(id: string) {
+  async findOneCompanyInfo(id: string):Promise<CompaniesInfoDto>{
     try {
-      const company = await this._prismaService.company.findUnique({
+      const company = await this._prismaService.company.findFirst({
         where: {
           id: parseInt(id),
         },
-        include: {
-          agreement: {
-            select: {
-              code: true,
-              dateStart: true,
-              dateEnd: true,
-              state: true,
-            },
-          },
-          project: {
-            select: {
-              name: true,
-              description: true,
-              status: true,
-            },
-          },
-        }});
+        select: {
+          id: true,
+          ruc: true,
+          name: true,
+          email: true,
+          address: true,
+          phone: true,
+          status: true,
+          dniRepresentLegal: true,
+          nameRepresentLegal: true,
+          lastNameRepresentLegal: true,
+
+
+        }      
+        });
       if (!company) {
         throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
       }
-      return company;
+      const projects = await this._prismaService.project.findMany({
+        where: {
+          idCompany: company.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          status: true,
+        },
+      });
+      const agreements = await this._prismaService.agreement.findMany({
+        where: {
+          idCompany: company.id,
+        },
+        select: {
+          id: true,
+          code: true,
+          dateStart: true,
+          dateEnd: true,
+          status: true,
+        },
+      });
+
+
+       
+
+      return {
+        ...company,
+        agreements: agreements,
+        projects: projects,
+
+  
+      };
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }

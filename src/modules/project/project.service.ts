@@ -68,8 +68,7 @@ export class ProjectService {
         data: {
           state: false,
         },
-      });
-      
+      });    
       return new HttpException('Proyecto eliminado', HttpStatus.OK);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);

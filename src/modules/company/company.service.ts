@@ -4,11 +4,12 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CompanyEntity } from './entities/company.entity';
 import { CompaniesDto } from './dto/companies.dto';
-import { StatusCompany } from '@prisma/client';
+import { Prisma, StatusCompany } from '@prisma/client';
 import { RoleService } from '../role/role.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
+import { CompaniesInfoDto } from './dto/companies-info.dto';
 
 
 @Injectable()
@@ -75,8 +76,19 @@ export class CompanyService {
     }
   }
 
-  async findAll() {
-    return await this._prismaService.company.findMany();
+  async findAll(state?: boolean): Promise<CompanyEntity[]> {
+    const filter: Prisma.CompanyWhereInput = {};
+    
+   
+    if (state !== undefined) {
+      filter.state = state;
+    }
+  
+    const companies = await this._prismaService.company.findMany({
+      where: filter,
+    });
+  
+    return companies;
   }
 
   async findOne(id: number): Promise<CompanyEntity> {
@@ -110,6 +122,42 @@ export class CompanyService {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
+
+  async findOneCompanyInfo(id: string) {
+    try {
+      const company = await this._prismaService.company.findUnique({
+        where: {
+          id: parseInt(id),
+        },
+        include: {
+          agreement: {
+            select: {
+              code: true,
+              dateStart: true,
+              dateEnd: true,
+              state: true,
+            },
+          },
+          project: {
+            select: {
+              name: true,
+              description: true,
+              status: true,
+            },
+          },
+        }});
+      if (!company) {
+        throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
+      }
+      return company;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+
+ 
+
 
   async remove(id: number): Promise<HttpException> {
     try {

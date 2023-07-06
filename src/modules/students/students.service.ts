@@ -509,6 +509,9 @@ export class StudentsService {
         idStudent: updateStudentDto.idStudent,
       },
     });
+    if (!registrationExists) {
+      throw new HttpException('La matriculación del estudiante no existe', HttpStatus.NOT_FOUND);
+    }
     try {
       await this._prismaService.studentAssignedToCompany.update({
         where: {

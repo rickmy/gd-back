@@ -23,8 +23,8 @@ import {
 import { CareerDto } from './dto/career.dto';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 @ApiTags('career')
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('career')
 export class CareerController {
   constructor(private readonly careerService: CareerService) {}

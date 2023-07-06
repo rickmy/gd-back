@@ -8,6 +8,7 @@ import { RoleModule } from '../role/role.module';
 @Module({
   controllers: [TutorController],
   providers: [TutorService],
+  exports: [TutorService],
   imports: [PrismaModule, UserModule, RoleModule],
 })
 export class TutorModule {}

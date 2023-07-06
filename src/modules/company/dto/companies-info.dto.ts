@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { StatusCompany, StatusProject } from "@prisma/client";
 import { CompaniesAgreements } from "./companiesAgreements.dto";
 import { CompaniesProjects } from "./companiesProjects.dto";
+import { IsEnum } from "class-validator";
 
 export class CompaniesInfoDto {
     @ApiProperty({ example: '123412341234', description: 'Id empresa' })
@@ -11,7 +12,13 @@ export class CompaniesInfoDto {
     @ApiProperty({ example: 'Yavi EC', description: 'Nombre empresa' })
     name: string;
     @ApiProperty({ example: 'Av. 5 de Julio y moran valverde', description: 'Direccion empresa' })
-    address: string; 
+    address: string;
+    @IsEnum(StatusCompany, { message: 'El status de la empresa es inválido' })
+    @ApiProperty({
+      description: 'Status empresa',
+      enum: StatusCompany,
+      default: StatusCompany.ACTIVO,
+    })
     status: StatusCompany;
 
     @ApiProperty({ example: '1726345645', description: 'Dni representante legal' })

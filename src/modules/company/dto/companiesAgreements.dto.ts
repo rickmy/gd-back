@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { StatusProject } from "@prisma/client";
+import { IsEnum } from "class-validator";
 
 export class CompaniesAgreements {
     @ApiProperty({ example: 1, description: 'Identificador', type: 'number' })
@@ -10,6 +11,11 @@ export class CompaniesAgreements {
     dateStart: Date;
     @ApiProperty({ example: '2023/07/20', description: 'Fecha final convenio' })
     dateEnd: Date;
-    @ApiProperty({ example: 'True', description: 'Estado convenio' })
+    @IsEnum(StatusProject, { message: 'El status del convenio es inválido' })
+    @ApiProperty({
+      description: 'Status convenio',
+      enum: StatusProject,
+      default: StatusProject.ACTIVO,
+    })
     status: StatusProject;
 }

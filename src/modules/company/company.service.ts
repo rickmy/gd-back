@@ -23,7 +23,7 @@ export class CompanyService {
     ) {}
 
   async create(createCompanyDto: CreateCompanyDto): Promise<CompanyEntity> {
-    const role = await this._roleService.findRoleByName('EMP');
+    const role = await this._roleService.findByCode('CE');
     const newUser: CreateUserDto = {
       dni: createCompanyDto.ruc,
       userName: createCompanyDto.ruc,

@@ -14,9 +14,6 @@ export class CareerService {
       const career = await this._prismaService.career.create({
         data: {
           ...createCareerDto,
-          coordinator: JSON.stringify(createCareerDto.coordinator),
-          viceCoordinator: JSON.stringify(createCareerDto.viceCoordinator),
-          respStepDual: JSON.stringify(createCareerDto.respStepDual),
         },
       });
       if (!career)
@@ -24,13 +21,8 @@ export class CareerService {
           'No se pudo crear la carrera',
           HttpStatus.UNPROCESSABLE_ENTITY,
         );
-      const careerDto: CareerDto = {
-        ...career,
-        coordinator: JSON.parse(career.coordinator),
-        viceCoordinator: JSON.parse(career.viceCoordinator),
-        respStepDual: JSON.parse(career.respStepDual),
-      };
-      return careerDto;
+      
+      return career;
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
@@ -70,22 +62,7 @@ export class CareerService {
           HttpStatus.NOT_FOUND,
         );
       const careerDto: CareerDto = {
-        ...careerDB,
-        coordinator: {
-          id:0,
-          nameComplete: '',
-          email: '',
-        },//JSON.parse(careerDB?.coordinator || ''),
-        viceCoordinator: {
-          id:0,
-          nameComplete: '',
-          email: '',
-        },//JSON.parse(careerDB?.viceCoordinator || ''),
-        respStepDual: {
-          id:0,
-          nameComplete: '',
-          email: '',
-        },//JSON.parse(careerDB?.respStepDual || ''),
+        ...careerDB,  
       };
       return careerDto;
     } catch (error) {
@@ -127,9 +104,6 @@ export class CareerService {
         },
         data: {
           ...updateCareerDto,
-          coordinator: JSON.stringify(updateCareerDto.coordinator),
-          viceCoordinator: JSON.stringify(updateCareerDto.viceCoordinator),
-          respStepDual: JSON.stringify(updateCareerDto.respStepDual),
         },
       });
       if (!career)
@@ -137,13 +111,7 @@ export class CareerService {
           'No se pudo actualizar la carrera',
           HttpStatus.UNPROCESSABLE_ENTITY,
         );
-      const careerDto: CareerDto = {
-        ...career,
-        coordinator: JSON.parse(career.coordinator),
-        viceCoordinator: JSON.parse(career.viceCoordinator),
-        respStepDual: JSON.parse(career.respStepDual),
-      };
-      return careerDto;
+      return career;
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }

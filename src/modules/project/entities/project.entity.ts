@@ -23,7 +23,6 @@ export class ProjectEntity implements Project {
     @ApiProperty({ example: 1, description: 'Id tutor empresarial', type: 'number' })
     idBusinessTutor: number;
     @ApiProperty({ example: 1, description: 'ID compañia', type: 'number' })
-
     idCompany: number;
     
 }

@@ -25,18 +25,18 @@ export class CareerDto {
   })
   timeRenovationAgreement: number;
   @ApiProperty({
-    type: UserByCareerDto,
+    type: Number,
     description: 'Coordinador de la carrera',
   })
-  coordinator: UserByCareerDto;
+  idCoordinator: number;
   @ApiProperty({
-    type: UserByCareerDto,
+    type: Number,
     description: 'Vicecoordinador de la carrera',
   })
-  viceCoordinator: UserByCareerDto;
+  idViceCoordinator: number;
   @ApiProperty({
-    type: UserByCareerDto,
+    type: Number,
     description: 'Responsable de practicas de la carrera',
   })
-  respStepDual: UserByCareerDto;
+  idRespStepDual: number;
 }

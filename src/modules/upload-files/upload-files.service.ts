@@ -42,5 +42,17 @@ export class UploadFilesService {
     }
     return data;
   }
+
+  async removeFile(name: string) {
+    const { data, error } = await this.storage
+      .from(this.bucket)
+      .remove([`docs/${name}`]);
+    if (error) {
+      this.logger.error(error)
+      throw new HttpException(`Error SupaBase: ${error.message}`, 400);
+    }
+    return data;
+  }
+  
   
 }

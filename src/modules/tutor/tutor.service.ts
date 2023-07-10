@@ -168,6 +168,21 @@ export class TutorService {
     }
   }
 
+  async findByIdUser(idUser: number): Promise<TutorEntity> {
+    try {
+      const tutor = await this._prismaService.tutor.findFirst({
+        where: {
+          idUser,
+        },
+      });
+      if (!tutor)
+      return null;
+      return tutor;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
   async update(id: number, updateTutorDto: UpdateTutorDto): Promise<TutorEntity> {
     try {
       await this.findOne(id);

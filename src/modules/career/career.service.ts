@@ -4,24 +4,104 @@ import { UpdateCareerDto } from './dto/update-career.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CareerDto } from './dto/career.dto';
 import { CareerEntity } from './entities/career.entity';
+import { RoleService } from '../role/role.service';
+import { UserService } from '../user/user.service';
+import { TutorService } from '../tutor/tutor.service';
 
 @Injectable()
 export class CareerService {
   private logger = new Logger(CareerService.name);
-  constructor(private _prismaService: PrismaService) {}
+  constructor(
+    private _prismaService: PrismaService,
+    private _roleService: RoleService,
+    private _userService: UserService,
+    private _tutorService: TutorService,
+  ) { }
   async create(createCareerDto: CreateCareerDto): Promise<CareerDto> {
     try {
+      const careerExist = await this.findByCode(createCareerDto.code);
+      if (careerExist)
+        throw new HttpException(
+          'La carrera ya existe',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+
+      if (createCareerDto.idCoordinator === createCareerDto.idViceCoordinator || createCareerDto.idCoordinator === createCareerDto.idRespStepDual || createCareerDto.idViceCoordinator === createCareerDto.idRespStepDual)
+        throw new HttpException(
+          'Los coordinadores no pueden ser iguales',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+
+      const roleCA = await this._roleService.findByCode('CA');
+
       const career = await this._prismaService.career.create({
         data: {
           ...createCareerDto,
         },
       });
+
       if (!career)
         throw new HttpException(
           'No se pudo crear la carrera',
           HttpStatus.UNPROCESSABLE_ENTITY,
         );
-      
+
+      await this._userService.changeRole(career.idCoordinator, roleCA.id);
+      await this._userService.changeRole(career.idViceCoordinator, roleCA.id);
+      await this._userService.changeRole(career.idRespStepDual, roleCA.id);
+
+      const coorAcademic = {
+        tutor: await this._tutorService.findByIdUser(career.idCoordinator),
+        user: await this._userService.findOne(career.idCoordinator),
+      };
+      if (!coorAcademic) {
+        await this._tutorService.createTutorAcademic({
+          dni: coorAcademic.user.dni,
+          firstName: coorAcademic.user.userName,
+          lastName: coorAcademic.user.userName,
+          email: coorAcademic.user.email,
+          idCareer: career.id,
+        })
+      } else {
+        await this._tutorService.update(coorAcademic.tutor.id, {
+          idCareer: career.id,
+        })
+      }
+      const viceCoorAcademic = {
+        tutor: await this._tutorService.findByIdUser(career.idViceCoordinator),
+        user: await this._userService.findOne(career.idViceCoordinator),
+      }
+      if (!viceCoorAcademic) {
+        await this._tutorService.createTutorAcademic({
+          dni: viceCoorAcademic.user.dni,
+          firstName: viceCoorAcademic.user.userName,
+          lastName: viceCoorAcademic.user.userName,
+          email: viceCoorAcademic.user.email,
+          idCareer: career.id,
+        })
+      } else {
+        await this._tutorService.update(viceCoorAcademic.tutor.id, {
+          idCareer: career.id,
+        })
+      }
+      const respStepDual = {
+        tutor: await this._tutorService.findByIdUser(career.idRespStepDual),
+        user: await this._userService.findOne(career.idRespStepDual),
+      }
+      if (!respStepDual) {
+        await this._tutorService.createTutorAcademic({
+          dni: respStepDual.user.dni,
+          firstName: respStepDual.user.userName,
+          lastName: respStepDual.user.userName,
+          email: respStepDual.user.email,
+          idCareer: career.id,
+        })
+      } else {
+        await this._tutorService.update(respStepDual.tutor.id, {
+          idCareer: career.id,
+        })
+      }
+
       return career;
     } catch (error) {
       throw new HttpException(error.message, error.status);
@@ -38,13 +118,13 @@ export class CareerService {
           name: 'asc',
         },
       });
-      if(!careersDB || careersDB.length === 0)
+      if (!careersDB || careersDB.length === 0)
         throw new HttpException('No se encontraron carreras', HttpStatus.NOT_FOUND);
       this.logger.log('Carreras encontradas correctamente');
       return careersDB;
     } catch (error) {
       console.log(error);
-      
+
       throw new HttpException(error.message, error.status);
     }
   }
@@ -62,7 +142,7 @@ export class CareerService {
           HttpStatus.NOT_FOUND,
         );
       const careerDto: CareerDto = {
-        ...careerDB,  
+        ...careerDB,
       };
       return careerDto;
     } catch (error) {
@@ -88,6 +168,15 @@ export class CareerService {
     updateCareerDto: UpdateCareerDto,
   ): Promise<CareerDto> {
     try {
+      const roleCA = await this._roleService.findByCode('CA');
+      const roleTA = await this._roleService.findByCode('TA');
+
+      if (updateCareerDto.idCoordinator === updateCareerDto.idViceCoordinator || updateCareerDto.idCoordinator === updateCareerDto.idRespStepDual || updateCareerDto.idViceCoordinator === updateCareerDto.idRespStepDual)
+        throw new HttpException(
+          'Los coordinadores no pueden ser iguales',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+
       const careerDB = await this._prismaService.career.findUnique({
         where: {
           id: id,
@@ -111,6 +200,15 @@ export class CareerService {
           'No se pudo actualizar la carrera',
           HttpStatus.UNPROCESSABLE_ENTITY,
         );
+
+      await this._userService.changeRole(careerDB.idCoordinator, roleTA.id);
+      await this._userService.changeRole(careerDB.idViceCoordinator, roleTA.id);
+      await this._userService.changeRole(careerDB.idRespStepDual, roleTA.id);
+
+      await this._userService.changeRole(career.idCoordinator, roleCA.id);
+      await this._userService.changeRole(career.idViceCoordinator, roleCA.id);
+      await this._userService.changeRole(career.idRespStepDual, roleCA.id);
+
       return career;
     } catch (error) {
       throw new HttpException(error.message, error.status);

@@ -6,6 +6,7 @@ import { AgreementEntity } from './entities/agreement.entity';
 import { MailService } from '../mail/mail.service';
 const cron = require('node-cron');
 import { AgreementDto } from './dto/agreement.dto';
+import { UploadFilesService } from '../upload-files/upload-files.service';
 
 @Injectable()
 export class AgreementService {
@@ -13,6 +14,7 @@ export class AgreementService {
   constructor(
     private _prismaService: PrismaService,
     private _mailService: MailService,
+    private _uploadService: UploadFilesService,
   
   ) { 
     this.listCareersWithAgreements();
@@ -94,15 +96,34 @@ export class AgreementService {
 
   }
 
-  update(id: number, updateAgreementDto: UpdateAgreementDto) {
-    return `This action updates a #${id} agreement`;
+  async update(id: number, updateAgreementDto: UpdateAgreementDto) {
+    try {
+      const agreementDB = await this.findOne(id);
+      if (agreementDB.itvPath !== updateAgreementDto.itvPath) {
+        await this._uploadService.removeFile(agreementDB.itvPath);
+      }
+      if (agreementDB.agreementPath !== updateAgreementDto.agreementPath) {
+        await this._uploadService.removeFile(agreementDB.agreementPath);
+      }
+      const agreement = await this._prismaService.agreement.update({
+        where: {
+          id: id,
+        },
+        data: {
+          ...updateAgreementDto
+        },
+      });
+      if (!agreement)
+        throw new HttpException(
+          'Error al actualizar el convenio',
+          HttpStatus.BAD_REQUEST,
+        );
+        
+      return  agreement;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
-
-  async verifyAgreementPerCaducity(id: number): Promise<number[]> {
-    return [];
-  }
-
-
 
   async listCareersWithAgreements() {
     const job = cron.schedule('0 0 7 * * 1', async () => {
@@ -112,10 +133,8 @@ export class AgreementService {
         if (!careers || careers.length === 0)
           throw new HttpException('No se encontraron carreras', HttpStatus.NOT_FOUND);
 
-        const careersWithAgreements = [];
-
         for (const career of careers) {
-          const { id, name, idCoordinator, idViceCoordinator, idRespStepDual } = career;
+          const { id, idCoordinator, idViceCoordinator, idRespStepDual } = career;
 
           const coordinator = await this._prismaService.user.findUnique({
             where: { id: idCoordinator },
@@ -156,8 +175,6 @@ export class AgreementService {
             }
             );
           }
-
-          console.log(agreementsCodes);
 
           if (agreementsCodes.length > 0) {
             await this._mailService.sendMailAgreementRenovation(coordinatorEmail, viceCoordinatorEmail, responsibleEmail, agreementsCodes);

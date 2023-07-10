@@ -37,6 +37,7 @@ export class StudentsService {
 
   async uploadStudents(file: Express.Multer.File): Promise<HttpException> {
     let newStudentsExcel: StudentExcel[] = [];
+    this.logger.log('Buscando rol estudiante');
     const role = await this._roleService.findByCode('EST');
     const careers = await this._careerService.findAll();
     const listDni = [];
@@ -116,7 +117,7 @@ export class StudentsService {
           (status: string) => status === 'APROBADO'
         ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
         idUser: 0,
-        idCareer: careers.find(career => career.code === student.careerCode).id,
+        idCareer: careers.find(career => career.code.toUpperCase() === student.careerCode.toUpperCase()).id,
       };
 
       newUser.email = `${newStudent.firstName

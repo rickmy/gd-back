@@ -179,8 +179,8 @@ export class UserService {
     }
   }
 
-  findByEmail(email: string) {
-    return this._prismaService.user.findUnique({
+  async findByEmail(email: string) {
+    return await this._prismaService.user.findUnique({
       where: {
         email,
       },
@@ -195,12 +195,32 @@ export class UserService {
     });
   }
 
-  findByDni(dni: string) {
-    return this._prismaService.user.findUnique({
+  async findByDni(dni: string) {
+    return await this._prismaService.user.findUnique({
       where: {
         dni,
       },
     });
+  }
+
+  async changeRole(id: number, idRole: number) {
+    try {
+      const user = await this.findOne(id);
+      if (!user) throw new UnprocessableEntityException('El usuario no existe');
+      const updatedUser = await this._prismaService.user.update({
+        where: {
+          id,
+        },
+        data: {
+          idRol: idRole,
+        },
+      });
+      if (!updatedUser)
+        throw new UnprocessableEntityException('No se pudo actualizar el rol');
+      return updatedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
@@ -219,9 +239,9 @@ export class UserService {
     }
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     try {
-      return this._prismaService.user.update({
+      return await this._prismaService.user.update({
         where: {
           id,
         },

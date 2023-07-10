@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AgreementEntity } from './entities/agreement.entity';
 import { MailService } from '../mail/mail.service';
 const cron = require('node-cron');
+import { AgreementDto } from './dto/agreement.dto';
 
 @Injectable()
 export class AgreementService {
@@ -16,12 +17,62 @@ export class AgreementService {
   ) { 
     this.listCareersWithAgreements();
   }
-  create(createAgreementDto: CreateAgreementDto) {
-    return 'This action adds a new agreement';
+  async create(createAgreementDto: CreateAgreementDto) {
+    try {
+      const agreement = await this._prismaService.agreement.create({
+        data: {
+          code: createAgreementDto.code,
+          dateStart: createAgreementDto.dateStart,
+          dateEnd: createAgreementDto.dateEnd,
+          itvPath: createAgreementDto.itvPath,
+          agreementPath: createAgreementDto.agreementPath,
+          status: createAgreementDto.status,
+          idCompany: createAgreementDto.idCompany,
+          state: true,
+        },
+      });
+      if (!agreement)
+        throw new HttpException(
+          'Error al crear el convenio',
+          HttpStatus.BAD_REQUEST,
+        );
+      return agreement;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
-  async findAll() {
-    return await this._prismaService.agreement.findMany();
+  async findAll(
+    allActive?: boolean,
+  ): Promise<AgreementDto[]> {
+    try {
+      const agreements = await this._prismaService.agreement.findMany({
+        where: {
+          state: allActive ? true : undefined
+        },
+        include:{
+          company: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        }
+      });
+      if (!agreements)
+        return [];
+
+      return agreements.map((agreement) => {
+        return {
+          id: agreement.id,
+          code: agreement.code,
+          dateStart: agreement.dateStart,
+          dateEnd: agreement.dateEnd,
+          company: agreement.company.name,
+          status: agreement.status
+        }
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   async findOne(id: number): Promise<AgreementEntity> {
@@ -30,6 +81,9 @@ export class AgreementService {
       where: {
         id: id,
       },
+      include: {
+        company: true,
+      }
     });
     if (!agreement)
       throw new HttpException(

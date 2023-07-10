@@ -181,17 +181,18 @@ model StudentAssignedToCompany {
 }
 
 model Agreement {
-  id        Int           @id @default(autoincrement())
-  code      String        @unique
-  dateStart DateTime
-  dateEnd   DateTime
-  documents String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  state     Boolean       @default(true)
-  status    StatusProject @default(PENDIENTE)
-  idCompany Int
-  company   Company       @relation(fields: [idCompany], references: [id])
+  id            Int           @id @default(autoincrement())
+  code          String        @unique
+  dateStart     DateTime
+  dateEnd       DateTime
+  itvPath       String
+  agreementPath String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  state         Boolean       @default(true)
+  status        StatusProject @default(PENDIENTE)
+  idCompany     Int
+  company       Company       @relation(fields: [idCompany], references: [id])
 }
 
 enum TypeDNI {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
 import { AgreementService } from './agreement.service';
 import { CreateAgreementDto } from './dto/create-agreement.dto';
 import { UpdateAgreementDto } from './dto/update-agreement.dto';
@@ -16,6 +16,12 @@ export class AgreementController {
     return this.agreementService.create(createAgreementDto);
   }
 
+  @ApiOperation({ summary: 'Listar carreras con convenios' })
+  @Get('listCareersWithAgreements')
+  async listCareersWithAgreements(): Promise<any> {
+    const data = await this.agreementService.listCareersWithAgreements();
+    return data;
+  }
 
   @ApiOkResponse({
     description: 'Convenios encontrados',

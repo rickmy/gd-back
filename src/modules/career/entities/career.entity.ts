@@ -33,13 +33,13 @@ export class CareerEntity implements Career {
   updatedAt: Date;
   @ApiProperty({ type: Boolean, description: 'Estado de la carrera' })
   state: boolean;
-  @ApiProperty({ type: String, description: 'Coordinador de la carrera' })
-  coordinator: string;
-  @ApiProperty({ type: String, description: 'Vicecoordinador de la carrera' })
-  viceCoordinator: string;
+  @ApiProperty({ type: Number, description: 'Coordinador de la carrera' })
+  idCoordinator: number;
+  @ApiProperty({ type: Number, description: 'Vicecoordinador de la carrera' })
+  idViceCoordinator: number;
   @ApiProperty({
-    type: String,
+    type: Number,
     description: 'Responsable de practicas de la carrera',
   })
-  respStepDual: string;
+  idRespStepDual: number;
 }

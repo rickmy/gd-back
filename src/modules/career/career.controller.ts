@@ -39,6 +39,8 @@ export class CareerController {
     return this.careerService.create(createCareerDto);
   }
 
+  
+
   @Get()
   @ApiOkResponse({
     description: 'Carreras encontradas correctamente',

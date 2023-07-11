@@ -54,14 +54,18 @@ export class CareerService {
         tutor: await this._tutorService.findByIdUser(career.idCoordinator),
         user: await this._userService.findOne(career.idCoordinator),
       };
-      if (!coorAcademic) {
-        await this._tutorService.createTutorAcademic({
-          dni: coorAcademic.user.dni,
-          firstName: coorAcademic.user.userName,
-          lastName: coorAcademic.user.userName,
-          email: coorAcademic.user.email,
-          idCareer: career.id,
-        })
+      if (!coorAcademic.tutor) {
+        await this._prismaService.tutor.create({
+          data: {
+            dni: coorAcademic.user.dni,
+            firstName: coorAcademic.user.userName,
+            lastName: coorAcademic.user.userName,
+            email: coorAcademic.user.email,
+            idCareer: career.id,
+            isAcademic: true,
+            idUser: coorAcademic.user.id,
+          },
+        });
       } else {
         await this._tutorService.update(coorAcademic.tutor.id, {
           idCareer: career.id,
@@ -71,14 +75,18 @@ export class CareerService {
         tutor: await this._tutorService.findByIdUser(career.idViceCoordinator),
         user: await this._userService.findOne(career.idViceCoordinator),
       }
-      if (!viceCoorAcademic) {
-        await this._tutorService.createTutorAcademic({
-          dni: viceCoorAcademic.user.dni,
-          firstName: viceCoorAcademic.user.userName,
-          lastName: viceCoorAcademic.user.userName,
-          email: viceCoorAcademic.user.email,
-          idCareer: career.id,
-        })
+      if (!viceCoorAcademic.tutor) {
+        await this._prismaService.tutor.create({
+          data: {
+            dni: viceCoorAcademic.user.dni,
+            firstName: viceCoorAcademic.user.userName,
+            lastName: viceCoorAcademic.user.userName,
+            email: viceCoorAcademic.user.email,
+            idCareer: career.id,
+            isAcademic: true,
+            idUser: viceCoorAcademic.user.id,
+          },
+        });
       } else {
         await this._tutorService.update(viceCoorAcademic.tutor.id, {
           idCareer: career.id,
@@ -88,14 +96,18 @@ export class CareerService {
         tutor: await this._tutorService.findByIdUser(career.idRespStepDual),
         user: await this._userService.findOne(career.idRespStepDual),
       }
-      if (!respStepDual) {
-        await this._tutorService.createTutorAcademic({
-          dni: respStepDual.user.dni,
-          firstName: respStepDual.user.userName,
-          lastName: respStepDual.user.userName,
-          email: respStepDual.user.email,
-          idCareer: career.id,
-        })
+      if (!respStepDual.tutor) {
+        await this._prismaService.tutor.create({
+          data: {
+            dni: respStepDual.user.dni,
+            firstName: respStepDual.user.userName,
+            lastName: respStepDual.user.userName,
+            email: respStepDual.user.email,
+            idCareer: career.id,
+            isAcademic: true,
+            idUser: respStepDual.user.id,
+          },
+        });
       } else {
         await this._tutorService.update(respStepDual.tutor.id, {
           idCareer: career.id,

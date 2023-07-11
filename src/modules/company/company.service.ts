@@ -10,17 +10,19 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { CompaniesInfoDto } from './dto/companies-info.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 
 @Injectable()
 export class CompanyService {
   private logger = new Logger(CompanyService.name);
-  
+
   constructor(
     private _prismaService: PrismaService,
     private _roleService: RoleService,
     private _userService: UserService,
-    ) {}
+    private _authService: AuthService,
+  ) { }
 
   async create(createCompanyDto: CreateCompanyDto): Promise<CompanyEntity> {
     const role = await this._roleService.findByCode('CE');
@@ -54,13 +56,13 @@ export class CompanyService {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    
+
   }
 
   async updateStatusCompany(
     id: number,
     status: StatusCompany,
-  ):Promise<CompanyEntity>{
+  ): Promise<CompanyEntity> {
     try {
       const company = await this._prismaService.company.update({
         where: {
@@ -76,18 +78,17 @@ export class CompanyService {
     }
   }
 
-  async findAll(state?: boolean): Promise<CompanyEntity[]> {
-    const filter: Prisma.CompanyWhereInput = {};
-    
-   
-    if (state !== undefined) {
-      filter.state = state;
-    }
-  
+  async findAll(token: string, isAllActive?: boolean): Promise<CompanyEntity[]> {
+    const user = await this._authService.userByToken(token);
+    console.log(user);
+
     const companies = await this._prismaService.company.findMany({
-      where: filter,
+      where: {
+        state: isAllActive ? undefined : true,
+        idCareer: user.tutor.career.id,
+      },
     });
-  
+
     return companies;
   }
 
@@ -105,8 +106,8 @@ export class CompanyService {
     return company;
   }
 
-  async update(id: number, updateCompanyDto: UpdateCompanyDto):Promise<CompanyEntity> {
-    
+  async update(id: number, updateCompanyDto: UpdateCompanyDto): Promise<CompanyEntity> {
+
     const companyExists = await this.findOne(id);
     if (!companyExists) {
       throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
@@ -123,7 +124,7 @@ export class CompanyService {
     }
   }
 
-  async findOneCompanyInfo(id: string):Promise<CompaniesInfoDto>{
+  async findOneCompanyInfo(id: string): Promise<CompaniesInfoDto> {
     try {
       const company = await this._prismaService.company.findFirst({
         where: {
@@ -142,8 +143,8 @@ export class CompanyService {
           lastNameRepresentLegal: true,
 
 
-        }      
-        });
+        }
+      });
       if (!company) {
         throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
       }
@@ -172,14 +173,14 @@ export class CompanyService {
       });
 
 
-       
+
 
       return {
         ...company,
         agreements: agreements,
         projects: projects,
 
-  
+
       };
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
@@ -187,7 +188,7 @@ export class CompanyService {
   }
 
 
- 
+
 
 
   async remove(id: number): Promise<HttpException> {

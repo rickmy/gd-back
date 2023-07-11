@@ -165,6 +165,17 @@ export class AuthService {
     return await this._userService.validateUser(payload);
   }
 
+  async userByToken(token: string) {
+    const payload = await this.verifyToken(token);
+    if (!payload)
+      throw new HttpException(
+        'El token no es valido',
+        HttpStatus.UNAUTHORIZED,
+      );
+    const userExist = await this._userService.findByEmail(payload.email);
+    return await this._userService.findOne(userExist.id);
+  }
+
   hashPassword(password: string): string {
     return bcrypt.hashSync(password, 10);
   }

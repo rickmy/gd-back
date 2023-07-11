@@ -383,6 +383,55 @@ export class StudentsService {
     }
   }
 
+  async findAllStudentsPendingToAssign(idCareer: number): Promise<StudentsDto[]> {
+    try {
+      const career = await this._careerService.findOne(idCareer);
+      const students = await this._prismaService.student.findMany({
+        where: {
+          state: true,
+          status: StatusStudent.APROBADO,
+          studentAssignedToCompany: {
+            every: {
+              idCompany: null,
+            },
+          },
+          idCareer,
+        },
+        include: {
+          career: true,
+          studentAssignedToCompany: true
+        }
+      })
+
+      const registrations = await this._prismaService.studentAssignedToCompany.findMany({
+        where: {
+          idStudent: {
+            in: students.map((student) => student.id),
+          },
+        },
+      });
+
+      return students.map((student) => {
+        const registration = registrations.find(
+          (registration) => registration.idStudent === student.id,
+        );
+        return {
+          id: student.id,
+            dni: student.dni,
+            completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
+            career: student.career.name,
+            parallel: registration.parallel,
+            email: student.email,
+            periodElective: registration.electivePeriod,
+            periodAcademic: registration.academicPeriod,
+            status: student.status,
+        }
+      })
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async findOne(id: number): Promise<StudentDto> {
     try {
       const student = await this._prismaService.student.findFirst({

@@ -115,6 +115,19 @@ export class StudentsController {
     return this.studentsService.findAll(options, true);
   }
 
+  @Get('toAssign/:idCareer')
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados',
+    type: StudentsDto,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los estudiantes a asignar' })
+  findAllToAssign(@Param('idCareer') idCareer: string) {
+    return this.studentsService.findAllStudentsPendingToAssign(+idCareer);
+  }
+
+
+
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })
   @ApiOperation({ summary: 'Encontrar un estudiante por su Id' })
   @Get(':id')

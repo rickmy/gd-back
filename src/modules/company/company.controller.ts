@@ -1,13 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Headers, UseGuards, Req } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyEntity } from './entities/company.entity';
 import { CompaniesInfoDto } from './dto/companies-info.dto';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { Request } from 'express';
 
 @Controller('company')
 @ApiTags('company')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
@@ -26,7 +30,20 @@ export class CompanyController {
   @ApiOperation({ summary: 'Encontrar todas las empresas' })
   @Get()
   findAll() {
-    return this.companyService.findAll();
+    return this.companyService.findAll('');
+  }
+
+
+  @Get('active')
+  @ApiOkResponse({
+    description: 'Empresas encontradas',
+    type: CompanyEntity,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todas las empresas activas' })
+  findAllActive(@Req() req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    return this.companyService.findAll(token,true);
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: CompanyEntity })
@@ -44,17 +61,6 @@ export class CompanyController {
   @Get('getCompanyInfo/:id')
   getCompanyInfo(@Param('id') id: string) {
     return this.companyService.findOneCompanyInfo(id);
-  }
-
-  @Get('active')
-  @ApiOkResponse({
-    description: 'Empresas encontradas',
-    type: CompanyEntity,
-    isArray: true,
-  })
-  @ApiOperation({ summary: 'Encontrar todas las empresas activas' })
-  findAllActive(state: boolean) {
-    return this.companyService.findAll(state);
   }
 
   @ApiOkResponse({

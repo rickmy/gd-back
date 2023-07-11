@@ -30,7 +30,7 @@ export class CompanyController {
   @ApiOperation({ summary: 'Encontrar todas las empresas' })
   @Get()
   findAll() {
-    return this.companyService.findAll('');
+    return this.companyService.findAll();
   }
 
 
@@ -42,8 +42,7 @@ export class CompanyController {
   })
   @ApiOperation({ summary: 'Encontrar todas las empresas activas' })
   findAllActive(@Req() req: Request) {
-    const token = req.headers.authorization.split(' ')[1];
-    return this.companyService.findAll(token,true);
+    return this.companyService.findAll(true);
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: CompanyEntity })

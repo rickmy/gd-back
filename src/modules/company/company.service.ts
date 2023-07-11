@@ -21,7 +21,6 @@ export class CompanyService {
     private _prismaService: PrismaService,
     private _roleService: RoleService,
     private _userService: UserService,
-    private _authService: AuthService,
   ) { }
 
   async create(createCompanyDto: CreateCompanyDto): Promise<CompanyEntity> {
@@ -78,14 +77,11 @@ export class CompanyService {
     }
   }
 
-  async findAll(token: string, isAllActive?: boolean): Promise<CompanyEntity[]> {
-    const user = await this._authService.userByToken(token);
-    console.log(user);
+  async findAll(isAllActive?: boolean): Promise<CompanyEntity[]> {
 
     const companies = await this._prismaService.company.findMany({
       where: {
         state: isAllActive ? undefined : true,
-        idCareer: user.tutor.career.id,
       },
     });
 

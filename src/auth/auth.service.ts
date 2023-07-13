@@ -107,28 +107,34 @@ export class AuthService {
   async resetPassword(
     resetPasswordDto: ResetPasswordDto,
   ): Promise<HttpException> {
-    const payload = await this.verifyToken(resetPasswordDto.token);
-    if (!payload)
-      throw new HttpException(
-        'El token no es valido',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    const userExist = await this._userService.findByEmail(payload.email);
-    if (!userExist)
-      throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
-    if (!userExist.state)
-      throw new HttpException(
-        'El usuario se encuentra inactivo/bloqueado',
-        HttpStatus.CONFLICT,
-      );
-    userExist.password = this.hashPassword(resetPasswordDto.newPassword);
-    const ok = await this._userService.update(userExist.id, userExist);
-    if (!ok)
-      throw new HttpException(
-        'Error al actualizar la contraseña',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    return new HttpException('Contraseña actualizada', HttpStatus.OK);
+    try {
+      const payload = await this.verifyToken(resetPasswordDto.token);
+      if (!payload)
+        throw new HttpException(
+          'El token no es valido',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      const userExist = await this._userService.findByEmail(payload.email);
+      if (!userExist)
+        throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
+      if (!userExist.state)
+        throw new HttpException(
+          'El usuario se encuentra inactivo/bloqueado',
+          HttpStatus.CONFLICT,
+        );
+      userExist.password = this.hashPassword(resetPasswordDto.newPassword);
+      const ok = await this._userService.update(userExist.id, {
+        password: userExist.password,
+      });
+      if (!ok)
+        throw new HttpException(
+          'Error al actualizar la contraseña',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      return new HttpException('Contraseña actualizada', HttpStatus.OK);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
   async changePassword(

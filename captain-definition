@@ -3,10 +3,10 @@
   "dockerfileLines": [
                         "FROM node:18",
                         "WORKDIR /usr/src/app",
+                        "RUN npm install -g yarn",
                         "COPY package*.json yarn.lock ./",
-                        "RUN yarn install && yarn cache clean --force",
+                        "RUN yarn install",
                         "COPY . .",
-                        "EXPOSE 3000",
                         "RUN yarn build",
                         "CMD [ \"yarn\", \"start\" ]"
                     ]

@@ -23,7 +23,6 @@ export class ProjectService {
           name: createProjectDto.name,
           description: createProjectDto.description,
           status: createProjectDto.status,
-          idAcademicTutor: createProjectDto.idAcademicTutor,
           idBusinessTutor: createProjectDto.idBusinessTutor,
           idCompany: createProjectDto.idCompany,
         },

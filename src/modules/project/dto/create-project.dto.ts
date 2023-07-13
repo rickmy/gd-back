@@ -14,8 +14,6 @@ export class CreateProjectDto {
       default: StatusProject.ACTIVO,
     })
     status: StatusProject;
-    @ApiProperty({ example: '1', description: 'ID Tutor académico' })
-    idAcademicTutor: number;
     @ApiProperty({ example: '1', description: 'ID Tutor empresarial' })
     idBusinessTutor: number;
     @ApiProperty({ example: '1', description: 'ID empresa' })

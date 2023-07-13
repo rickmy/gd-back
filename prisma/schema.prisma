@@ -155,8 +155,8 @@ model Project {
   updatedAt                DateTime                   @updatedAt
   state                    Boolean                    @default(true)
   status                   StatusProject              @default(PENDIENTE)
-  idAcademicTutor          Int
-  academicTutor            Tutor                      @relation("academicTutor", fields: [idAcademicTutor], references: [id])
+  idAcademicTutor          Int?
+  academicTutor            Tutor?                      @relation("academicTutor", fields: [idAcademicTutor], references: [id])
   idBusinessTutor          Int
   businessTutor            Tutor                      @relation("bussinesTutor", fields: [idBusinessTutor], references: [id])
   idCompany                Int

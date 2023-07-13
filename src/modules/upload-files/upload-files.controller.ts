@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller,UseInterceptors, UploadedFile, Post } from '@nestjs/common';
 import { UploadFilesService } from './upload-files.service';
-import { CreateUploadFileDto } from './dto/create-upload-file.dto';
-import { UpdateUploadFileDto } from './dto/update-upload-file.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-
+import { ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+class Path {
+  path: string;
+}
+@ApiTags('upload-files')
 @Controller('upload-files')
 export class UploadFilesController {
   constructor(private readonly uploadFilesService: UploadFilesService) {}
@@ -12,9 +13,10 @@ export class UploadFilesController {
   @ApiOkResponse({
     description: 'Documentos subidos'
   })
-  @ApiBody({ required: true, type: FileInterceptor })
+  @ApiBody({ type: 'multipart/form-data'})
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Subir pdf' })
+  @ApiOperation({ summary: 'Subir archivos pdf, imagenes' })
+  @ApiOkResponse({ description: 'Documentos subidos', type: Path})
   @Post()
   create(@UploadedFile() file: Express.Multer.File) {
     return this.uploadFilesService.uploadFile(file);

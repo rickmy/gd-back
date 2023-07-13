@@ -26,6 +26,6 @@ import { StudentsModule } from 'src/modules/students/students.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, JWTstrategy],
-  exports: [PassportModule, JWTstrategy],
+  exports: [PassportModule, JWTstrategy, AuthService],
 })
 export class AuthModule {}

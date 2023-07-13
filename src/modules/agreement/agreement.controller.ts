@@ -8,9 +8,10 @@ import { AgreementEntity } from './entities/agreement.entity';
 @Controller('agreement')
 @ApiTags('agreement')
 export class AgreementController {
-  constructor(private readonly agreementService: AgreementService) {}
-  @ApiCreatedResponse({ description: 'Estudiante creado', type: CreateAgreementDto })
-  @ApiOperation({ summary: 'Crear empresa' })
+  constructor(private readonly agreementService: AgreementService) { }
+
+  @ApiCreatedResponse({ description: 'Estudiante creado', type: AgreementEntity })
+  @ApiOperation({ summary: 'Crear convenios' })
   @Post()
   create(@Body() createAgreementDto: CreateAgreementDto) {
     return this.agreementService.create(createAgreementDto);
@@ -34,13 +35,23 @@ export class AgreementController {
     return this.agreementService.findAll();
   }
 
+  @ApiOkResponse({
+    description: 'Convenios encontrados',
+    type: AgreementEntity,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los convenios activos' })
+  @Get('active')
+  findAllActive() {
+    return this.agreementService.findAll(true);
+  }
+
   @ApiOkResponse({ description: 'Convenio encontrado', type: AgreementEntity })
   @ApiOperation({ summary: 'Encontrar un convenio por su ID' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.agreementService.findOne(+id);
   }
-
 
   @ApiOkResponse({
     description: 'Convenio Actualizado',

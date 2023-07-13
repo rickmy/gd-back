@@ -11,6 +11,7 @@ import {
   Put,
   Query,
   ParseIntPipe,
+  HttpException,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -35,7 +36,7 @@ import { StudentsDto } from './dto/students.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { StudentDto } from './dto/student.dto';
 import { AssignedToProjectDto } from './dto/assigned-to-project.dto';
-import { AssignedToCompanyDto } from './dto/assigned-to-company.dto';
+import { AssignedToCompanyDto, AssinedStudentsToCompanyDto } from './dto/assigned-to-company.dto';
 
 
 @ApiBearerAuth()
@@ -115,23 +116,25 @@ export class StudentsController {
     return this.studentsService.findAll(options, true);
   }
 
+  @Get('toAssign/:idCareer')
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados',
+    type: StudentsDto,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los estudiantes a asignar' })
+  findAllToAssign(@Param('idCareer') idCareer: string) {
+    return this.studentsService.findAllStudentsPendingToAssign(+idCareer);
+  }
+
+
+
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })
   @ApiOperation({ summary: 'Encontrar un estudiante por su Id' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentsService.findOne(+id);
-  }
-
-  @ApiOkResponse({
-    description: 'Estudiante Actualizado',
-    type: CreateStudentDto,
-  })
-  @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
-    return this.studentsService.update(+id, updateStudentDto);
-  }
-  
+  } 
 
   @Put('assign-to-project')
   @ApiOkResponse({
@@ -166,6 +169,17 @@ export class StudentsController {
     return this.studentsService.assignToCompany(body);
   }
 
+  @Put('assign-students-to-company')
+  @ApiOkResponse({
+    description: 'Estudiantes para asignar a la empresa',
+    type: HttpException,
+  })
+  @ApiOperation({ summary: 'Asignar estudiantes a una empresa' })
+  @ApiBody({ type: AssinedStudentsToCompanyDto })
+  assignStudentsToCompany(@Body() assinedStudentsToCompanyDto: AssinedStudentsToCompanyDto) {
+    return this.studentsService.assignStudentsToCompany(assinedStudentsToCompanyDto);
+  }
+
   @Put('unassign-to-company/:id')
   @ApiOkResponse({
     description: 'Estudiante desasignado a empresa',
@@ -177,6 +191,16 @@ export class StudentsController {
     return this.studentsService.unassignToCompany(+id);
   }
 
+  @ApiOkResponse({
+    description: 'Estudiante Actualizado',
+    type: CreateStudentDto,
+  })
+  @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
+    return this.studentsService.update(+id, updateStudentDto);
+  }
+
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'Elimina un estudiante por su DNI' })
   @ApiResponse({ status: 404, description: 'Estudiante no encontrado' })
@@ -184,4 +208,6 @@ export class StudentsController {
   remove(@Param('id') id: string) {
     return this.studentsService.remove(+id);
   }
+
+  
 }

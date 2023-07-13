@@ -113,7 +113,7 @@ export class AuthService {
         'El token no es valido',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    const userExist = await this._userService.findOne(payload.id);
+    const userExist = await this._userService.findByEmail(payload.email);
     if (!userExist)
       throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
     if (!userExist.state)
@@ -134,7 +134,7 @@ export class AuthService {
   async changePassword(
     changePasswordDto: ChangePasswordDto,
   ): Promise<HttpException> {
-    const userExist = await this._userService.findOne(changePasswordDto.userId);
+    const userExist = await this._userService.findByEmail(changePasswordDto.email);
     if (!userExist)
       throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
     if (!userExist.state)

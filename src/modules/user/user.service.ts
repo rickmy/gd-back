@@ -11,7 +11,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
-import { ListUserDto } from './dto/list-user.dto';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -59,7 +59,7 @@ export class UserService {
     return bcrypt.hashSync(password, 10);
   }
 
-  async findAll(onlyActive?: boolean, idRole?: number): Promise<ListUserDto[]> {
+  async findAll(onlyActive?: boolean, idRole?: number): Promise<UserDto[]> {
     try {
       const users = await this._prismaService.user.findMany({
         where: {
@@ -176,6 +176,41 @@ export class UserService {
       return user;
     } catch (error) {
       throw new HttpException(error, 500);
+    }
+  }
+
+  async findAllByRole(idRol: number): Promise<UserDto[]> {
+    try {
+      const users = await this._prismaService.user.findMany({
+        where: {
+          idRol,
+          state: true,
+        },
+        include: {
+          rol: {
+            select: {
+              name: true,
+            }
+          }
+        }
+      });
+
+      if (!users) throw new HttpException('No se encontraron usuarios', HttpStatus.NOT_FOUND);
+
+      return users.map((user) => {
+        delete user.password;
+        return {
+          id: user.id,
+          dni: user.dni,
+          userName: user.userName,
+          email: user.email,
+          state: user.state,
+          role: user.rol.name,
+        };
+      });
+
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 

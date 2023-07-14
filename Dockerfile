@@ -1,7 +1,9 @@
 FROM node:18-alpine as builder
 WORKDIR /usr/app
 COPY package*.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn config set registry https://registry.npmjs.org
+RUN rm yarn.lock
+RUN yarn
 COPY . .
 RUN yarn prisma generate
 RUN yarn build

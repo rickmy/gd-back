@@ -15,7 +15,7 @@ export class UploadFilesController {
   constructor(private readonly uploadFilesService: UploadFilesService) { }
   @Post()
   @ApiOperation({ summary: 'Subir archivos pdf' })
-  @ApiConsumes('multipart/form-data', 'application/pdf')
+  @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Archivo a subir',
     schema: {
@@ -32,7 +32,7 @@ export class UploadFilesController {
     description: 'Archivo subido',
     type: Path,
   })
-  @UseInterceptors(FileInterceptor('archivo'))
+  @UseInterceptors(FileInterceptor('file'))
   create(@UploadedFile() file: Express.Multer.File) {
     return this.uploadFilesService.uploadFile(file);
   }

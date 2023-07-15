@@ -110,7 +110,8 @@ export class TutorService {
         return {
           id: tutor.id,
           dni: tutor.dni,
-          completeNames: `${tutor.firstName} ${tutor.lastName}`,
+          firstName: tutor.firstName,
+          lastName: tutor.lastName,
           email: tutor.email,
           career: tutor.career.name,
           idCareer: tutor.idCareer,
@@ -138,7 +139,8 @@ export class TutorService {
         return {
           id: tutor.id,
           dni: tutor.dni,
-          completeNames: `${tutor.firstName} ${tutor.lastName}`,
+          firstName: tutor.firstName,
+          lastName: tutor.lastName,
           email: tutor.email,
           company: tutor.company.name,
           idCompany: tutor.idCompany,

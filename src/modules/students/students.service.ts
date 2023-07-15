@@ -334,18 +334,28 @@ export class StudentsService {
         where: {
           state: allActive ? true : undefined,
           idCareer: idCareer ? idCareer : undefined,
-          OR: [
+          OR: options.name ? [
             {
               firstName: {
-                equals: options.name ? options.name.toUpperCase() : undefined,
+                contains: options.name ? options.name.toUpperCase() : undefined,
+              },
+            },
+            {
+              secondName: {
+                contains: options.name ? options.name.toUpperCase() : undefined,
               },
             },
             {
               lastName: {
-                equals: options.name ? options.name.toUpperCase() : undefined,
+                contains: options.name ? options.name.toUpperCase() : undefined,
+              },
+            },
+            {
+              secondLastName: {
+                contains: options.name ? options.name.toUpperCase() : undefined,
               },
             }
-          ],
+          ]: undefined,
           dni: {
             startsWith: options.identification ? options.identification.toUpperCase() : undefined,
           },

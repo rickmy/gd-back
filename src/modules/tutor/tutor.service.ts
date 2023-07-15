@@ -163,13 +163,13 @@ export class TutorService {
           OR: options.name ? [
             {
               firstName: {
-                contains: options.name ? options.name.toUpperCase() : undefined,
+                contains: options.name ? options.name : undefined,
                 mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               lastName: {
-                contains: options.name ? options.name.toUpperCase() : undefined,
+                contains: options.name ? options.name : undefined,
                 mode: Prisma.QueryMode.insensitive,
               },
             },

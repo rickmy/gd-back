@@ -21,13 +21,13 @@ import {
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
-import { ListUserDto } from './dto/list-user.dto';
+import { UserDto } from './dto/user.dto';
 
 @ApiTags('user')
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @ApiOkResponse({ description: 'Usuario Creado', type: CreateUserDto })
   @ApiOperation({ summary: 'Crear usuario' })
@@ -40,7 +40,7 @@ export class UserController {
   @ApiOkResponse({
     description: 'Usuarios encontrados',
     isArray: true,
-    type: ListUserDto,
+    type: UserDto,
   })
   @ApiOperation({ summary: 'Encontrar todos los usuarios' })
   @UseGuards(JwtAuthGuard)
@@ -64,6 +64,19 @@ export class UserController {
   findAllActive() {
     return this.userService.findAll(true);
   }
+
+  @Get('byRole/:id')
+  @ApiOkResponse({
+    type: UserDto,
+    description: 'Usuarios encontrados',
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los usuarios por rol' })
+  @UseGuards(JwtAuthGuard)
+  findAllByRole(@Param('id') id: string) {
+    return this.userService.findAllByRole(+id);
+  }
+
 
   @ApiOkResponse({
     description: 'Usuario encontrado',

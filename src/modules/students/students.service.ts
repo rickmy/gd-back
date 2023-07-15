@@ -10,7 +10,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import * as XLSX from 'xlsx';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { StatusStudent, TypeDNI } from '@prisma/client';
+import { Prisma, StatusStudent, TypeDNI } from '@prisma/client';
 import { StudentEntity } from './entities/student.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { CreateUserDto } from '../user/dto/create-user.dto';
@@ -337,29 +337,35 @@ export class StudentsService {
             {
               firstName: {
                 contains: options.name ? options.name.toUpperCase() : undefined,
+                mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               secondName: {
                 contains: options.name ? options.name.toUpperCase() : undefined,
+                mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               lastName: {
                 contains: options.name ? options.name.toUpperCase() : undefined,
+                mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               secondLastName: {
                 contains: options.name ? options.name.toUpperCase() : undefined,
+                mode: Prisma.QueryMode.insensitive,
               },
             }
           ]: undefined,
           dni: {
             startsWith: options.identification ? options.identification : undefined,
+            mode: Prisma.QueryMode.insensitive,
           },
           email: {
             contains: options.email ? options.email : undefined,
+            mode: Prisma.QueryMode.insensitive,
           },
         },
         include: {

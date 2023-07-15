@@ -12,6 +12,7 @@ import { TutorAcademicDto } from './dto/tutor-academic.dto';
 import { TutorBussinesDto } from './dto/tutor-bussines.dto';
 import { TutorDto } from './dto/tutor.dto';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class TutorService {
@@ -163,19 +164,23 @@ export class TutorService {
             {
               firstName: {
                 contains: options.name ? options.name.toUpperCase() : undefined,
+                mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               lastName: {
                 contains: options.name ? options.name.toUpperCase() : undefined,
+                mode: Prisma.QueryMode.insensitive,
               },
             },
           ]: undefined,
           dni: {
             startsWith: options.identification ? options.identification : undefined,
+            mode: Prisma.QueryMode.insensitive,
           },
           email: {
             contains: options.email ? options.email : undefined,
+            mode: Prisma.QueryMode.insensitive,
           },
         },
         include: {

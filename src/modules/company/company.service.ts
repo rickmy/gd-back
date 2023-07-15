@@ -93,12 +93,15 @@ export class CompanyService {
           idCareer: idCareer ? idCareer : undefined,
           name: {
             contains: options.name ? options.name : undefined,
+            mode: Prisma.QueryMode.insensitive,
           },
           ruc: {
             startsWith: options.identification ? options.identification : undefined,
+            mode: Prisma.QueryMode.insensitive,
           },
           email: {
             contains: options.email ? options.email : undefined,
+            mode: Prisma.QueryMode.insensitive,
           },
         },
         orderBy: {

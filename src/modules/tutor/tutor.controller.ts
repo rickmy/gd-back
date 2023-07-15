@@ -14,7 +14,7 @@ import { PaginationOptions } from 'src/core/models/paginationOptions';
 @ApiTags('Tutor')
 @Controller('tutor')
 export class TutorController {
-  constructor(private readonly tutorService: TutorService) {}
+  constructor(private readonly tutorService: TutorService) { }
 
   @Post()
   @ApiOperation({ summary: 'Crear un tutor Generico' })
@@ -51,32 +51,32 @@ export class TutorController {
   @ApiOperation({ summary: 'Obtener todos los tutores Academicos' })
   @ApiParam({ name: 'idCareer', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Academicos encontrados correctamente', type: [TutorAcademicDto] })
-  findAllAcademic(@Param('idCareer') idCareer:string, @Body() options: PaginationOptions) {
-    return this.tutorService.findAllAcademic(+idCareer,options);
+  findAllAcademic(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+    return this.tutorService.findAllAcademic(+idCareer, options);
   }
 
   @Post('academic/active/:idCareer')
   @ApiOperation({ summary: 'Obtener todos los tutores Academicos activos' })
   @ApiParam({ name: 'idCareer', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Academicos activos encontrados correctamente', type: [TutorAcademicDto] })
-  findAllAcademicActive(@Param('idCareer') idCareer:string, @Body() options: PaginationOptions) {
-    return this.tutorService.findAllAcademic(+idCareer,options,true);
+  findAllAcademicActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+    return this.tutorService.findAllAcademic(+idCareer, options, true);
   }
 
-  @Get('business/:idCompany')
+  @Post('business/:idCompany')
   @ApiOperation({ summary: 'Obtener todos los tutores Empresariales' })
   @ApiParam({ name: 'idCompany', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Empresariales encontrados correctamente', type: [TutorBussinesDto] })
-  findAllBusiness(@Param('idCompany') idCompany:string) {
-    return this.tutorService.findAllBusiness(+idCompany);
+  findAllBusiness(@Param('idCompany') idCompany: string, @Body() options: PaginationOptions) {
+    return this.tutorService.findAllBusiness(+idCompany, options);
   }
 
-  @Get('business/active/:idCompany')
+  @Post('business/active/:idCompany')
   @ApiOperation({ summary: 'Obtener todos los tutores Empresariales activos' })
   @ApiParam({ name: 'idCompany', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Empresariales activos encontrados correctamente', type: [TutorBussinesDto] })
-  findAllBusinessActive(@Param('idCompany') idCompany:string) {
-    return this.tutorService.findAllBusiness(+idCompany, true);
+  findAllBusinessActive(@Param('idCompany') idCompany: string, @Body() options: PaginationOptions) {
+    return this.tutorService.findAllBusiness(+idCompany, options, true);
   }
 
   @Get(':id')
@@ -86,7 +86,7 @@ export class TutorController {
   findOne(@Param('id') id: string) {
     return this.tutorService.findOne(+id);
   }
-  
+
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar un tutor' })
   @ApiBody({ type: UpdateTutorDto })

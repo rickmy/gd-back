@@ -324,7 +324,6 @@ export class StudentsService {
     allActive?: boolean,
     idCareer?: number,
   ): Promise<PaginationResult<StudentsDto>> {
-    console.log(options);
     const { page, limit } = options;
     
     const hasFilter = !!options.name || !!options.identification || !!options.email;
@@ -357,7 +356,7 @@ export class StudentsService {
             }
           ]: undefined,
           dni: {
-            startsWith: options.identification ? options.identification.toUpperCase() : undefined,
+            startsWith: options.identification ? options.identification : undefined,
           },
           email: {
             contains: options.email ? options.email : undefined,
@@ -367,7 +366,7 @@ export class StudentsService {
           career: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: 'asc',
         },
         take: hasFilter ? undefined : limit,
         skip: hasFilter ? undefined : page,

@@ -124,7 +124,7 @@ export class TutorService {
             },
           ]: undefined,
           dni: {
-            startsWith: options.identification ? options.identification.toUpperCase() : undefined,
+            startsWith: options.identification ? options.identification : undefined,
           },
           email: {
             contains: options.email ? options.email : undefined,
@@ -152,17 +152,38 @@ export class TutorService {
     }
   }
 
-  async findAllBusiness(idCompany:number, allActive?: boolean): Promise<TutorBussinesDto[]> {
+  async findAllBusiness(idCompany:number, options: PaginationOptions, allActive?: boolean): Promise<TutorBussinesDto[]> {
     try {
       const tutors = await this._prismaService.tutor.findMany({
         where: {
           isAcademic: false,
           state: allActive ? true : undefined,
           idCompany,
+          OR: options.name ? [
+            {
+              firstName: {
+                contains: options.name ? options.name.toUpperCase() : undefined,
+              },
+            },
+            {
+              lastName: {
+                contains: options.name ? options.name.toUpperCase() : undefined,
+              },
+            },
+          ]: undefined,
+          dni: {
+            startsWith: options.identification ? options.identification : undefined,
+          },
+          email: {
+            contains: options.email ? options.email : undefined,
+          },
         },
         include: {
           company: true,
         },
+        orderBy: {
+          createdAt: 'asc',
+        }
       });
       if (!tutors || tutors.length === 0)
         return [];

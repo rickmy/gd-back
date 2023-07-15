@@ -11,6 +11,8 @@ import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { CompaniesInfoDto } from './dto/companies-info.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { PaginationResult } from 'src/core/models/paginationResult';
 
 
 @Injectable()
@@ -77,15 +79,47 @@ export class CompanyService {
     }
   }
 
-  async findAll(isAllActive?: boolean): Promise<CompanyEntity[]> {
+  async findAll( idCareer: number, options: PaginationOptions,
+    allActive?: boolean,
+   ): Promise<PaginationResult<CompanyEntity>> {
 
-    const companies = await this._prismaService.company.findMany({
-      where: {
-        state: isAllActive ? undefined : true,
-      },
-    });
+    const { page, limit } = options;
 
-    return companies;
+    const hasFilter = !!options.name || !!options.identification || !!options.email;
+    try {
+      const companies = await this._prismaService.company.findMany({
+        where: {
+          state: allActive ? undefined : true,
+          idCareer: idCareer ? idCareer : undefined,
+          name: {
+            contains: options.name ? options.name : undefined,
+          },
+          ruc: {
+            startsWith: options.identification ? options.identification : undefined,
+          },
+          email: {
+            contains: options.email ? options.email : undefined,
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
+      });
+      return {
+        results: companies,
+        limit,
+        page,
+        total: await this._prismaService.company.count({
+          where: {
+            state: allActive ? true : undefined
+          },
+        }),
+      };
+    } catch (error) {
+
+    }
   }
 
   async findOne(id: number): Promise<CompanyEntity> {

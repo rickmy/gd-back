@@ -2,18 +2,19 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Headers, UseGua
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyEntity } from './entities/company.entity';
 import { CompaniesInfoDto } from './dto/companies-info.dto';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { Request } from 'express';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @Controller('company')
 @ApiTags('company')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class CompanyController {
-  constructor(private readonly companyService: CompanyService) {}
+  constructor(private readonly companyService: CompanyService) { }
 
   @ApiCreatedResponse({ description: 'Estudiante creado', type: CreateCompanyDto })
   @ApiOperation({ summary: 'Crear empresa' })
@@ -28,21 +29,23 @@ export class CompanyController {
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todas las empresas' })
-  @Get()
-  findAll() {
-    return this.companyService.findAll();
+  @ApiParam({ name: 'idCareer', required: true, type: Number })
+  @Post(':idCareer')
+  findAll(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+    return this.companyService.findAll(+idCareer, options);
   }
 
 
-  @Get('active')
+  @Post('active/:idCareer')
   @ApiOkResponse({
     description: 'Empresas encontradas',
     type: CompanyEntity,
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todas las empresas activas' })
-  findAllActive(@Req() req: Request) {
-    return this.companyService.findAll(true);
+  @ApiParam({ name: 'idCareer', required: true, type: Number })
+  findAllActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+    return this.companyService.findAll(+idCareer, options, true);
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: CompanyEntity })

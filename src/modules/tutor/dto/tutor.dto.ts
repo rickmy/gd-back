@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 
-export class TutorBussinesDto {
+export class TutorDto {
   @ApiProperty({ type: 'number', description: 'id del tutor' })
   id: number
   @ApiProperty({ type: 'string', description: 'dni del tutor' })
@@ -11,8 +11,4 @@ export class TutorBussinesDto {
   lastName: string
   @ApiProperty({ type: 'string', description: 'email del tutor' })
   email: string
-  @ApiProperty({ type: 'number', description: 'id de la carrera' })
-  idCompany: number
-  @ApiProperty({ type: 'string', description: 'carrera del tutor' })
-  company: string
 }

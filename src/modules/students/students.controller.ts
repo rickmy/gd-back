@@ -37,6 +37,7 @@ import { PaginationResult } from 'src/core/models/paginationResult';
 import { StudentDto } from './dto/student.dto';
 import { AssignedToProjectDto } from './dto/assigned-to-project.dto';
 import { AssignedToCompanyDto, AssinedStudentsToCompanyDto } from './dto/assigned-to-company.dto';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 
 @ApiBearerAuth()
@@ -99,21 +100,16 @@ export class StudentsController {
     return this.studentsService.findAll(options);
   }
 
-  @Get('active')
+  @Post('active/:idCareer')
   @ApiOkResponse({
     description: 'Estudiantes encontrados',
     type: PaginationResult<StudentsDto>,
   })
+  @ApiParam({ name: 'idCareer', required: true, type: Number })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes activos' })
-  findAllActive(
-    @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number,
-  ) {
-    const options = {
-      page: page || 1,
-      limit: limit || 10,
-    };
-    return this.studentsService.findAll(options, true);
+  findAllActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+
+    return this.studentsService.findAll(options, true, +idCareer);
   }
 
   @Get('toAssign/:idCareer')

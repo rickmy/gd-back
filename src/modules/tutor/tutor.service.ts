@@ -10,6 +10,8 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { CreateBussinesTutorDto } from './dto/create-tutor-bussiness.dto';
 import { TutorAcademicDto } from './dto/tutor-academic.dto';
 import { TutorBussinesDto } from './dto/tutor-bussines.dto';
+import { TutorDto } from './dto/tutor.dto';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @Injectable()
 export class TutorService {
@@ -89,16 +91,44 @@ export class TutorService {
   }
 
 
-  findAll() {
-    return `This action returns all tutor`;
+  findAll(): Promise<TutorDto[]> {
+    try {
+      return this._prismaService.tutor.findMany({
+        where: {
+          state: true,
+        },
+      });
+
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
-  async findAllAcademic(allActive?: boolean): Promise<TutorAcademicDto[]> {
+  async findAllAcademic(idCareer:number, options: PaginationOptions, allActive?: boolean): Promise<TutorAcademicDto[]> {
     try {
       const tutors = await this._prismaService.tutor.findMany({
         where: {
           isAcademic: true,
-          state: allActive ? true : undefined
+          state: allActive ? true : undefined,
+          idCareer,
+          OR: options.name ? [
+            {
+              firstName: {
+                contains: options.name ? options.name.toUpperCase() : undefined,
+              },
+            },
+            {
+              lastName: {
+                contains: options.name ? options.name.toUpperCase() : undefined,
+              },
+            },
+          ]: undefined,
+          dni: {
+            startsWith: options.identification ? options.identification.toUpperCase() : undefined,
+          },
+          email: {
+            contains: options.email ? options.email : undefined,
+          },
         },
         include: {
           career: true,
@@ -122,12 +152,13 @@ export class TutorService {
     }
   }
 
-  async findAllBusiness(allActive?: boolean): Promise<TutorBussinesDto[]> {
+  async findAllBusiness(idCompany:number, allActive?: boolean): Promise<TutorBussinesDto[]> {
     try {
       const tutors = await this._prismaService.tutor.findMany({
         where: {
           isAcademic: false,
-          state: allActive ? true : undefined
+          state: allActive ? true : undefined,
+          idCompany,
         },
         include: {
           company: true,

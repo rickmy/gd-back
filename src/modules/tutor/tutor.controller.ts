@@ -6,6 +6,10 @@ import { CreateAcademicTutorDto } from './dto/create-tutor-academic.dto';
 import { CreateBussinesTutorDto } from './dto/create-tutor-bussiness.dto';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { TutorEntity } from './entities/tutor.entity';
+import { TutorDto } from './dto/tutor.dto';
+import { TutorAcademicDto } from './dto/tutor-academic.dto';
+import { TutorBussinesDto } from './dto/tutor-bussines.dto';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @ApiTags('Tutor')
 @Controller('tutor')
@@ -37,36 +41,42 @@ export class TutorController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Obtener todos los tutores' })
+  @ApiOkResponse({ description: 'Tutores encontrados correctamente', type: [TutorDto] })
   findAll() {
     return this.tutorService.findAll();
   }
 
-  @Get('academic')
+  @Post('academic/:idCareer')
   @ApiOperation({ summary: 'Obtener todos los tutores Academicos' })
-  @ApiOkResponse({ description: 'Tutores Academicos encontrados correctamente', type: [TutorEntity] })
-  findAllAcademic() {
-    return this.tutorService.findAllAcademic();
+  @ApiParam({ name: 'idCareer', required: true, type: Number })
+  @ApiOkResponse({ description: 'Tutores Academicos encontrados correctamente', type: [TutorAcademicDto] })
+  findAllAcademic(@Param('idCareer') idCareer:string, @Body() options: PaginationOptions) {
+    return this.tutorService.findAllAcademic(+idCareer,options);
   }
 
-  @Get('academic/active')
+  @Post('academic/active/:idCareer')
   @ApiOperation({ summary: 'Obtener todos los tutores Academicos activos' })
-  @ApiOkResponse({ description: 'Tutores Academicos activos encontrados correctamente', type: [TutorEntity] })
-  findAllAcademicActive() {
-    return this.tutorService.findAllAcademic(true);
+  @ApiParam({ name: 'idCareer', required: true, type: Number })
+  @ApiOkResponse({ description: 'Tutores Academicos activos encontrados correctamente', type: [TutorAcademicDto] })
+  findAllAcademicActive(@Param('idCareer') idCareer:string, @Body() options: PaginationOptions) {
+    return this.tutorService.findAllAcademic(+idCareer,options,true);
   }
 
-  @Get('business')
+  @Get('business/:idCompany')
   @ApiOperation({ summary: 'Obtener todos los tutores Empresariales' })
-  @ApiOkResponse({ description: 'Tutores Empresariales encontrados correctamente', type: [TutorEntity] })
-  findAllBusiness() {
-    return this.tutorService.findAllBusiness();
+  @ApiParam({ name: 'idCompany', required: true, type: Number })
+  @ApiOkResponse({ description: 'Tutores Empresariales encontrados correctamente', type: [TutorBussinesDto] })
+  findAllBusiness(@Param('idCompany') idCompany:string) {
+    return this.tutorService.findAllBusiness(+idCompany);
   }
 
-  @Get('business/active')
+  @Get('business/active/:idCompany')
   @ApiOperation({ summary: 'Obtener todos los tutores Empresariales activos' })
-  @ApiOkResponse({ description: 'Tutores Empresariales activos encontrados correctamente', type: [TutorEntity] })
-  findAllBusinessActive() {
-    return this.tutorService.findAllBusiness(true);
+  @ApiParam({ name: 'idCompany', required: true, type: Number })
+  @ApiOkResponse({ description: 'Tutores Empresariales activos encontrados correctamente', type: [TutorBussinesDto] })
+  findAllBusinessActive(@Param('idCompany') idCompany:string) {
+    return this.tutorService.findAllBusiness(+idCompany, true);
   }
 
   @Get(':id')

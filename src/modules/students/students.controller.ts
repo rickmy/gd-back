@@ -105,6 +105,7 @@ export class StudentsController {
     description: 'Estudiantes encontrados',
     type: PaginationResult<StudentsDto>,
   })
+  @ApiParam({ name: 'idCareer', required: true, type: Number })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes activos' })
   findAllActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
 

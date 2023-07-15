@@ -322,22 +322,39 @@ export class StudentsService {
   async findAll(
     options: PaginationOptions,
     allActive?: boolean,
+    idCareer?: number,
   ): Promise<PaginationResult<StudentsDto>> {
+    console.log(options);
     const { page, limit } = options;
+    
+    const hasFilter = !!options.name || !!options.identification || !!options.email;
+
     try {
-      const skip = (page - 1) * limit;
       const students = await this._prismaService.student.findMany({
-        take: limit,
-        skip,
         where: {
-          state: allActive ? true : undefined
+          state: allActive ? true : undefined,
+          idCareer: idCareer ? idCareer : undefined,
+          firstName: {
+            contains: options.name ? options.name.toUpperCase() : undefined,
+          },
+          lastName: {
+            contains: options.name ? options.name.toUpperCase() : undefined,
+          },
+          dni: {
+            startsWith: options.identification ? options.identification.toUpperCase() : undefined,
+          },
+          email: {
+            contains: options.email ? options.email : undefined,
+          },
         },
         include: {
           career: true,
         },
         orderBy: {
           createdAt: 'desc',
-        }
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
       });
 
       this.logger.log('Buscando estudiantes asignados a empresa');

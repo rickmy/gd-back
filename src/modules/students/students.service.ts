@@ -334,12 +334,18 @@ export class StudentsService {
         where: {
           state: allActive ? true : undefined,
           idCareer: idCareer ? idCareer : undefined,
-          firstName: {
-            contains: options.name ? options.name.toUpperCase() : undefined,
-          },
-          lastName: {
-            contains: options.name ? options.name.toUpperCase() : undefined,
-          },
+          OR: [
+            {
+              firstName: {
+                equals: options.name ? options.name.toUpperCase() : undefined,
+              },
+            },
+            {
+              lastName: {
+                equals: options.name ? options.name.toUpperCase() : undefined,
+              },
+            }
+          ],
           dni: {
             startsWith: options.identification ? options.identification.toUpperCase() : undefined,
           },

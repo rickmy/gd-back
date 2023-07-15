@@ -100,10 +100,10 @@ export class AgreementService {
     try {
       const agreementDB = await this.findOne(id);
       if (agreementDB.itvPath !== updateAgreementDto.itvPath) {
-        await this._uploadService.removeFile(agreementDB.itvPath);
+        await this._uploadService.removeFile({name:agreementDB.itvPath});
       }
       if (agreementDB.agreementPath !== updateAgreementDto.agreementPath) {
-        await this._uploadService.removeFile(agreementDB.agreementPath);
+        await this._uploadService.removeFile({name:agreementDB.agreementPath});
       }
       const agreement = await this._prismaService.agreement.update({
         where: {

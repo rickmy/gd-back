@@ -90,7 +90,7 @@ export class AgreementService {
           company: true,
         },
         orderBy: {
-          createdAt: 'asc',
+          createdAt: Prisma.SortOrder.desc,
         },
         take: hasFilter ? undefined : limit,
         skip: hasFilter ? undefined : page,

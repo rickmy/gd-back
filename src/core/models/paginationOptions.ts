@@ -15,6 +15,10 @@ export class PaginationOptions {
   code?: string;
   @ApiProperty({ type: String, description: 'nombre de la empresa', required: false })
   company?: string;
+  @ApiProperty({ type: String, description: 'nombre del tutor academico', required: false })
+  tutorAcademic?: string;
+  @ApiProperty({ type: String, description: 'nombre del tutor empresarial', required: false })
+  tutorBusiness?: string;
   @ApiProperty({ type: Number, description: 'numero de la apgina', required: true })
   page: number;
   @ApiProperty({ type: Number, description: 'cantidad de registro por pagina', required: true })

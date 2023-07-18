@@ -187,7 +187,7 @@ export class TutorService {
           company: true,
         },
         orderBy: {
-          createdAt: 'asc',
+          createdAt: Prisma.SortOrder.desc,
         }
       });
       if (!tutors || tutors.length === 0)

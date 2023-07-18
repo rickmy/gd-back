@@ -4,6 +4,8 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProjectEntity } from './entities/project.entity';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { ProjectDto } from './dto/project.dto';
 
 @Controller('project')
 @ApiTags('project')
@@ -23,20 +25,20 @@ export class ProjectController {
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los proyectos' })
-  @Get()
-  findAll() {
-    return this.projectService.findAll();
+  @Post(':idCompany')
+  findAll(@Param('idCompany', ParseIntPipe) idCompany: number,@Body() options: PaginationOptions) {
+    return this.projectService.findAll(idCompany, options );
   }
 
-  @Get('active')
+  @Post('active/:idCompany')
   @ApiOkResponse({
     description: 'Proyectos activos encontrados',
-    type: ProjectEntity,
+    type: PaginationOptions,
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los proyectos activos' })
-  findAllActive(state: boolean) {
-    return this.projectService.findAll(state);
+  findAllActive(@Param('idCompany', ParseIntPipe) idCompany: number,@Body() options: PaginationOptions) {
+    return this.projectService.findAll(idCompany, options, true);
   }
 
   @Post(':id/assign-academic-tutor/:academicTutorId')

@@ -6,6 +6,9 @@ import { ProjectEntity } from './entities/project.entity';
 import { StudentsService } from '../students/students.service';
 import { Prisma } from '@prisma/client';
 import { TutorService } from '../tutor/tutor.service';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { PaginationResult } from 'src/core/models/paginationResult';
+import { ProjectDto } from './dto/project.dto';
 
 @Injectable()
 export class ProjectService {
@@ -14,8 +17,8 @@ export class ProjectService {
     private _prismaService: PrismaService,
     private _studentService: StudentsService,
     private _tutorService: TutorService
-    
-    ) {}
+
+  ) { }
   async create(createProjectDto: CreateProjectDto): Promise<ProjectEntity> {
     try {
       const project = await this._prismaService.project.create({
@@ -33,21 +36,72 @@ export class ProjectService {
     }
   }
 
-  async findAll(state?:boolean): Promise<ProjectEntity[]> {
+  async findAll(
+    idCompany: number,
+    options: PaginationOptions,
+    allActive?: boolean
+  ): Promise<PaginationResult<ProjectDto>> {
 
-    const filter: Prisma.ProjectWhereInput = {}
-    
-    if (state !== undefined) {
-      filter.state = state
+    const { page, limit } = options;
+
+    const hasFilter = !!options.name || !!options.company || !!options.tutorAcademic || !!options.tutorBusiness;
+
+    try {
+      const projects = await this._prismaService.project.findMany({
+        where: {
+          state: allActive ? true : undefined,
+          idCompany: idCompany,
+          name: hasFilter ? { contains: options.name } : undefined,
+          company: hasFilter ? { name: { contains: options.company } } : undefined,
+          academicTutor: hasFilter ? { firstName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive } } : undefined,
+          businessTutor: hasFilter ? { firstName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive } } : undefined,
+        },
+        include: {
+          company: true,
+          academicTutor: true,
+          businessTutor: true,
+        },
+        orderBy: {
+          createdAt: Prisma.SortOrder.desc,
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
+      });
+
+      if (!projects || projects.length === 0) {
+        throw new HttpException('No hay proyectos', HttpStatus.NOT_FOUND);
+      }
+
+      return {
+        results: projects.map((project) => {
+          return {
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            status: project.status,
+            idCompany: project.idCompany,
+            company: project.company.name,
+            idAcademicTutor: project.idAcademicTutor,
+            academicTutor: `${project.academicTutor.firstName} ${project.academicTutor.lastName}`,
+            idBusinessTutor: project.idBusinessTutor,
+            businessTutor: `${project.businessTutor.firstName} ${project.businessTutor.lastName}`,
+          };
+        }),
+        page: page,
+        limit: limit,
+        total: await this._prismaService.project.count({
+          where: {
+            state: allActive ? true : undefined,
+          }
+        }),
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
-    const projects = await this._prismaService.project.findMany({
-      where: filter,
-    });
-    return projects;
 
   }
 
-  
+
   async assignAcademicTutor(idProject: number, idAcademicTutor: number): Promise<ProjectEntity> {
     const project = await this.findOne(idProject);
     if (!project) {
@@ -99,7 +153,7 @@ export class ProjectService {
     if (!project) {
       throw new HttpException('El proyecto no existe', HttpStatus.NOT_FOUND);
     }
-    await this._studentService.assignToProject({idStudent: idStudent, idProject: idProject});
+    await this._studentService.assignToProject({ idStudent: idStudent, idProject: idProject });
     return await this.findOne(idProject);
   }
 
@@ -123,7 +177,7 @@ export class ProjectService {
   }
 
   async update(id: number, updateProjectDto: UpdateProjectDto): Promise<ProjectEntity> {
-    
+
     const projectExists = await this.findOne(id);
     if (!projectExists) {
       throw new HttpException('El proyecto no existe', HttpStatus.NOT_FOUND);
@@ -153,7 +207,7 @@ export class ProjectService {
         data: {
           state: false,
         },
-      }); 
+      });
       return new HttpException('Proyecto eliminado', HttpStatus.OK);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);

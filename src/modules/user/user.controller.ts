@@ -13,6 +13,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
@@ -22,6 +23,7 @@ import {
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { UserDto } from './dto/user.dto';
+import { UpdateUserResponseDto } from './dto/update-user-response-dto';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -93,15 +95,27 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
+
+  
   @ApiOkResponse({
     description: 'Usuario Actualizado',
-    type: CreateUserDto,
+    type:UpdateUserResponseDto,
   })
   @ApiOperation({ summary: 'Actualizar un usuario por su DNI' })
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @ApiBody({
+    schema: {
+      properties: {
+        userName: { type: 'string' }, 
+      },
+      required: ['userName'], 
+    },
+  })
+  update(@Param('id') id: string, @Body('userName') userName: string):UpdateUserResponseDto {
+    const updateUserDto: UpdateUserDto = { userName };
+    this.userService.update(+id, updateUserDto);
+    return {message: 'Usuario Actualizado'};
   }
 
   @Delete(':id')

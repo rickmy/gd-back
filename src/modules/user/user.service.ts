@@ -266,7 +266,9 @@ export class UserService {
         where: {
           id,
         },
-        data: updateUserDto,
+        data: {
+          userName: updateUserDto.userName,
+        }
       });
       return updatedUser;
     } catch (error) {

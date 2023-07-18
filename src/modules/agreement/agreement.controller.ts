@@ -4,6 +4,7 @@ import { CreateAgreementDto } from './dto/create-agreement.dto';
 import { UpdateAgreementDto } from './dto/update-agreement.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AgreementEntity } from './entities/agreement.entity';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @Controller('agreement')
 @ApiTags('agreement')
@@ -30,9 +31,9 @@ export class AgreementController {
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los convenios' })
-  @Get()
-  findAll() {
-    return this.agreementService.findAll();
+  @Post(':idCareer')
+  findAll(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+    return this.agreementService.findAll(+idCareer, options);
   }
 
   @ApiOkResponse({
@@ -41,9 +42,9 @@ export class AgreementController {
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los convenios activos' })
-  @Get('active')
-  findAllActive() {
-    return this.agreementService.findAll(true);
+  @Post('active/:idCareer')
+  findAllActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+    return this.agreementService.findAll(+idCareer, options, true);
   }
 
   @ApiOkResponse({ description: 'Convenio encontrado', type: AgreementEntity })

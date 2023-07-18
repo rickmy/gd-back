@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateAgreementDto } from './dto/create-agreement.dto';
 import { UpdateAgreementDto } from './dto/update-agreement.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,16 +7,19 @@ import { MailService } from '../mail/mail.service';
 const cron = require('node-cron');
 import { AgreementDto } from './dto/agreement.dto';
 import { UploadFilesService } from '../upload-files/upload-files.service';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { PaginationResult } from 'src/core/models/paginationResult';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AgreementService {
-
+  private logger = new Logger(AgreementService.name);
   constructor(
     private _prismaService: PrismaService,
     private _mailService: MailService,
     private _uploadService: UploadFilesService,
-  
-  ) { 
+
+  ) {
     this.listCareersWithAgreements();
   }
   async create(createAgreementDto: CreateAgreementDto) {
@@ -45,33 +48,81 @@ export class AgreementService {
   }
 
   async findAll(
+    idCareer: number,
+    options: PaginationOptions,
     allActive?: boolean,
-  ): Promise<AgreementDto[]> {
+  ): Promise<PaginationResult<AgreementDto>> {
+
+    const { page, limit } = options;
+
+    const hasFilter = !!options.code || !!options.company || !!options.dateStart || !!options.dateEnd;
+
+
     try {
+      this.logger.log('Empezando a buscar convenios')
       const agreements = await this._prismaService.agreement.findMany({
         where: {
-          state: allActive ? true : undefined
+          state: allActive ? true : undefined,
+
+          code: options.code ? {
+            contains: options.code,
+            mode: Prisma.QueryMode.insensitive,
+          } : undefined,
+
+
+          dateStart: options.dateStart ? {
+            gte: options.dateStart,
+          } : undefined,
+
+          dateEnd: options.dateEnd ? {
+            lte: options.dateEnd,
+          } : undefined,
+          
+          company: {
+            idCareer: idCareer,
+            name: options.company ? {
+              contains: options.company,
+              mode: Prisma.QueryMode.insensitive,
+            } : undefined,
+          },
         },
-        include:{
+        include: {
           company: true,
         },
         orderBy: {
-          createdAt: 'desc',
-        }
+          createdAt: 'asc',
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
       });
-      if (!agreements)
-        return [];
-
-      return agreements.map((agreement) => {
+      this.logger.log('Terminando de buscar convenios')
+      if (!agreements || agreements.length === 0)
         return {
-          id: agreement.id,
-          code: agreement.code,
-          dateStart: agreement.dateStart,
-          dateEnd: agreement.dateEnd,
-          company: agreement.company.name,
-          status: agreement.status
-        }
-      });
+          results: [],
+          limit: limit,
+          page: page,
+          total: 0,
+        };
+      this.logger.log('Empezando a mapear convenios')
+      return {
+        results: agreements.map((agreement) => {
+          return {
+            id: agreement.id,
+            code: agreement.code,
+            dateStart: agreement.dateStart,
+            dateEnd: agreement.dateEnd,
+            company: agreement.company.name,
+            status: agreement.status
+          }
+        }),
+        limit: limit,
+        page: page,
+        total: await this._prismaService.agreement.count({
+          where: {
+            state: allActive ? true : undefined
+          },
+        }),
+      };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
@@ -100,10 +151,10 @@ export class AgreementService {
     try {
       const agreementDB = await this.findOne(id);
       if (agreementDB.itvPath !== updateAgreementDto.itvPath) {
-        await this._uploadService.removeFile({name:agreementDB.itvPath});
+        await this._uploadService.removeFile({ name: agreementDB.itvPath });
       }
       if (agreementDB.agreementPath !== updateAgreementDto.agreementPath) {
-        await this._uploadService.removeFile({name:agreementDB.agreementPath});
+        await this._uploadService.removeFile({ name: agreementDB.agreementPath });
       }
       const agreement = await this._prismaService.agreement.update({
         where: {
@@ -118,8 +169,8 @@ export class AgreementService {
           'Error al actualizar el convenio',
           HttpStatus.BAD_REQUEST,
         );
-        
-      return  agreement;
+
+      return agreement;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

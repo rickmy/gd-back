@@ -134,7 +134,7 @@ export class StudentsService {
       newUsers.push(newUser);
     });
 
-    const usersDB = await this._userService.findAll(false, role.id);
+    const usersDB = await this._userService.findAllByRole(role.id);
 
     const onlyNewsUser = newUsers.filter(
       (user) => !usersDB.some((userDB) => userDB.dni === user.dni),

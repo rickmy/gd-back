@@ -6,6 +6,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags }
 import { ProjectEntity } from './entities/project.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { ProjectDto } from './dto/project.dto';
+import { PaginationResult } from 'src/core/models/paginationResult';
 
 @Controller('project')
 @ApiTags('project')
@@ -21,8 +22,7 @@ export class ProjectController {
 
   @ApiOkResponse({
     description: 'Proyectos encontrados',
-    type: ProjectEntity,
-    isArray: true,
+    type: PaginationResult<ProjectDto>
   })
   @ApiOperation({ summary: 'Encontrar todos los proyectos' })
   @Post(':idCompany')
@@ -33,8 +33,7 @@ export class ProjectController {
   @Post('active/:idCompany')
   @ApiOkResponse({
     description: 'Proyectos activos encontrados',
-    type: PaginationOptions,
-    isArray: true,
+    type: PaginationResult<ProjectDto>,
   })
   @ApiOperation({ summary: 'Encontrar todos los proyectos activos' })
   findAllActive(@Param('idCompany', ParseIntPipe) idCompany: number,@Body() options: PaginationOptions) {

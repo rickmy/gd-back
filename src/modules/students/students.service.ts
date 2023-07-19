@@ -249,7 +249,7 @@ export class StudentsService {
         try {
           await this._prismaService.studentAssignedToCompany.updateMany({
             where: {
-              idStudent: studentDB.idUser,
+              idStudent: studentDB.id,
             },
             data: {
               electivePeriod: periodElective,

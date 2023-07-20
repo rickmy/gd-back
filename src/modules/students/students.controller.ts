@@ -112,6 +112,18 @@ export class StudentsController {
     return this.studentsService.findAll(options, true, +idCareer);
   }
 
+  @Post('byCompany/:idCompany')
+  async findAllActiveByCompany(
+    @Param('idCompany') idCompany: string,
+    @Body() options:PaginationOptions 
+  
+  ): Promise<PaginationResult<StudentsDto>> {
+  
+    return this.studentsService.findAllActiveByCompanyId(+idCompany, options);
+  }
+
+
+
   @Get('toAssign/:idCareer')
   @ApiOkResponse({
     description: 'Estudiantes encontrados',
@@ -130,7 +142,7 @@ export class StudentsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentsService.findOne(+id);
-  } 
+  }
 
   @Put('assign-to-project')
   @ApiOkResponse({
@@ -205,5 +217,5 @@ export class StudentsController {
     return this.studentsService.remove(+id);
   }
 
-  
+
 }

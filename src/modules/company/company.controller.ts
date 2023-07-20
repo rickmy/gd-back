@@ -11,7 +11,7 @@ import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @Controller('company')
 @ApiTags('company')
-@UseGuards(JwtAuthGuard)
+
 @ApiBearerAuth()
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) { }

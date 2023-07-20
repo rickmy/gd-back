@@ -323,6 +323,7 @@ export class StudentsService {
     options: PaginationOptions,
     allActive?: boolean,
     idCareer?: number,
+    
   ): Promise<PaginationResult<StudentsDto>> {
     const { page, limit } = options;
     
@@ -333,6 +334,7 @@ export class StudentsService {
         where: {
           state: allActive ? true : undefined,
           idCareer: idCareer ? idCareer : undefined,
+         
           OR: options.name ? [
             {
               firstName: {
@@ -421,6 +423,158 @@ export class StudentsService {
     }
   }
 
+  async findAllActiveByCompanyId(
+    idCompany: number,
+    options: PaginationOptions = { page: 0, limit: 500 },
+   ): Promise<PaginationResult<StudentsDto>> {
+    const { page, limit } = options;
+    
+    const hasFilter = !!options.name || !!options.identification || !!options.email;
+    const companyExists = await this._prismaService.company.findFirst({//TODO 
+      where: {
+        id: idCompany,
+      },
+    });
+
+    if (!companyExists) {
+      throw new HttpException('La empresa con el ID proporcionado no existe', HttpStatus.NOT_FOUND);
+    }
+
+    try {
+      const studentsAssignedToCompany = await this._prismaService.studentAssignedToCompany.findMany({
+        where: {
+          idCompany: idCompany,
+          state: true,
+          student: {
+            OR: options.name ? [
+              {
+                firstName: {
+                  contains: options.name ? options.name.toUpperCase() : undefined,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+              {
+                secondName: {
+                  contains: options.name ? options.name.toUpperCase() : undefined,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+              {
+                lastName: {
+                  contains: options.name ? options.name.toUpperCase() : undefined,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+              {
+                secondLastName: {
+                  contains: options.name ? options.name.toUpperCase() : undefined,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              }
+            ]: undefined,
+            dni: {
+              startsWith: options.identification ? options.identification : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+            email: {
+              contains: options.email ? options.email : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+        },
+        include: {
+          student: {
+            include: {
+              career: true,
+          }
+        },
+
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
+      });
+
+
+     
+
+      if(!studentsAssignedToCompany.length ){
+        return {
+          results:[],
+          limit: options.limit,
+          page: options.page,
+          total:0,
+        };
+      }
+      return {
+
+        results: studentsAssignedToCompany.map((studentAssignedToCompany) => {
+          return {
+            id: studentAssignedToCompany.student.id,
+            dni: studentAssignedToCompany.student.dni,
+            completeNames: `${studentAssignedToCompany.student.firstName} ${studentAssignedToCompany.student.secondName} ${studentAssignedToCompany.student.lastName} ${studentAssignedToCompany.student.secondLastName}`,
+            career: studentAssignedToCompany.student.career.name,
+            parallel: studentAssignedToCompany.parallel,
+            email: studentAssignedToCompany.student.email,
+            periodElective: studentAssignedToCompany.electivePeriod,
+            periodAcademic: studentAssignedToCompany.academicPeriod,
+            status: studentAssignedToCompany.student.status,
+    
+          }
+        }),
+        total:await this._prismaService.studentAssignedToCompany.count({
+          where: {
+            idCompany: idCompany,
+            state: true,
+            student: {
+              OR: options.name ? [
+                {
+                  firstName: {
+                    contains: options.name ? options.name.toUpperCase() : undefined,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  secondName: {
+                    contains: options.name ? options.name.toUpperCase() : undefined,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  lastName: {
+                    contains: options.name ? options.name.toUpperCase() : undefined,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  secondLastName: {
+                    contains: options.name ? options.name.toUpperCase() : undefined,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                }
+              ]: undefined,
+              dni: {
+                startsWith: options.identification ? options.identification : undefined,
+                mode: Prisma.QueryMode.insensitive,
+              },
+              email: {
+                contains: options.email ? options.email : undefined,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+          
+        }),
+        page,
+        limit
+      }
+       
+      
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException('Error al buscar estudiantes activos por compañía', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
   async findAllStudentsPendingToAssign(idCareer: number): Promise<StudentsDto[]> {
     try {
       const career = await this._careerService.findOne(idCareer);
@@ -469,6 +623,9 @@ export class StudentsService {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
+
+  
+  
 
   async findOne(id: number): Promise<StudentDto> {
     try {

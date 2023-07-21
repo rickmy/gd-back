@@ -82,21 +82,12 @@ export class StudentsController {
   }
 
   @ApiOperation({ summary: 'Encontrar todos los estudiantes' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOkResponse({
     description: 'Estudiantes encontrados',
     type: PaginationResult<StudentsDto>,
   })
-  @Get()
-  findAll(
-    @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number,
-  ) {
-    const options = {
-      page: page || 1,
-      limit: limit || 10,
-    };
+  @Post('all')
+  findAll(@Body() options: PaginationOptions) {
     return this.studentsService.findAll(options);
   }
 
@@ -106,23 +97,24 @@ export class StudentsController {
     type: PaginationResult<StudentsDto>,
   })
   @ApiParam({ name: 'idCareer', required: true, type: Number })
-  @ApiOperation({ summary: 'Encontrar todos los estudiantes activos' })
+  @ApiOperation({ summary: 'Encontrar todos los estudiantes activos por carrera' })
   findAllActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
-
     return this.studentsService.findAll(options, true, +idCareer);
   }
 
   @Post('byCompany/:idCompany')
-  async findAllActiveByCompany(
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados',
+    type: PaginationResult<StudentsDto>,
+  })
+  @ApiParam({ name: 'idCompany', required: true, type: Number })
+  @ApiOperation({ summary: 'Encontrar todos los estudiantes activos por empresa' })
+  findAllActiveByCompany(
     @Param('idCompany') idCompany: string,
-    @Body() options:PaginationOptions 
-  
+    @Body() options: PaginationOptions
   ): Promise<PaginationResult<StudentsDto>> {
-  
     return this.studentsService.findAllActiveByCompanyId(+idCompany, options);
   }
-
-
 
   @Get('toAssign/:idCareer')
   @ApiOkResponse({

@@ -323,7 +323,6 @@ export class StudentsService {
     options: PaginationOptions,
     allActive?: boolean,
     idCareer?: number,
-    
   ): Promise<PaginationResult<StudentsDto>> {
     const { page, limit } = options;
     

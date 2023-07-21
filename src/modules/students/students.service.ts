@@ -325,50 +325,51 @@ export class StudentsService {
     idCareer?: number,
   ): Promise<PaginationResult<StudentsDto>> {
     const { page, limit } = options;
-    
+
     const hasFilter = !!options.name || !!options.identification || !!options.email;
 
     try {
-      const students = await this._prismaService.student.findMany({
-        where: {
-          state: allActive ? true : undefined,
-          idCareer: idCareer ? idCareer : undefined,
-         
-          OR: options.name ? [
-            {
-              firstName: {
-                contains: options.name ? options.name.toUpperCase() : undefined,
-                mode: Prisma.QueryMode.insensitive,
-              },
+      const optionsWhere = {
+        state: allActive ? true : undefined,
+        idCareer: idCareer ? idCareer : undefined,
+
+        OR: options.name ? [
+          {
+            firstName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
             },
-            {
-              secondName: {
-                contains: options.name ? options.name.toUpperCase() : undefined,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            },
-            {
-              lastName: {
-                contains: options.name ? options.name.toUpperCase() : undefined,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            },
-            {
-              secondLastName: {
-                contains: options.name ? options.name.toUpperCase() : undefined,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            }
-          ]: undefined,
-          dni: {
-            startsWith: options.identification ? options.identification : undefined,
-            mode: Prisma.QueryMode.insensitive,
           },
-          email: {
-            contains: options.email ? options.email : undefined,
-            mode: Prisma.QueryMode.insensitive,
+          {
+            secondName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
           },
+          {
+            lastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            secondLastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          }
+        ] : undefined,
+        dni: {
+          startsWith: options.identification ? options.identification : undefined,
+          mode: Prisma.QueryMode.insensitive,
         },
+        email: {
+          contains: options.email ? options.email : undefined,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      }
+      const students = await this._prismaService.student.findMany({
+        where: optionsWhere,
         include: {
           career: true,
         },
@@ -410,9 +411,7 @@ export class StudentsService {
         limit,
         page,
         total: await this._prismaService.student.count({
-          where: {
-            state: allActive ? true : undefined
-          },
+          where: optionsWhere,
         }),
 
       };
@@ -425,11 +424,11 @@ export class StudentsService {
   async findAllActiveByCompanyId(
     idCompany: number,
     options: PaginationOptions = { page: 0, limit: 500 },
-   ): Promise<PaginationResult<StudentsDto>> {
+  ): Promise<PaginationResult<StudentsDto>> {
     const { page, limit } = options;
-    
+
     const hasFilter = !!options.name || !!options.identification || !!options.email;
-    const companyExists = await this._prismaService.company.findFirst({//TODO 
+    const companyExists = await this._prismaService.company.findFirst({
       where: {
         id: idCompany,
       },
@@ -439,73 +438,70 @@ export class StudentsService {
       throw new HttpException('La empresa con el ID proporcionado no existe', HttpStatus.NOT_FOUND);
     }
 
-    try {
-      const studentsAssignedToCompany = await this._prismaService.studentAssignedToCompany.findMany({
-        where: {
-          idCompany: idCompany,
-          state: true,
-          student: {
-            OR: options.name ? [
-              {
-                firstName: {
-                  contains: options.name ? options.name.toUpperCase() : undefined,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-              {
-                secondName: {
-                  contains: options.name ? options.name.toUpperCase() : undefined,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-              {
-                lastName: {
-                  contains: options.name ? options.name.toUpperCase() : undefined,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-              {
-                secondLastName: {
-                  contains: options.name ? options.name.toUpperCase() : undefined,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              }
-            ]: undefined,
-            dni: {
-              startsWith: options.identification ? options.identification : undefined,
-              mode: Prisma.QueryMode.insensitive,
-            },
-            email: {
-              contains: options.email ? options.email : undefined,
+    const optionsWhere = {
+      idCompany: idCompany,
+      state: true,
+      student: {
+        OR: options.name ? [
+          {
+            firstName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
               mode: Prisma.QueryMode.insensitive,
             },
           },
+          {
+            secondName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            lastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            secondLastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          }
+        ] : undefined,
+        dni: {
+          startsWith: options.identification ? options.identification : undefined,
+          mode: Prisma.QueryMode.insensitive,
         },
+        email: {
+          contains: options.email ? options.email : undefined,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      },
+    }
+
+    try {
+      const studentsAssignedToCompany = await this._prismaService.studentAssignedToCompany.findMany({
+        where: optionsWhere,
         include: {
           student: {
             include: {
               career: true,
-          }
-        },
-
+            }
+          },
         },
         take: hasFilter ? undefined : limit,
         skip: hasFilter ? undefined : page,
       });
 
-
-     
-
-      if(!studentsAssignedToCompany.length ){
+      if (!studentsAssignedToCompany.length) {
         return {
-          results:[],
+          results: [],
           limit: options.limit,
           page: options.page,
-          total:0,
+          total: 0,
         };
       }
       return {
-
         results: studentsAssignedToCompany.map((studentAssignedToCompany) => {
           return {
             id: studentAssignedToCompany.student.id,
@@ -517,66 +513,25 @@ export class StudentsService {
             periodElective: studentAssignedToCompany.electivePeriod,
             periodAcademic: studentAssignedToCompany.academicPeriod,
             status: studentAssignedToCompany.student.status,
-    
           }
         }),
-        total:await this._prismaService.studentAssignedToCompany.count({
-          where: {
-            idCompany: idCompany,
-            state: true,
-            student: {
-              OR: options.name ? [
-                {
-                  firstName: {
-                    contains: options.name ? options.name.toUpperCase() : undefined,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-                {
-                  secondName: {
-                    contains: options.name ? options.name.toUpperCase() : undefined,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-                {
-                  lastName: {
-                    contains: options.name ? options.name.toUpperCase() : undefined,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-                {
-                  secondLastName: {
-                    contains: options.name ? options.name.toUpperCase() : undefined,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                }
-              ]: undefined,
-              dni: {
-                startsWith: options.identification ? options.identification : undefined,
-                mode: Prisma.QueryMode.insensitive,
-              },
-              email: {
-                contains: options.email ? options.email : undefined,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            },
-          },
-          
+        total: await this._prismaService.studentAssignedToCompany.count({
+          where: optionsWhere,
         }),
         page,
         limit
       }
-       
-      
+
+
     } catch (error) {
       this.logger.error(error);
       throw new HttpException('Error al buscar estudiantes activos por compañía', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
+
   async findAllStudentsPendingToAssign(idCareer: number): Promise<StudentsDto[]> {
     try {
-      const career = await this._careerService.findOne(idCareer);
+      await this._careerService.findOne(idCareer);
       const students = await this._prismaService.student.findMany({
         where: {
           state: true,
@@ -623,8 +578,8 @@ export class StudentsService {
     }
   }
 
-  
-  
+
+
 
   async findOne(id: number): Promise<StudentDto> {
     try {
@@ -756,7 +711,7 @@ export class StudentsService {
         },
         data: {
           idCompany: assinedStudentsToCompanyDto.idCompany,
-        },  
+        },
       });
       if (!registrationUpdate)
         throw new HttpException('No se pudo actualizar los estudiantes', HttpStatus.NOT_FOUND);

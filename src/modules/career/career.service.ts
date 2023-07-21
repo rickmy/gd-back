@@ -7,6 +7,9 @@ import { CareerEntity } from './entities/career.entity';
 import { RoleService } from '../role/role.service';
 import { UserService } from '../user/user.service';
 import { TutorService } from '../tutor/tutor.service';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { Prisma } from '@prisma/client';
+import { PaginationResult } from 'src/core/models/paginationResult';
 
 @Injectable()
 export class CareerService {
@@ -120,23 +123,45 @@ export class CareerService {
     }
   }
 
-  async findAll(allActive?: boolean): Promise<CareerEntity[]> {
+  findAll(){
     try {
-      const careersDB = await this._prismaService.career.findMany({
+      return this._prismaService.career.findMany({
         where: {
-          state: allActive ? true : undefined,
-        },
-        orderBy: {
-          name: 'asc',
+          state: true,
         },
       });
-      if (!careersDB || careersDB.length === 0)
-        throw new HttpException('No se encontraron carreras', HttpStatus.NOT_FOUND);
-      this.logger.log('Carreras encontradas correctamente');
-      return careersDB;
     } catch (error) {
-      console.log(error);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
+  async findAllCareers(options: PaginationOptions, allActive?: boolean): Promise<PaginationResult<CareerDto>> {
+    const { page, limit } = options;
+    const hasFilter = !!options.name || !!options.identification;
+
+    const optionsWhere = {
+      state: allActive ? true : undefined,
+      name: options.name ? { contains: options.name } : undefined,
+      code: options.identification ? { contains: options.identification } : undefined,
+    };
+    try {
+      const careersDB = await this._prismaService.career.findMany({
+        where: optionsWhere,
+        orderBy: {
+          createdAt: Prisma.SortOrder.desc,
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
+      });
+      const total = await this._prismaService.career.count({
+        where: optionsWhere,
+      });
+      if (!careersDB || careersDB.length === 0)
+        throw new PaginationResult<CareerEntity>([], total, page, limit); 
+      this.logger.log('Carreras encontradas correctamente');
+      return new PaginationResult<CareerEntity>(careersDB, total, page, limit);
+    } catch (error) {
+      this.logger.error(error);
       throw new HttpException(error.message, error.status);
     }
   }

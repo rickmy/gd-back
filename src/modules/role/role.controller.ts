@@ -19,13 +19,15 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RoleEntity } from './entities/role.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { PaginationResult } from 'src/core/models/paginationResult';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 @ApiTags('role')
 @Controller('role')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) {}
+  constructor(private readonly roleService: RoleService) { }
 
   @Post()
   @ApiOkResponse({ description: 'Rol creado', type: CreateRoleDto })
@@ -34,25 +36,23 @@ export class RoleController {
     return this.roleService.create(createRoleDto);
   }
 
-  @Get()
+  @Post('all')
   @ApiOkResponse({
-    type: RoleEntity,
+    type: PaginationResult<RoleEntity>,
     description: 'Roles encontrado',
-    isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los roles' })
-  findAll() {
-    return this.roleService.findAll();
+  findAll(@Body() options: PaginationOptions) {
+    return this.roleService.findAll(options);
   }
-  @Get('active')
+  @Post('active')
   @ApiOkResponse({
-    type: RoleEntity,
+    type: PaginationResult<RoleEntity>,
     description: 'Roles activos encontrados',
-    isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los roles activos' })
-  findAllActive() {
-    return this.roleService.findAll(true);
+  findAllActive(@Body() options: PaginationOptions) {
+    return this.roleService.findAll(options, true);
   }
 
   @Get(':id')

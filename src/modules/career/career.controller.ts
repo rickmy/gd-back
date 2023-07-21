@@ -22,6 +22,8 @@ import {
 } from '@nestjs/swagger';
 import { CareerDto } from './dto/career.dto';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { PaginationResult } from 'src/core/models/paginationResult';
 @ApiTags('career')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -41,26 +43,24 @@ export class CareerController {
 
   
 
-  @Get()
+  @Post('all')
   @ApiOkResponse({
     description: 'Carreras encontradas correctamente',
-    type: CareerDto,
-    isArray: true,
+    type: PaginationResult<CareerDto>,
   })
   @ApiOperation({ summary: 'Listar carreras' })
-  findAll() {
-    return this.careerService.findAll();
+  findAll(@Body() options: PaginationOptions){
+    return this.careerService.findAllCareers(options);
   }
 
-  @Get('active')
+  @Post('active')
   @ApiOkResponse({
     description: 'Carreras activas encontradas correctamente',
-    type: CareerDto,
-    isArray: true,
+    type: PaginationResult<CareerDto>,
   })
   @ApiOperation({ summary: 'Listar carreras activas' })
-  findAllActive() {
-    return this.careerService.findAll(true);
+  findAllActive(@Body() options: PaginationOptions) {
+    return this.careerService.findAllCareers(options);
   }
 
   @Get(':id')

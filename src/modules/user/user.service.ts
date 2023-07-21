@@ -8,10 +8,12 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
 import { UserDto } from './dto/user.dto';
+import { PaginationResult } from 'src/core/models/paginationResult';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @Injectable()
 export class UserService {
@@ -59,38 +61,69 @@ export class UserService {
     return bcrypt.hashSync(password, 10);
   }
 
-  async findAll(onlyActive?: boolean, idRole?: number): Promise<UserDto[]> {
+  async findAll(
+    options: PaginationOptions,
+    allActive?: boolean
+  ): Promise<PaginationResult<UserDto>> {
     try {
+      const { page, limit } = options;
+
+      const hasFilter = !!options.name || !!options.identification || !!options.email;
+
       const users = await this._prismaService.user.findMany({
         where: {
-          state: onlyActive ? true : undefined,
-          idRol: idRole ? idRole : undefined,
+          state: allActive ? true : undefined,
+          userName: hasFilter ? {
+            contains: options.name,
+            mode: Prisma.QueryMode.insensitive,
+          } : undefined,
+          dni: hasFilter ? {
+            contains: options.identification,
+            mode: Prisma.QueryMode.insensitive,
+          } : undefined,
+          email: hasFilter ? {
+            contains: options.email,
+            mode: Prisma.QueryMode.insensitive,
+          } : undefined,
         },
         include: {
           rol: {
             select: {
-              id: true,
               name: true,
             }
           }
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: Prisma.SortOrder.desc,
         },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
       });
-      return users.map((user) => {
-        delete user.password;
-        return { 
-          id: user.id,
-          dni: user.dni,
-          userName: user.userName,
-          email: user.email,
-          state: user.state,
-          role: user.rol.name 
-        };
-      });
+
+
+      if (!users) throw new HttpException('No se encontraron usuarios', HttpStatus.NO_CONTENT);
+      return {
+        results: users.map((user) => {
+          delete user.password;
+          return {
+            id: user.id,
+            dni: user.dni,
+            userName: user.userName,
+            email: user.email,
+            state: user.state,
+            role: user.rol.name,
+          };
+        }),
+        total: await this._prismaService.user.count({
+          where: {
+            state: allActive ? true : undefined,
+          }
+        }),
+        page,
+        limit,
+      };
     } catch (error) {
-      throw new HttpException(error, error.status || 500);
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 
@@ -172,7 +205,7 @@ export class UserService {
           }
         }
       });
-      if(!user) throw new HttpException('El usuario no existe', HttpStatus.NOT_FOUND);
+      if (!user) throw new HttpException('El usuario no existe', HttpStatus.NOT_FOUND);
       return user;
     } catch (error) {
       throw new HttpException(error, 500);

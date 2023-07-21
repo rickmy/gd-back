@@ -7,6 +7,7 @@ import { ProjectEntity } from './entities/project.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { ProjectDto } from './dto/project.dto';
 import { ProjectInfoDto } from './dto/project-info.dto';
+import { PaginationResult } from 'src/core/models/paginationResult';
 
 @Controller('project')
 @ApiTags('project')
@@ -34,8 +35,7 @@ export class ProjectController {
   @Post('active/:idCompany')
   @ApiOkResponse({
     description: 'Proyectos activos encontrados',
-    type: PaginationOptions,
-    isArray: true,
+    type: PaginationResult<ProjectDto>,
   })
   @ApiOperation({ summary: 'Encontrar todos los proyectos activos' })
   findAllActive(@Param('idCompany', ParseIntPipe) idCompany: number,@Body() options: PaginationOptions) {

@@ -24,6 +24,8 @@ import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { UserDto } from './dto/user.dto';
 import { UpdateUserResponseDto } from './dto/update-user-response-dto';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { PaginationResult } from 'src/core/models/paginationResult';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -38,33 +40,26 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @Get()
+  @Post('all')
   @ApiOkResponse({
     description: 'Usuarios encontrados',
-    isArray: true,
-    type: UserDto,
+    type: PaginationResult<UserDto>,
   })
   @ApiOperation({ summary: 'Encontrar todos los usuarios' })
   @UseGuards(JwtAuthGuard)
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Body() options: PaginationOptions) {
+    return this.userService.findAll(options);
   }
 
-  @Get('active')
+  @Post('active')
   @ApiOkResponse({
     description: 'Usuarios encontrados',
-    isArray: true,
-    type: UserEntity,
-  })
-  @ApiNoContentResponse({
-    description: 'Usuarios no econtrados',
-    isArray: true,
-    type: null,
+    type: PaginationResult<UserDto>,
   })
   @ApiOperation({ summary: 'Encontrar todos los usuarios activos' })
   @UseGuards(JwtAuthGuard)
-  findAllActive() {
-    return this.userService.findAll(true);
+  findAllActive(@Body() options: PaginationOptions) {
+    return this.userService.findAll(options, true);
   }
 
   @Get('byRole/:id')
@@ -96,10 +91,10 @@ export class UserController {
   }
 
 
-  
+
   @ApiOkResponse({
     description: 'Usuario Actualizado',
-    type:UpdateUserResponseDto,
+    type: UpdateUserResponseDto,
   })
   @ApiOperation({ summary: 'Actualizar un usuario por su DNI' })
   @Patch(':id')
@@ -107,15 +102,15 @@ export class UserController {
   @ApiBody({
     schema: {
       properties: {
-        userName: { type: 'string' }, 
+        userName: { type: 'string' },
       },
-      required: ['userName'], 
+      required: ['userName'],
     },
   })
-  update(@Param('id') id: string, @Body('userName') userName: string):UpdateUserResponseDto {
+  update(@Param('id') id: string, @Body('userName') userName: string): UpdateUserResponseDto {
     const updateUserDto: UpdateUserDto = { userName };
     this.userService.update(+id, updateUserDto);
-    return {message: 'Usuario Actualizado'};
+    return { message: 'Usuario Actualizado' };
   }
 
   @Delete(':id')

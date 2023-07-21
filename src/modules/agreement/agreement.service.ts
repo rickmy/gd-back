@@ -77,7 +77,7 @@ export class AgreementService {
           dateEnd: options.dateEnd ? {
             lte: options.dateEnd,
           } : undefined,
-          
+
           company: {
             idCareer: idCareer,
             name: options.company ? {
@@ -145,6 +145,45 @@ export class AgreementService {
       );
     return agreement;
 
+  }
+
+  async notificateAgreement(id: number) {
+    try {
+      const agreement = await this.findOne(id);
+      const { idCompany } = agreement;
+      const company = await this._prismaService.company.findUnique({
+        where: {
+          id: idCompany,
+        },
+        include: {
+          career: {
+            include: {
+              coordinator: true,
+              viceCoordinator: true,
+              respStepDual: true,
+            }
+          },
+        },
+      });
+      const { career } = company;
+      const { coordinator, viceCoordinator, respStepDual } = career;
+
+      const coordinatorEmail = coordinator.email;
+      const viceCoordinatorEmail = viceCoordinator.email;
+      const responsibleEmail = respStepDual.email;
+
+      this.logger.log(coordinatorEmail, viceCoordinatorEmail, responsibleEmail)
+      const send = await this._mailService.sendMailAgreementExpired(coordinatorEmail, viceCoordinatorEmail, responsibleEmail, agreement.code, company.name);
+      if (!send)
+        throw new HttpException(
+          'Error al enviar el correo',
+          HttpStatus.BAD_REQUEST,
+        );
+      return new HttpException('Correo enviado correctamente', HttpStatus.OK);
+
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   async update(id: number, updateAgreementDto: UpdateAgreementDto) {

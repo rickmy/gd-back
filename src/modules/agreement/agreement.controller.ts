@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpException } from '@nestjs/common';
 import { AgreementService } from './agreement.service';
 import { CreateAgreementDto } from './dto/create-agreement.dto';
 import { UpdateAgreementDto } from './dto/update-agreement.dto';
@@ -23,6 +23,13 @@ export class AgreementController {
   async listCareersWithAgreements(): Promise<any> {
     const data = await this.agreementService.listCareersWithAgreements();
     return data;
+  }
+
+  @Get('notificate/:id')
+  @ApiOperation({ summary: 'Notificar convenio' })
+  @ApiOkResponse({ description: 'Correo enviado correctamente', type: HttpException })
+  async notificate(@Param('id') id: string) {
+    return await this.agreementService.notificateAgreement(+id);
   }
 
   @ApiOkResponse({

@@ -6,6 +6,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags }
 import { ProjectEntity } from './entities/project.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { ProjectDto } from './dto/project.dto';
+import { ProjectInfoDto } from './dto/project-info.dto';
 
 @Controller('project')
 @ApiTags('project')
@@ -52,6 +53,16 @@ export class ProjectController {
     );
   }
 
+  @ApiOkResponse({
+    description: 'Información del proyecto encontrada',
+    type: ProjectInfoDto,
+  })
+  @ApiOperation({ summary: 'Encontrar información del proyecto por su ID' })
+  @Get(':id')
+  findProjectInfoById(@Param('id', ParseIntPipe) id: number) {
+    return this.projectService.findProjectInfoById(id);
+  }
+
   @Post(':id/assign-business-tutor/:businessTutorId')
   assignBusinessTutor(
     @Param('id', ParseIntPipe) projectId: number,
@@ -74,12 +85,7 @@ export class ProjectController {
     );
   }
 
-  @ApiOkResponse({ description: 'Proyecto encontrado', type: ProjectEntity })
-  @ApiOperation({ summary: 'Encontrar un proyecto por su ID' })
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectService.findOne(+id);
-  }
+  
 
   @ApiOkResponse({
     description: 'Proyecto Actualizado',

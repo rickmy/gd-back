@@ -9,6 +9,7 @@ import { TutorService } from '../tutor/tutor.service';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { ProjectDto } from './dto/project.dto';
+import { ProjectInfoDto } from './dto/project-info.dto';
 
 @Injectable()
 export class ProjectService {
@@ -125,6 +126,61 @@ export class ProjectService {
     }
   }
 
+  async findProjectInfoById(id: number): Promise<ProjectInfoDto> {
+    try {
+      const project = await this._prismaService.project.findUnique({
+        where: { id: id },
+        include: {
+          academicTutor: { select: { id: true, firstName: true, lastName: true } },
+          businessTutor: { select: { id: true, firstName: true, lastName: true } },
+          studentAssignedToCompany: {
+            select: {
+              id: true,
+              academicPeriod: true,
+              student: { select: { id: true, firstName: true, lastName: true, dni: true } },
+            },
+          },
+          company: {select: {id:true, name:true, ruc: true}}
+        },
+      });
+
+      if (!project) {
+        throw new HttpException('Proyecto no encontrado', HttpStatus.NOT_FOUND);
+      }
+
+      const projectInfo: ProjectInfoDto = {
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        businessTutor: {
+          id: project.businessTutor?.id,
+          firsName: project.businessTutor?.firstName,
+          lastName: project.businessTutor?.lastName,
+        },
+        academicTutor: {
+          id: project.academicTutor?.id,
+          firsName: project.academicTutor?.firstName,
+          lastName: project.academicTutor?.lastName,
+        },
+        company: {
+          id: project.company?.id,
+          name: project.company?.name,
+          ruc: project.company.ruc,
+        },
+        students: project.studentAssignedToCompany.map((student) => ({
+          id: student.student.id,
+          fullName: `${student.student.firstName} ${student.student.lastName}`,
+          dni: student.student.dni,
+          academicPeriod: student.academicPeriod,
+        })),
+      };
+
+      return projectInfo;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
   async assignBusinessTutor(idProject: number, idBusinessTutor: number): Promise<ProjectEntity> {
     const project = await this.findOne(idProject);
     if (!project) {
@@ -156,6 +212,8 @@ export class ProjectService {
     await this._studentService.assignToProject({ idStudent: idStudent, idProject: idProject });
     return await this.findOne(idProject);
   }
+
+  
 
   async findOne(id: number): Promise<ProjectEntity> {
     try {

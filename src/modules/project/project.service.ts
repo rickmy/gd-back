@@ -72,7 +72,7 @@ export class ProjectService {
       if (!projects || projects.length === 0) {
         throw new HttpException('No hay proyectos', HttpStatus.NOT_FOUND);
       }
-
+      console.log(projects);
       return {
         results: projects.map((project) => {
           return {
@@ -83,7 +83,7 @@ export class ProjectService {
             idCompany: project.idCompany,
             company: project.company.name,
             idAcademicTutor: project.idAcademicTutor,
-            academicTutor: `${project.academicTutor.firstName} ${project.academicTutor.lastName}`,
+            academicTutor:  project.academicTutor != null ? `${project.academicTutor?.firstName} ${project.academicTutor?.lastName}` : null,
             idBusinessTutor: project.idBusinessTutor,
             businessTutor: `${project.businessTutor.firstName} ${project.businessTutor.lastName}`,
           };

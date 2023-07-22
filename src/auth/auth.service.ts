@@ -122,10 +122,7 @@ export class AuthService {
           'El usuario se encuentra inactivo/bloqueado',
           HttpStatus.CONFLICT,
         );
-      userExist.password = this.hashPassword(resetPasswordDto.newPassword);
-      const ok = await this._userService.update(userExist.id, {
-        password: userExist.password,
-      });
+      const ok = await this._userService.updatePassword(userExist.id, resetPasswordDto.newPassword);
       if (!ok)
         throw new HttpException(
           'Error al actualizar la contraseña',

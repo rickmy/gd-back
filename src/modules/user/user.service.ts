@@ -28,7 +28,7 @@ export class UserService {
     const existEmail = await this.findByEmail(email);
     if (existEmail)
       throw new UnprocessableEntityException('El usuario ya existe');
-    createUserDto.password = bcrypt.hashSync(createUserDto.password, 10);
+    createUserDto.password = this.hashPassword(createUserDto.password);
     try {
       this.logger.log('Creando usuario');
       const newUser = this._prismaService.user.create({
@@ -301,6 +301,24 @@ export class UserService {
         },
         data: {
           userName: updateUserDto.userName,
+        }
+      });
+      return updatedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async updatePassword(id: number, password: string): Promise<User | null> {
+    const user = await this.findOne(id);
+    if (!user) throw new UnprocessableEntityException('El usuario no existe');
+    try {
+      const updatedUser = await this._prismaService.user.update({
+        where: {
+          id,
+        },
+        data: {
+          password: this.hashPassword(password),
         }
       });
       return updatedUser;

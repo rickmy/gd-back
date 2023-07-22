@@ -31,7 +31,7 @@ export class CompanyService {
       dni: createCompanyDto.ruc,
       userName: createCompanyDto.ruc,
       email: createCompanyDto.email,
-      password: this.hashPassword(createCompanyDto.ruc),
+      password: this._userService.hashPassword(createCompanyDto.ruc),
       idRol: role.id,
     };
     try {
@@ -246,7 +246,4 @@ export class CompanyService {
     }
   }
 
-  hashPassword(password: string): string {
-    return bcrypt.hashSync(password, 10);
-  }
 }

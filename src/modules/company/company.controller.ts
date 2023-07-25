@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Headers, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Headers, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -31,7 +31,7 @@ export class CompanyController {
   @ApiOperation({ summary: 'Encontrar todas las empresas' })
   @ApiParam({ name: 'idCareer', required: true, type: Number })
   @Post(':idCareer')
-  findAll(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+  findAll(@Param('idCareer', ParseIntPipe) idCareer: string, @Body() options: PaginationOptions) {
     return this.companyService.findAll(+idCareer, options);
   }
 
@@ -44,14 +44,14 @@ export class CompanyController {
   })
   @ApiOperation({ summary: 'Encontrar todas las empresas activas' })
   @ApiParam({ name: 'idCareer', required: true, type: Number })
-  findAllActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+  findAllActive(@Param('idCareer', ParseIntPipe) idCareer: string, @Body() options: PaginationOptions) {
     return this.companyService.findAll(+idCareer, options, true);
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: CompanyEntity })
   @ApiOperation({ summary: 'Encontrar una empresa por su ID' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.companyService.findOne(+id);
   }
 
@@ -61,7 +61,7 @@ export class CompanyController {
   })
   @ApiOperation({ summary: 'Obtener información de una empresa' })
   @Get('getCompanyInfo/:id')
-  getCompanyInfo(@Param('id') id: string) {
+  getCompanyInfo(@Param('id', ParseIntPipe) id: string) {
     return this.companyService.findOneCompanyInfo(id);
   }
 
@@ -71,7 +71,7 @@ export class CompanyController {
   })
   @ApiOperation({ summary: 'Actualizar una empresa por su ID' })
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
     return this.companyService.update(+id, updateCompanyDto);
   }
   @ApiOkResponse({
@@ -81,7 +81,7 @@ export class CompanyController {
   @ApiOperation({ summary: 'Actualizar el status de una empresa por su ID' })
   @Put('status/:id')
   updateStatusCompany(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateCompanyDto: UpdateCompanyDto,
   ) {
     return this.companyService.updateStatusCompany(
@@ -94,7 +94,7 @@ export class CompanyController {
   @ApiResponse({ status: 200, description: 'Elimina una empresa por su ID' })
   @ApiResponse({ status: 404, description: 'Empresa no encontrada' })
   @ApiOperation({ summary: 'Eliminar empresa por su ID' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.companyService.remove(+id);
   }
 }

@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -61,21 +62,21 @@ export class RoleController {
     description: 'Rol encontrado',
   })
   @ApiOperation({ summary: 'Encontrar un rol por su ID' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.roleService.findRoleWithPermissions(+id);
   }
 
   @Put(':id')
   @ApiOkResponse({ type: CreateRoleDto, description: 'Rol actualizado' })
   @ApiOperation({ summary: 'Actualizar un rol por su ID' })
-  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateRoleDto: UpdateRoleDto) {
     return this.roleService.update(+id, updateRoleDto);
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: CreateRoleDto, description: 'Rol eliminado' })
   @ApiOperation({ summary: 'Eliminar un rol por su ID' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.roleService.remove(+id);
   }
 }

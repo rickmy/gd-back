@@ -123,7 +123,7 @@ export class StudentsController {
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes a asignar' })
-  findAllToAssign(@Param('idCareer') idCareer: string) {
+  findAllToAssign(@Param('idCareer', ParseIntPipe) idCareer: string) {
     return this.studentsService.findAllStudentsPendingToAssign(+idCareer);
   }
 
@@ -132,7 +132,7 @@ export class StudentsController {
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })
   @ApiOperation({ summary: 'Encontrar un estudiante por su Id' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.studentsService.findOne(+id);
   }
 
@@ -154,7 +154,7 @@ export class StudentsController {
   })
   @ApiOperation({ summary: 'Desasignar un estudiante a un proyecto' })
   @ApiParam({ name: 'id', required: true, type: Number })
-  unassignToProject(@Param('id') id: string) {
+  unassignToProject(@Param('id', ParseIntPipe) id: string) {
     return this.studentsService.unassignToProject(+id);
   }
 
@@ -187,7 +187,7 @@ export class StudentsController {
   })
   @ApiOperation({ summary: 'Desasignar un estudiante a una empresa' })
   @ApiParam({ name: 'id', required: true, type: Number })
-  unassignToCompany(@Param('id') id: string) {
+  unassignToCompany(@Param('id', ParseIntPipe) id: string) {
     return this.studentsService.unassignToCompany(+id);
   }
 
@@ -197,7 +197,7 @@ export class StudentsController {
   })
   @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateStudentDto: StudentEntity) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateStudentDto: StudentEntity) {
     return this.studentsService.update(+id, updateStudentDto);
   }
 
@@ -205,7 +205,7 @@ export class StudentsController {
   @ApiResponse({ status: 200, description: 'Elimina un estudiante por su DNI' })
   @ApiResponse({ status: 404, description: 'Estudiante no encontrado' })
   @ApiOperation({ summary: 'Eliminar estudiante por su ID' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.studentsService.remove(+id);
   }
 

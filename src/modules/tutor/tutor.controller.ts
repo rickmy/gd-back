@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpException, ParseIntPipe } from '@nestjs/common';
 import { TutorService } from './tutor.service';
 import { CreateTutorDto } from './dto/create-tutor.dto';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
@@ -51,7 +51,7 @@ export class TutorController {
   @ApiOperation({ summary: 'Obtener todos los tutores Academicos' })
   @ApiParam({ name: 'idCareer', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Academicos encontrados correctamente', type: [TutorAcademicDto] })
-  findAllAcademic(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+  findAllAcademic(@Param('idCareer', ParseIntPipe) idCareer: string, @Body() options: PaginationOptions) {
     return this.tutorService.findAllAcademic(+idCareer, options);
   }
 
@@ -59,7 +59,7 @@ export class TutorController {
   @ApiOperation({ summary: 'Obtener todos los tutores Academicos activos' })
   @ApiParam({ name: 'idCareer', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Academicos activos encontrados correctamente', type: [TutorAcademicDto] })
-  findAllAcademicActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+  findAllAcademicActive(@Param('idCareer', ParseIntPipe) idCareer: string, @Body() options: PaginationOptions) {
     return this.tutorService.findAllAcademic(+idCareer, options, true);
   }
 
@@ -67,7 +67,7 @@ export class TutorController {
   @ApiOperation({ summary: 'Obtener todos los tutores Empresariales' })
   @ApiParam({ name: 'idCompany', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Empresariales encontrados correctamente', type: [TutorBussinesDto] })
-  findAllBusiness(@Param('idCompany') idCompany: string, @Body() options: PaginationOptions) {
+  findAllBusiness(@Param('idCompany', ParseIntPipe) idCompany: string, @Body() options: PaginationOptions) {
     return this.tutorService.findAllBusiness(+idCompany, options);
   }
 
@@ -75,7 +75,7 @@ export class TutorController {
   @ApiOperation({ summary: 'Obtener todos los tutores Empresariales activos' })
   @ApiParam({ name: 'idCompany', required: true, type: Number })
   @ApiOkResponse({ description: 'Tutores Empresariales activos encontrados correctamente', type: [TutorBussinesDto] })
-  findAllBusinessActive(@Param('idCompany') idCompany: string, @Body() options: PaginationOptions) {
+  findAllBusinessActive(@Param('idCompany', ParseIntPipe) idCompany: string, @Body() options: PaginationOptions) {
     return this.tutorService.findAllBusiness(+idCompany, options, true);
   }
 
@@ -83,7 +83,7 @@ export class TutorController {
   @ApiParam({ name: 'id', type: 'number' })
   @ApiOperation({ summary: 'Obtener un tutor por su id' })
   @ApiOkResponse({ description: 'Tutor encontrado correctamente', type: TutorEntity })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.tutorService.findOne(+id);
   }
 
@@ -92,7 +92,7 @@ export class TutorController {
   @ApiBody({ type: UpdateTutorDto })
   @ApiParam({ name: 'id', type: 'number' })
   @ApiOkResponse({ description: 'Tutor actualizado correctamente', type: TutorEntity })
-  update(@Param('id') id: string, @Body() updateTutorDto: UpdateTutorDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateTutorDto: UpdateTutorDto) {
     return this.tutorService.update(+id, updateTutorDto);
   }
 
@@ -100,7 +100,7 @@ export class TutorController {
   @ApiOperation({ summary: 'Eliminar un tutor' })
   @ApiParam({ name: 'id', type: 'number' })
   @ApiOkResponse({ description: 'Tutor eliminado correctamente', type: HttpException })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.tutorService.remove(+id);
   }
 }

@@ -8,6 +8,7 @@ import {
   UseGuards,
   Put,
   HttpException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CareerService } from './career.service';
 import { CreateCareerDto } from './dto/create-career.dto';
@@ -69,7 +70,7 @@ export class CareerController {
     type: CareerDto,
   })
   @ApiOperation({ summary: 'Buscar carrera por id' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.careerService.findOne(+id);
   }
 
@@ -79,7 +80,7 @@ export class CareerController {
     type: CareerDto,
   })
   @ApiOperation({ summary: 'Actualizar carrera' })
-  update(@Param('id') id: string, @Body() updateCareerDto: UpdateCareerDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateCareerDto: UpdateCareerDto) {
     return this.careerService.update(+id, updateCareerDto);
   }
 
@@ -91,7 +92,7 @@ export class CareerController {
     description: 'Error al eliminar la carrera',
   })
   @ApiOperation({ summary: 'Eliminar carrera' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.careerService.remove(+id);
   }
 }

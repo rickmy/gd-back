@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -83,10 +84,10 @@ export class UserController {
     description: 'Usuario no encontrado',
     type: null,
   })
-  @ApiOperation({ summary: 'Encontrar usuario por su DNI' })
+  @ApiOperation({ summary: 'Encontrar usuario por su ID' })
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.userService.findOne(+id);
   }
 
@@ -96,7 +97,7 @@ export class UserController {
     description: 'Usuario Actualizado',
     type: UpdateUserResponseDto,
   })
-  @ApiOperation({ summary: 'Actualizar un usuario por su DNI' })
+  @ApiOperation({ summary: 'Actualizar un usuario por su ID' })
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBody({
@@ -107,7 +108,7 @@ export class UserController {
       required: ['userName'],
     },
   })
-  update(@Param('id') id: string, @Body('userName') userName: string): UpdateUserResponseDto {
+  update(@Param('id', ParseIntPipe) id: string, @Body('userName') userName: string): UpdateUserResponseDto {
     const updateUserDto: UpdateUserDto = { userName };
     this.userService.update(+id, updateUserDto);
     return { message: 'Usuario Actualizado' };
@@ -118,7 +119,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   @ApiOperation({ summary: 'Eliminar usuario por su ID' })
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.userService.remove(+id);
   }
 }

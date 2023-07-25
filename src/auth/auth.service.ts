@@ -154,8 +154,7 @@ export class AuthService {
         'La contraseña actual no coincide',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    userExist.password = this.hashPassword(changePasswordDto.newPassword);
-    const changed = await this._userService.update(userExist.id, userExist);
+    const changed = await this._userService.updatePassword(userExist.id,  changePasswordDto.newPassword);
     if (!changed)
       throw new HttpException(
         'Error al actualizar la contraseña',
@@ -177,10 +176,6 @@ export class AuthService {
       );
     const userExist = await this._userService.findByEmail(payload.email);
     return await this._userService.findOne(userExist.id);
-  }
-
-  hashPassword(password: string): string {
-    return bcrypt.hashSync(password, 10);
   }
 
   async comparePassword(

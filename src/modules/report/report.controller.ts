@@ -9,7 +9,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  @Get()
+  @Get('byAcademicTutor')
   reportByAcademicTutor(
     @Query('academicTutor') academicTutor: string,
   ){

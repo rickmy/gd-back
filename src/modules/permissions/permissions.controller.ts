@@ -8,6 +8,7 @@ import {
   HttpException,
   Put,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
@@ -57,7 +58,7 @@ export class PermissionsController {
   })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
   @ApiOperation({ summary: 'Obtener permiso por su ID' })
-  findOne(@Param('id') id: string): Promise<PermissionEntity> {
+  findOne(@Param('id', ParseIntPipe) id: string): Promise<PermissionEntity> {
     return this.permissionsService.findOne(id);
   }
 
@@ -70,7 +71,7 @@ export class PermissionsController {
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
   @ApiOperation({ summary: 'Actualizar permiso por su ID' })
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: string,
     @Body() permission: UpdatePermissionDto,
   ): Promise<PermissionEntity> {
     return this.permissionsService.update(id, permission);
@@ -80,7 +81,7 @@ export class PermissionsController {
   @ApiResponse({ status: 200, description: 'Elimina un permiso por su ID' })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
   @ApiOperation({ summary: 'Eliminar permiso por su ID' })
-  remove(@Param('id') id: string): Promise<HttpException> {
+  remove(@Param('id', ParseIntPipe) id: string): Promise<HttpException> {
     return this.permissionsService.remove(id);
   }
 }

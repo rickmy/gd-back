@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpException, ParseIntPipe } from '@nestjs/common';
 import { AgreementService } from './agreement.service';
 import { CreateAgreementDto } from './dto/create-agreement.dto';
 import { UpdateAgreementDto } from './dto/update-agreement.dto';
@@ -28,7 +28,7 @@ export class AgreementController {
   @Get('notificate/:id')
   @ApiOperation({ summary: 'Notificar convenio' })
   @ApiOkResponse({ description: 'Correo enviado correctamente', type: HttpException })
-  async notificate(@Param('id') id: string) {
+  async notificate(@Param('id', ParseIntPipe) id: string) {
     return await this.agreementService.notificateAgreement(+id);
   }
 
@@ -39,7 +39,7 @@ export class AgreementController {
   })
   @ApiOperation({ summary: 'Encontrar todos los convenios' })
   @Post(':idCareer')
-  findAll(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+  findAll(@Param('idCareer', ParseIntPipe ) idCareer: string, @Body() options: PaginationOptions) {
     return this.agreementService.findAll(+idCareer, options);
   }
 
@@ -50,14 +50,14 @@ export class AgreementController {
   })
   @ApiOperation({ summary: 'Encontrar todos los convenios activos' })
   @Post('active/:idCareer')
-  findAllActive(@Param('idCareer') idCareer: string, @Body() options: PaginationOptions) {
+  findAllActive(@Param('idCareer', ParseIntPipe) idCareer: string, @Body() options: PaginationOptions) {
     return this.agreementService.findAll(+idCareer, options, true);
   }
 
   @ApiOkResponse({ description: 'Convenio encontrado', type: AgreementEntity })
   @ApiOperation({ summary: 'Encontrar un convenio por su ID' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.agreementService.findOne(+id);
   }
 
@@ -67,7 +67,7 @@ export class AgreementController {
   })
   @ApiOperation({ summary: 'Actualizar un convenio por su ID' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAgreementDto: UpdateAgreementDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateAgreementDto: UpdateAgreementDto) {
     return this.agreementService.update(+id, updateAgreementDto);
   }
 
@@ -75,7 +75,7 @@ export class AgreementController {
   @ApiResponse({ status: 200, description: 'Elimina un convenio por su ID' })
   @ApiResponse({ status: 404, description: 'Convenio no encontrado' })
   @ApiOperation({ summary: 'Eliminar convenio por su ID' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.agreementService.remove(+id);
   }
 }

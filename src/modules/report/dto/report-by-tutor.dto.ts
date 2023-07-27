@@ -9,6 +9,6 @@ export class ReportByTutorDto {
   academicTutor: string;
   @ApiProperty({ example: 'Hector Gonzales', description: 'Tutor empresarial' })
   businessTutor: string;
-  @ApiProperty({ example: [StudentProjectDto], description: 'Estudiantes' })
+  @ApiProperty({ example: StudentProjectDto, description: 'Estudiantes' })
   student: StudentProjectDto[];
 }

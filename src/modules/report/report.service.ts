@@ -2,8 +2,11 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ReportCompanyDto } from './dto/report-company.dto';
 import { Prisma } from '@prisma/client';
 import { ReportByTutorDto } from './dto/report-by-tutor.dto';
+import { StudentProjectDto } from '../students/dto/student-project.dto';
+import { TutorDto } from '../tutor/dto/tutor.dto';
 
 @Injectable()
 export class ReportService {
@@ -98,5 +101,79 @@ export class ReportService {
       throw new HttpException(error.message, error.status);
     }
 
+  }
+
+  async reportByCompany(company: string): Promise<ReportCompanyDto> {
+    try {
+
+      const companyName = await this._prismaService.company.findFirst({
+        where: {
+          name: {
+            contains: company,
+            mode: Prisma.QueryMode.insensitive,
+          },
+          state: true,
+        },
+      });
+
+      if (!companyName) {
+        throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
+      }
+
+      const companyData = await this._prismaService.studentAssignedToCompany.findFirst({
+        where: {
+          idCompany: companyName.id,
+        },
+        include: { 
+          student:true,
+          company: true,
+          project: {
+            include: {
+              academicTutor: true,
+              businessTutor: true,
+            },
+          },
+        },
+      });
+
+      
+    
+      if (!companyData) {
+        throw new HttpException('No existen proyectos y/o estudiantes asignados a esta empresa', HttpStatus.NOT_FOUND);
+      }
+
+      
+
+      const student: StudentProjectDto = {
+        completeNames: `${companyData.student.firstName} ${companyData.student.secondName ?? ''} ${companyData.student.lastName} ${companyData.student.secondLastName ?? ''}`,
+        periodElective: companyData.electivePeriod,
+        periodAcademic: companyData.academicPeriod,
+        project: companyData.project?.name ?? '',
+      };
+
+      const academicTutor: TutorDto = {
+        id: companyData.project?.academicTutor?.id,
+        firstName: companyData.project?.academicTutor?.firstName ?? '',
+        lastName: companyData.project?.academicTutor?.lastName ?? '',
+      };
+
+      const businessTutor: TutorDto = {
+        id: companyData.project?.businessTutor?.id,
+        firstName: companyData.project?.businessTutor?.firstName ?? '',
+        lastName: companyData.project?.businessTutor?.lastName ?? '',
+      };
+
+      const reportCompanyDto: ReportCompanyDto = {
+        id: companyData.company.id,
+        company: companyData.company.name,
+        academicTutor,
+        businessTutor,
+        students: [student], 
+      };
+      
+      return reportCompanyDto;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 }

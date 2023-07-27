@@ -154,12 +154,12 @@ export class ProjectService {
         description: project.description,
         businessTutor: {
           id: project.businessTutor?.id,
-          firsName: project.businessTutor?.firstName,
+          firstName: project.businessTutor?.firstName,
           lastName: project.businessTutor?.lastName,
         },
         academicTutor: {
           id: project.academicTutor?.id,
-          firsName: project.academicTutor?.firstName,
+          firstName: project.academicTutor?.firstName,
           lastName: project.academicTutor?.lastName,
         },
         company: {

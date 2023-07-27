@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ReportCompanyDto } from './dto/report-company.dto';
 
 @ApiTags('Report')
@@ -10,15 +10,19 @@ import { ReportCompanyDto } from './dto/report-company.dto';
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  @Get()
+  @Get('byAcademicTutor')
   reportByAcademicTutor(
     @Query('academicTutor') academicTutor: string,
   ){
     return this.reportService.reportByAcademicTutor(academicTutor);
   }
 
-  @Get(':companyName')
-  async reportByCompany(@Param('companyName') company: string): Promise<ReportCompanyDto>{
+  @ApiOkResponse({
+    description: 'Información del proyecto encontrada',
+    type: ReportCompanyDto,
+  })
+  @Get('byCompanyName')
+   reportByCompany(@Query('companyName') company: string){
     return this.reportService.reportByCompany(company);
   }
 }

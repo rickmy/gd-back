@@ -3,14 +3,11 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CompanyEntity } from './entities/company.entity';
-import { CompaniesDto } from './dto/companies.dto';
-import { Prisma, StatusCompany } from '@prisma/client';
+import { Prisma, StatusCompany, StatusProject } from '@prisma/client';
 import { RoleService } from '../role/role.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { CompaniesInfoDto } from './dto/companies-info.dto';
-import { AuthService } from 'src/auth/auth.service';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
 
@@ -31,7 +28,7 @@ export class CompanyService {
       dni: createCompanyDto.ruc,
       userName: createCompanyDto.ruc,
       email: createCompanyDto.email,
-      password: this._userService.hashPassword(createCompanyDto.ruc),
+      password: createCompanyDto.ruc,
       idRol: role.id,
     };
     try {
@@ -56,7 +53,6 @@ export class CompanyService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
-
 
   }
 
@@ -174,8 +170,6 @@ export class CompanyService {
           dniRepresentLegal: true,
           nameRepresentLegal: true,
           lastNameRepresentLegal: true,
-
-
         }
       });
       if (!company) {
@@ -204,25 +198,15 @@ export class CompanyService {
           status: true,
         },
       });
-
-
-
-
       return {
         ...company,
         agreements: agreements,
         projects: projects,
-
-
       };
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
-
-
-
-
 
   async remove(id: number): Promise<HttpException> {
     try {
@@ -239,6 +223,46 @@ export class CompanyService {
         },
       });
       await this._userService.remove(company.idUser);
+
+      await this._prismaService.agreement.updateMany({
+        where: {
+          idCompany: id,
+        },
+        data: {
+          state: false,
+          status: StatusProject.INACTIVO,
+        },
+      });
+
+      await this._prismaService.project.updateMany({
+        where: {
+          idCompany: id,
+        },
+        data: {
+          state: false,
+          status: StatusProject.INACTIVO,
+        },
+      });
+
+      const registrationToUpdate = await this._prismaService.studentAssignedToCompany.findMany({
+        where: {
+          idCompany: id,
+        }
+      });
+
+      await this._prismaService.studentAssignedToCompany.updateMany({
+        where: {
+          id: {
+            in: registrationToUpdate.map((registration) => registration.id),
+          },
+        },
+        data: {
+          idCompany: null,
+          idProject: null,
+        },
+      });
+
+
       return new HttpException('La empresa ha sido eliminada', HttpStatus.OK);
 
     } catch (error) {

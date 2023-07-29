@@ -2,12 +2,15 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Put } 
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProjectEntity } from './entities/project.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { ProjectDto } from './dto/project.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { ProjectInfoDto } from './dto/project-info.dto';
+import { AssignAcademicTutorDto } from './dto/project-asign-academic-tutor.dto';
+import { AssignBusinessTutorDto } from './dto/project-assign-business-tutor.dto';
+import { AssignStudentDto } from './dto/project-assign-student..dto';
 
 @Controller('project')
 @ApiTags('project')
@@ -43,14 +46,13 @@ export class ProjectController {
     return this.projectService.findAll(idCompany, options, true);
   }
 
-  @Post(':id/assign-academic-tutor/:academicTutorId')
-  assignAcademicTutor(
-    @Param('id', ParseIntPipe) projectId: number,
-    @Param('academicTutorId', ParseIntPipe) academicTutorId: number,
-  ) {
+  @Put('assign-academic-tutor')
+  @ApiBody({ type: AssignAcademicTutorDto })
+  assignAcademicTutor(@Body () assignAcademicTutorDto: AssignAcademicTutorDto) {
+    
     return this.projectService.assignAcademicTutor(
-      projectId,
-      academicTutorId,
+      assignAcademicTutorDto.projectId,
+      assignAcademicTutorDto.academicTutorId,
     );
   }
 
@@ -64,29 +66,20 @@ export class ProjectController {
     return this.projectService.findProjectInfoById(id);
   }
 
-  @Post(':id/assign-business-tutor/:businessTutorId')
-  assignBusinessTutor(
-    @Param('id', ParseIntPipe) projectId: number,
-    @Param('businessTutorId', ParseIntPipe) businessTutorId: number,
-  ) {
+  @Post('/assign-business-tutor/')
+  assignBusinessTutor(@Body () assignBusinessTutorDto: AssignBusinessTutorDto) {
     return this.projectService.assignBusinessTutor(
-      projectId,
-      businessTutorId,
+      assignBusinessTutorDto.projectId,
+      assignBusinessTutorDto.businessTutorId,
     );
   }
   
-  @Post(':id/assign-student/:studentId')
-  assignStudent(
-    @Param('id', ParseIntPipe) projectId: number,
-    @Param('studentId', ParseIntPipe) studentId: number,
-  ) {
+  @Post('/assign-student/')
+  assignStudent(@Body () assignStudentDto: AssignStudentDto) {
     return this.projectService.assignStudent(
-      projectId,
-      studentId,
-    );
+      assignStudentDto.projectId, 
+      assignStudentDto.studentId);
   }
-
-  
 
   @ApiOkResponse({
     description: 'Proyecto Actualizado',

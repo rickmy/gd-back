@@ -5,14 +5,13 @@ import { isArray } from "class-validator";
 
 export class ReportCompanyDto{
 
-    @ApiProperty({ example: '1', description: 'Id Compañia' })
-    id: number;
+    
     @ApiProperty({ example: 'Yavi Soft', description: 'Nombre de Empresa' })
     company: string;
-    @ApiProperty({ example: TutorDto, description: 'Tutor academico' })
-    academicTutor: TutorDto;
-    @ApiProperty({ example: TutorDto, description: 'Tutor empresarial' })
-    businessTutor: TutorDto;
+    @ApiProperty({ example: 'Alberto Espinoza', description: 'Tutor academico' })
+    academicTutor: string;
+    @ApiProperty({ example: 'Juan Rios', description: 'Tutor empresarial' })
+    businessTutor: string;
     @ApiProperty({ example: [StudentProjectDto], description: 'Estudiantes' })
     students: StudentProjectDto[];
 }

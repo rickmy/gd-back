@@ -4,12 +4,17 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ReportCompanyDto } from './dto/report-company.dto';
+import { ReportByTutorDto } from './dto/report-by-tutor.dto';
 
 @ApiTags('Report')
 @Controller('report')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
+  @ApiOkResponse({
+    description: 'Reporte por tutor académico',
+    type: ReportByTutorDto,
+  })
   @Get('byAcademicTutor')
   reportByAcademicTutor(
     @Query('academicTutor') academicTutor: string,
@@ -18,7 +23,7 @@ export class ReportController {
   }
 
   @ApiOkResponse({
-    description: 'Información del proyecto encontrada',
+    description: 'Reporte por nombre de empresa',
     type: ReportCompanyDto,
   })
   @Get('byCompanyName')

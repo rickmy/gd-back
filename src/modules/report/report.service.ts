@@ -7,6 +7,7 @@ import { Prisma } from '@prisma/client';
 import { ReportByTutorDto } from './dto/report-by-tutor.dto';
 import { StudentProjectDto } from '../students/dto/student-project.dto';
 import { TutorDto } from '../tutor/dto/tutor.dto';
+import { first } from 'rxjs';
 
 @Injectable()
 export class ReportService {
@@ -136,13 +137,9 @@ export class ReportService {
         },
       });
 
-      
-    
       if (!companyData) {
         throw new HttpException('No existen proyectos y/o estudiantes asignados a esta empresa', HttpStatus.NOT_FOUND);
       }
-
-      
 
       const student: StudentProjectDto = {
         completeNames: `${companyData.student.firstName} ${companyData.student.secondName ?? ''} ${companyData.student.lastName} ${companyData.student.secondLastName ?? ''}`,
@@ -151,20 +148,13 @@ export class ReportService {
         project: companyData.project?.name ?? '',
       };
 
-      const academicTutor: TutorDto = {
-        id: companyData.project?.academicTutor?.id,
-        firstName: companyData.project?.academicTutor?.firstName ?? '',
-        lastName: companyData.project?.academicTutor?.lastName ?? '',
-      };
+      const academicTutor: string = `${companyData.project?.academicTutor?.firstName ?? ''} ${companyData.project?.academicTutor?.lastName ?? ''}`
+      
 
-      const businessTutor: TutorDto = {
-        id: companyData.project?.businessTutor?.id,
-        firstName: companyData.project?.businessTutor?.firstName ?? '',
-        lastName: companyData.project?.businessTutor?.lastName ?? '',
-      };
+      const businessTutor: string = `${companyData.project?.businessTutor?.firstName ?? ''} ${companyData.project?.businessTutor?.lastName ?? ''}`
 
       const reportCompanyDto: ReportCompanyDto = {
-        id: companyData.company.id,
+       
         company: companyData.company.name,
         academicTutor,
         businessTutor,

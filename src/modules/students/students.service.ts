@@ -10,7 +10,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import * as XLSX from 'xlsx';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma, StatusStudent, TypeDNI } from '@prisma/client';
+import { Prisma, StatusCompany, StatusProject, StatusStudent, TypeDNI } from '@prisma/client';
 import { StudentEntity } from './entities/student.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { CreateUserDto } from '../user/dto/create-user.dto';
@@ -675,6 +675,26 @@ export class StudentsService {
     if (!studentExists) {
       throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
     }
+
+    const companyWithAgreement = await this._prismaService.company.findFirst({
+      where: {
+        id: updateStudentDto.idCompany,
+      },
+      include: {
+        agreement: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      }
+    });
+
+    const agreement = companyWithAgreement.agreement[0];
+    if (!agreement || agreement.status !== StatusProject.ACTIVO) {
+      throw new HttpException('La empresa no tiene un convenio activo', HttpStatus.NOT_FOUND);
+    }
+  
+
     const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
       where: {
         idStudent: updateStudentDto.idStudent,
@@ -698,11 +718,32 @@ export class StudentsService {
     }
   }
 
+
   async assignStudentsToCompany(
     assinedStudentsToCompanyDto: AssinedStudentsToCompanyDto
   ) {
     try {
       this.logger.log('Buscando matriculas de los estudiantes');
+
+      const companyWithAgreement = await this._prismaService.company.findUnique({
+        where: {
+          id: assinedStudentsToCompanyDto.idCompany,
+        },
+        include: {
+          agreement: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
+  
+      const agreement = companyWithAgreement?.agreement[0];
+
+      if (!agreement || agreement.status !== StatusProject.ACTIVO) {
+     
+      throw new HttpException('La empresa no puede recibir estudiantes hasta que su convenio esté aprobado', HttpStatus.UNPROCESSABLE_ENTITY);
+    }
       const registrationUpdate = await this._prismaService.studentAssignedToCompany.updateMany({
         where: {
           idStudent: {

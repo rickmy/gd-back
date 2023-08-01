@@ -35,7 +35,7 @@ export class TutorService {
       dni: createTutorDto.dni,
       userName: createTutorDto.email.split('@')[0],
       email: createTutorDto.email,
-      password: this._userService.hashPassword(createTutorDto.dni),
+      password: createTutorDto.dni,
       idRol: role.id,
     };
     try {
@@ -66,7 +66,7 @@ export class TutorService {
       dni: createTutorDto.dni,
       userName: createTutorDto.email.split('@')[0],
       email: createTutorDto.email,
-      password: this._userService.hashPassword(createTutorDto.dni),
+      password: createTutorDto.dni,
       idRol: role.id,
     };
     try {

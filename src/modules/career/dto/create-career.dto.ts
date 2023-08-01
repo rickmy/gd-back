@@ -29,21 +29,21 @@ export class CreateCareerDto {
   @IsNumber()
   timeRenovationAgreement: number;
   @ApiProperty({
-    type: UserByCareerDto,
+    type: Number,
     description: 'Coordinador de la carrera',
   })
-  @IsNotEmpty()
-  coordinator: UserByCareerDto;
+  @IsNumber()
+  idCoordinator: number;
   @ApiProperty({
-    type: UserByCareerDto,
+    type: Number,
     description: 'Vicecoordinador de la carrera',
   })
-  @IsNotEmpty()
-  viceCoordinator: UserByCareerDto;
+  @IsNumber()
+  idViceCoordinator: number;
   @ApiProperty({
-    type: UserByCareerDto,
+    type: Number,
     description: 'Responsable de practicas de la carrera',
   })
-  @IsNotEmpty()
-  respStepDual: UserByCareerDto;
+  @IsNumber()
+  idRespStepDual: number;
 }

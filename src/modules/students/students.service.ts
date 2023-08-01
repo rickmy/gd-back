@@ -10,7 +10,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import * as XLSX from 'xlsx';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { StatusStudent, TypeDNI } from '@prisma/client';
+import { Prisma, StatusCompany, StatusProject, StatusStudent, TypeDNI } from '@prisma/client';
 import { StudentEntity } from './entities/student.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { CreateUserDto } from '../user/dto/create-user.dto';
@@ -23,6 +23,8 @@ import { StudentsDto } from './dto/students.dto';
 import { StudentExcel } from './models/studentExcel';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { StudentDto } from './dto/student.dto';
+import { AssignedToProjectDto } from './dto/assigned-to-project.dto';
+import { AssignedToCompanyDto, AssinedStudentsToCompanyDto } from './dto/assigned-to-company.dto';
 @Injectable()
 export class StudentsService {
   private logger = new Logger(StudentsService.name);
@@ -35,7 +37,8 @@ export class StudentsService {
 
   async uploadStudents(file: Express.Multer.File): Promise<HttpException> {
     let newStudentsExcel: StudentExcel[] = [];
-    const role = await this._roleService.findRoleByName('EST');
+    this.logger.log('Buscando rol estudiante');
+    const role = await this._roleService.findByCode('EST');
     const careers = await this._careerService.findAll();
     const listDni = [];
     if (!file) throw new UnprocessableEntityException('No file uploaded');
@@ -114,7 +117,7 @@ export class StudentsService {
           (status: string) => status === 'APROBADO'
         ) ? StatusStudent.APROBADO : StatusStudent.REPROBADO,
         idUser: 0,
-        idCareer: careers.find(career => career.code === student.careerCode).id,
+        idCareer: careers.find(career => career.code.toUpperCase() === student.careerCode.toUpperCase()).id,
       };
 
       newUser.email = `${newStudent.firstName
@@ -131,7 +134,7 @@ export class StudentsService {
       newUsers.push(newUser);
     });
 
-    const usersDB = await this._userService.findAll(false, role.id);
+    const usersDB = await this._userService.findAllByRole(role.id);
 
     const onlyNewsUser = newUsers.filter(
       (user) => !usersDB.some((userDB) => userDB.dni === user.dni),
@@ -246,7 +249,7 @@ export class StudentsService {
         try {
           await this._prismaService.studentAssignedToCompany.updateMany({
             where: {
-              idStudent: studentDB.idUser,
+              idStudent: studentDB.id,
             },
             data: {
               electivePeriod: periodElective,
@@ -270,7 +273,7 @@ export class StudentsService {
   }
 
   async create(createStudentDto: CreateStudentDto): Promise<StudentEntity> {
-    const role = await this._roleService.findRoleByName('EST');
+    const role = await this._roleService.findByCode('EST');
     const career = await this._careerService.findOne(createStudentDto.idCareer);
     const newUser: CreateUserDto = {
       dni: createStudentDto.dni,
@@ -319,27 +322,70 @@ export class StudentsService {
   async findAll(
     options: PaginationOptions,
     allActive?: boolean,
+    idCareer?: number,
   ): Promise<PaginationResult<StudentsDto>> {
     const { page, limit } = options;
+
+    const hasFilter = !!options.name || !!options.identification || !!options.email;
+
     try {
-      const skip = (page - 1) * limit;
-      const students = await this._prismaService.student.findMany({
-        take: limit,
-        skip,
-        where: {
-          state: allActive ? true : undefined
+      const optionsWhere = {
+        state: allActive ? true : undefined,
+        idCareer: idCareer ? idCareer : undefined,
+
+        OR: options.name ? [
+          {
+            firstName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            secondName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            lastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            secondLastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          }
+        ] : undefined,
+        dni: {
+          startsWith: options.identification ? options.identification : undefined,
+          mode: Prisma.QueryMode.insensitive,
         },
+        email: {
+          contains: options.email ? options.email : undefined,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      }
+      const students = await this._prismaService.student.findMany({
+        where: optionsWhere,
         include: {
           career: true,
         },
+        orderBy: {
+          createdAt: Prisma.SortOrder.desc,
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
       });
 
       this.logger.log('Buscando estudiantes asignados a empresa');
-
+      const studentIds = students.map((student) => student.id);
       const registrations = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
           idStudent: {
-            in: students.map((student) => student.id),
+            in: studentIds,
           },
         },
       });
@@ -365,18 +411,175 @@ export class StudentsService {
         limit,
         page,
         total: await this._prismaService.student.count({
-          where: {
-            state: allActive ? true : undefined
-          },
+          where: optionsWhere,
         }),
 
       };
-
     } catch (error) {
       this.logger.error(error);
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
+
+  async findAllActiveByCompanyId(
+    idCompany: number,
+    options: PaginationOptions = { page: 0, limit: 500 },
+  ): Promise<PaginationResult<StudentsDto>> {
+    const { page, limit } = options;
+
+    const hasFilter = !!options.name || !!options.identification || !!options.email;
+    const companyExists = await this._prismaService.company.findFirst({
+      where: {
+        id: idCompany,
+      },
+    });
+
+    if (!companyExists) {
+      throw new HttpException('La empresa con el ID proporcionado no existe', HttpStatus.NOT_FOUND);
+    }
+
+    const optionsWhere = {
+      idCompany: idCompany,
+      state: true,
+      student: {
+        OR: options.name ? [
+          {
+            firstName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            secondName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            lastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            secondLastName: {
+              contains: options.name ? options.name.toUpperCase() : undefined,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          }
+        ] : undefined,
+        dni: {
+          startsWith: options.identification ? options.identification : undefined,
+          mode: Prisma.QueryMode.insensitive,
+        },
+        email: {
+          contains: options.email ? options.email : undefined,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      },
+    }
+
+    try {
+      const studentsAssignedToCompany = await this._prismaService.studentAssignedToCompany.findMany({
+        where: optionsWhere,
+        include: {
+          student: {
+            include: {
+              career: true,
+            }
+          },
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
+      });
+
+      if (!studentsAssignedToCompany.length) {
+        return {
+          results: [],
+          limit: options.limit,
+          page: options.page,
+          total: 0,
+        };
+      }
+      return {
+        results: studentsAssignedToCompany.map((studentAssignedToCompany) => {
+          return {
+            id: studentAssignedToCompany.student.id,
+            dni: studentAssignedToCompany.student.dni,
+            completeNames: `${studentAssignedToCompany.student.firstName} ${studentAssignedToCompany.student.secondName} ${studentAssignedToCompany.student.lastName} ${studentAssignedToCompany.student.secondLastName}`,
+            career: studentAssignedToCompany.student.career.name,
+            parallel: studentAssignedToCompany.parallel,
+            email: studentAssignedToCompany.student.email,
+            periodElective: studentAssignedToCompany.electivePeriod,
+            periodAcademic: studentAssignedToCompany.academicPeriod,
+            status: studentAssignedToCompany.student.status,
+          }
+        }),
+        total: await this._prismaService.studentAssignedToCompany.count({
+          where: optionsWhere,
+        }),
+        page,
+        limit
+      }
+
+
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException('Error al buscar estudiantes activos por compañía', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async findAllStudentsPendingToAssign(idCareer: number): Promise<StudentsDto[]> {
+    try {
+      await this._careerService.findOne(idCareer);
+      const students = await this._prismaService.student.findMany({
+        where: {
+          state: true,
+          status: StatusStudent.APROBADO,
+          studentAssignedToCompany: {
+            every: {
+              idCompany: null,
+            },
+          },
+          idCareer,
+        },
+        include: {
+          career: true,
+          studentAssignedToCompany: true
+        }
+      })
+
+      const registrations = await this._prismaService.studentAssignedToCompany.findMany({
+        where: {
+          idStudent: {
+            in: students.map((student) => student.id),
+          },
+        },
+      });
+
+      return students.map((student) => {
+        const registration = registrations.find(
+          (registration) => registration.idStudent === student.id,
+        );
+        return {
+          id: student.id,
+          dni: student.dni,
+          completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
+          career: student.career.name,
+          parallel: registration.parallel,
+          email: student.email,
+          periodElective: registration.electivePeriod,
+          periodAcademic: registration.academicPeriod,
+          status: student.status,
+        }
+      })
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+
+
 
   async findOne(id: number): Promise<StudentDto> {
     try {
@@ -410,16 +613,21 @@ export class StudentsService {
       return {
         id: student.id,
         dni: student.dni,
-        completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
+        firstName: student.firstName,
+        secondName: student.secondName,
+        lastName: student.lastName,
+        secondLastName: student.secondLastName,
+        idCareer: student.idCareer,
         career: student.career.name,
         parallel: registration.parallel,
         email: student.email,
         electivePeriod: registration.electivePeriod,
         academicPeriod: registration.academicPeriod,
+        idCompany: registration?.company?.id || null,
         company: registration?.company?.name || null,
         project: registration?.project?.name || null,
-        academicTutor: !!registration?.project?.academicTutor ? `${registration?.project?.academicTutor?.firstName } ${registration?.project?.academicTutor?.lastName}` : null,
-        businessTutor: !!registration?.project?.academicTutor ? `${registration?.project?.academicTutor?.firstName } ${registration?.project?.academicTutor?.lastName}` : null,
+        academicTutor: !!registration?.project?.academicTutor ? `${registration?.project?.academicTutor?.firstName} ${registration?.project?.academicTutor?.lastName}` : null,
+        businessTutor: !!registration?.project?.academicTutor ? `${registration?.project?.academicTutor?.firstName} ${registration?.project?.academicTutor?.lastName}` : null,
         status: student.status,
       };
 
@@ -460,10 +668,138 @@ export class StudentsService {
     }
   }
 
-  async updateAssignedToCompany(
-    id: number,
-    updateStudentDto: CreateStudentAssignedToCompanyDto,
+  async assignToCompany(
+    updateStudentDto: AssignedToCompanyDto,
   ): Promise<HttpException> {
+    const studentExists = await this.findOne(updateStudentDto.idStudent);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+
+    const companyWithAgreement = await this._prismaService.company.findFirst({
+      where: {
+        id: updateStudentDto.idCompany,
+      },
+      include: {
+        agreement: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      }
+    });
+
+    const agreement = companyWithAgreement.agreement[0];
+    if (!agreement || agreement.status !== StatusProject.ACTIVO) {
+      throw new HttpException('La empresa no tiene un convenio activo', HttpStatus.NOT_FOUND);
+    }
+  
+
+    const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
+      where: {
+        idStudent: updateStudentDto.idStudent,
+      },
+    });
+    try {
+      await this._prismaService.studentAssignedToCompany.update({
+        where: {
+          id: registrationExists.id,
+        },
+        data: {
+          idCompany: updateStudentDto.idCompany,
+        },
+      });
+      return new HttpException(
+        'Estudiante asignado a empresa o proyecto actualizado correctamente',
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+
+  async assignStudentsToCompany(
+    assinedStudentsToCompanyDto: AssinedStudentsToCompanyDto
+  ) {
+    try {
+      this.logger.log('Buscando matriculas de los estudiantes');
+
+      const companyWithAgreement = await this._prismaService.company.findUnique({
+        where: {
+          id: assinedStudentsToCompanyDto.idCompany,
+        },
+        include: {
+          agreement: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
+  
+      const agreement = companyWithAgreement?.agreement[0];
+
+      if (!agreement || agreement.status !== StatusProject.ACTIVO) {
+     
+      throw new HttpException('La empresa no puede recibir estudiantes hasta que su convenio esté aprobado', HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+      const registrationUpdate = await this._prismaService.studentAssignedToCompany.updateMany({
+        where: {
+          idStudent: {
+            in: assinedStudentsToCompanyDto.idStudents,
+          },
+        },
+        data: {
+          idCompany: assinedStudentsToCompanyDto.idCompany,
+        },
+      });
+      if (!registrationUpdate)
+        throw new HttpException('No se pudo actualizar los estudiantes', HttpStatus.NOT_FOUND);
+      return new HttpException(
+        'Estudiantes asignados correctamente',
+        HttpStatus.OK,
+      );
+
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async assignToProject(
+    updateStudentDto: AssignedToProjectDto,
+  ): Promise<HttpException> {
+    const studentExists = await this.findOne(updateStudentDto.idStudent);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
+      where: {
+        idStudent: updateStudentDto.idStudent,
+      },
+    });
+    if (!registrationExists) {
+      throw new HttpException('La matriculación del estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    try {
+      await this._prismaService.studentAssignedToCompany.update({
+        where: {
+          id: registrationExists.id,
+        },
+        data: {
+          idProject: updateStudentDto.idProject,
+        },
+      });
+      return new HttpException(
+        'Estudiante asignado a proyecto actualizado correctamente',
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async unassignToProject(id: number): Promise<HttpException> {
     const studentExists = await this.findOne(id);
     if (!studentExists) {
       throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
@@ -479,11 +815,40 @@ export class StudentsService {
           id: registrationExists.id,
         },
         data: {
-          idCompany: updateStudentDto.idCompany,
+          idProject: null,
         },
       });
       return new HttpException(
-        'Estudiante asignado a empresa o proyecto actualizado correctamente',
+        'Estudiante eliminado del proyecto correctamente',
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async unassignToCompany(id: number): Promise<HttpException> {
+    const studentExists = await this.findOne(id);
+    if (!studentExists) {
+      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+    }
+    const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
+      where: {
+        idStudent: id,
+      },
+    });
+    try {
+      await this._prismaService.studentAssignedToCompany.update({
+        where: {
+          id: registrationExists.id,
+        },
+        data: {
+          idCompany: null,
+          idProject: null,
+        },
+      });
+      return new HttpException(
+        'Estudiante eliminado de la empresa correctamente',
         HttpStatus.OK,
       );
     } catch (error) {

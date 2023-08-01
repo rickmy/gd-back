@@ -8,10 +8,12 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
-import { ListUserDto } from './dto/list-user.dto';
+import { UserDto } from './dto/user.dto';
+import { PaginationResult } from 'src/core/models/paginationResult';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @Injectable()
 export class UserService {
@@ -26,7 +28,7 @@ export class UserService {
     const existEmail = await this.findByEmail(email);
     if (existEmail)
       throw new UnprocessableEntityException('El usuario ya existe');
-    createUserDto.password = bcrypt.hashSync(createUserDto.password, 10);
+    createUserDto.password = this.hashPassword(createUserDto.password);
     try {
       this.logger.log('Creando usuario');
       const newUser = this._prismaService.user.create({
@@ -59,60 +61,194 @@ export class UserService {
     return bcrypt.hashSync(password, 10);
   }
 
-  async findAll(onlyActive?: boolean, idRole?: number): Promise<ListUserDto[]> {
+  async findAll(
+    options: PaginationOptions,
+    allActive?: boolean
+  ): Promise<PaginationResult<UserDto>> {
     try {
+      const { page, limit } = options;
+
+      const hasFilter = !!options.name || !!options.identification || !!options.email;
+
       const users = await this._prismaService.user.findMany({
         where: {
-          state: onlyActive ? true : undefined,
-          idRol: idRole ? idRole : undefined,
+          state: allActive ? true : undefined,
+          userName: hasFilter ? {
+            contains: options.name,
+            mode: Prisma.QueryMode.insensitive,
+          } : undefined,
+          dni: hasFilter ? {
+            contains: options.identification,
+            mode: Prisma.QueryMode.insensitive,
+          } : undefined,
+          email: hasFilter ? {
+            contains: options.email,
+            mode: Prisma.QueryMode.insensitive,
+          } : undefined,
         },
         include: {
           rol: {
             select: {
+              name: true,
+            }
+          }
+        },
+        orderBy: {
+          createdAt: Prisma.SortOrder.desc,
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
+      });
+
+
+      if (!users) throw new HttpException('No se encontraron usuarios', HttpStatus.NO_CONTENT);
+      return {
+        results: users.map((user) => {
+          delete user.password;
+          return {
+            id: user.id,
+            dni: user.dni,
+            userName: user.userName,
+            email: user.email,
+            state: user.state,
+            role: user.rol.name,
+          };
+        }),
+        total: await this._prismaService.user.count({
+          where: {
+            state: allActive ? true : undefined,
+          }
+        }),
+        page,
+        limit,
+      };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const user = await this._prismaService.user.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+          dni: true,
+          userName: true,
+          email: true,
+          rol: {
+            select: {
               id: true,
               name: true,
+              code: true,
+            }
+          },
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              status: true,
+              career: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                }
+              }
+            }
+          },
+          tutor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              career: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                }
+              },
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  status: true,
+                  career: {
+                    select: {
+                      id: true,
+                      code: true,
+                      name: true,
+                    }
+                  }
+                }
+              }
+            }
+          },
+          company: {
+            select: {
+              id: true,
+              name: true,
+              ruc: true,
+              status: true,
+              career: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                }
+              }
             }
           }
         }
       });
-      return users.map((user) => {
-        delete user.password;
-        return { 
-          id: user.id,
-          dni: user.dni,
-          userName: user.userName,
-          email: user.email,
-          state: user.state,
-          role: user.rol.name 
-        };
-      });
-    } catch (error) {
-      throw new HttpException(error, error.status || 500);
-    }
-  }
-
-  findOne(id: number) {
-    try {
-      return this._prismaService.user.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          rol: {
-            select: {
-              id: true,
-              name: true,
-            }
-          },
-        }
-      });
+      if (!user) throw new HttpException('El usuario no existe', HttpStatus.NOT_FOUND);
+      return user;
     } catch (error) {
       throw new HttpException(error, 500);
     }
   }
 
-  findByEmail(email: string) {
-    return this._prismaService.user.findUnique({
+  async findAllByRole(idRol: number): Promise<UserDto[]> {
+    try {
+      const users = await this._prismaService.user.findMany({
+        where: {
+          idRol,
+          state: true,
+        },
+        include: {
+          rol: {
+            select: {
+              name: true,
+            }
+          }
+        }
+      });
+
+      if (!users) throw new HttpException('No se encontraron usuarios', HttpStatus.NOT_FOUND);
+
+      return users.map((user) => {
+        delete user.password;
+        return {
+          id: user.id,
+          dni: user.dni,
+          userName: user.userName,
+          email: user.email,
+          state: user.state,
+          role: user.rol.name,
+        };
+      });
+
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async findByEmail(email: string) {
+    return await this._prismaService.user.findUnique({
       where: {
         email,
       },
@@ -127,12 +263,32 @@ export class UserService {
     });
   }
 
-  findByDni(dni: string) {
-    return this._prismaService.user.findUnique({
+  async findByDni(dni: string) {
+    return await this._prismaService.user.findUnique({
       where: {
         dni,
       },
     });
+  }
+
+  async changeRole(id: number, idRole: number) {
+    try {
+      const user = await this.findOne(id);
+      if (!user) throw new UnprocessableEntityException('El usuario no existe');
+      const updatedUser = await this._prismaService.user.update({
+        where: {
+          id,
+        },
+        data: {
+          idRol: idRole,
+        },
+      });
+      if (!updatedUser)
+        throw new UnprocessableEntityException('No se pudo actualizar el rol');
+      return updatedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
@@ -143,7 +299,9 @@ export class UserService {
         where: {
           id,
         },
-        data: updateUserDto,
+        data: {
+          userName: updateUserDto.userName,
+        }
       });
       return updatedUser;
     } catch (error) {
@@ -151,9 +309,27 @@ export class UserService {
     }
   }
 
-  remove(id: number) {
+  async updatePassword(id: number, password: string): Promise<User | null> {
+    const user = await this.findOne(id);
+    if (!user) throw new UnprocessableEntityException('El usuario no existe');
     try {
-      return this._prismaService.user.update({
+      const updatedUser = await this._prismaService.user.update({
+        where: {
+          id,
+        },
+        data: {
+          password: this.hashPassword(password),
+        }
+      });
+      return updatedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      return await this._prismaService.user.update({
         where: {
           id,
         },

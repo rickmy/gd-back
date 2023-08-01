@@ -11,23 +11,27 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  dni       String   @unique
-  userName  String   @unique
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  state     Boolean  @default(true)
-  idRol     Int      @default(1)
-  rol       Rol      @relation(fields: [idRol], references: [id])
-  student   Student?
-  company   Company?
-  tutor     Tutor?
+  id                  Int      @id @default(autoincrement())
+  dni                 String   @unique
+  userName            String   @unique
+  email               String   @unique
+  password            String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  state               Boolean  @default(true)
+  idRol               Int      @default(1)
+  rol                 Rol      @relation(fields: [idRol], references: [id])
+  coordinator         Career?  @relation("coordinator")
+  vicecoordinator     Career?  @relation("vicecoordinator")
+  responsableStepDual Career?  @relation("responsableStepDual")
+  student             Student?
+  company             Company?
+  tutor               Tutor?
 }
 
 model Rol {
   id               Int                @id @default(autoincrement())
+  code             String?            @unique
   name             String             @unique
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
@@ -67,10 +71,10 @@ model Tutor {
   isAcademic     Boolean   @default(true)
   idUser         Int       @unique
   user           User      @relation(fields: [idUser], references: [id])
-  idCareer       Int
-  career         Career    @relation(fields: [idCareer], references: [id])
-  idCompany      Int       @unique
-  company        Company   @relation(fields: [idCompany], references: [id])
+  idCareer       Int?
+  career         Career?   @relation(fields: [idCareer], references: [id])
+  idCompany      Int?
+  company        Company?  @relation(fields: [idCompany], references: [id])
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   state          Boolean   @default(true)
@@ -86,6 +90,7 @@ model Company {
   nameRepresentLegal       String
   lastNameRepresentLegal   String
   phone                    String
+  email                    String                     @unique
   address                  String
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
@@ -111,9 +116,12 @@ model Career {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
   state                   Boolean   @default(true)
-  coordinator             String    @unique
-  viceCoordinator         String    @unique
-  respStepDual            String    @unique
+  idCoordinator           Int       @unique
+  coordinator             User      @relation("coordinator", fields: [idCoordinator], references: [id])
+  idViceCoordinator       Int       @unique
+  viceCoordinator         User      @relation("vicecoordinator", fields: [idViceCoordinator], references: [id])
+  idRespStepDual          Int       @unique
+  respStepDual            User      @relation("responsableStepDual", fields: [idRespStepDual], references: [id])
   company                 Company[]
   student                 Student[]
   tutor                   Tutor[]
@@ -147,8 +155,8 @@ model Project {
   updatedAt                DateTime                   @updatedAt
   state                    Boolean                    @default(true)
   status                   StatusProject              @default(PENDIENTE)
-  idAcademicTutor          Int
-  academicTutor            Tutor                      @relation("academicTutor", fields: [idAcademicTutor], references: [id])
+  idAcademicTutor          Int?
+  academicTutor            Tutor?                      @relation("academicTutor", fields: [idAcademicTutor], references: [id])
   idBusinessTutor          Int
   businessTutor            Tutor                      @relation("bussinesTutor", fields: [idBusinessTutor], references: [id])
   idCompany                Int
@@ -173,17 +181,18 @@ model StudentAssignedToCompany {
 }
 
 model Agreement {
-  id        Int           @id @default(autoincrement())
-  code      String        @unique
-  dateStart DateTime
-  dateEnd   DateTime
-  documents String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  state     Boolean       @default(true)
-  status    StatusProject @default(PENDIENTE)
-  idCompany Int
-  company   Company       @relation(fields: [idCompany], references: [id])
+  id            Int           @id @default(autoincrement())
+  code          String        @unique
+  dateStart     DateTime
+  dateEnd       DateTime
+  itvPath       String
+  agreementPath String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  state         Boolean       @default(true)
+  status        StatusProject @default(PENDIENTE)
+  idCompany     Int
+  company       Company       @relation(fields: [idCompany], references: [id])
 }
 
 enum TypeDNI {

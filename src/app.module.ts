@@ -17,6 +17,11 @@ import { LoggerModule } from 'nestjs-pino';
 import { CorrelationIdMiddleware, correlationId } from './core/middleware/correlation-id/correlation-id.middleware';
 import { Request } from 'express';
 import { CompanyModule } from './modules/company/company.module';
+import { AgreementModule } from './modules/agreement/agreement.module';
+import { UploadFilesModule } from './modules/upload-files/upload-files.module';
+import { TutorModule } from './modules/tutor/tutor.module';
+import { ProjectModule } from './modules/project/project.module';
+import { ReportModule } from './modules/report/report.module';
 
 @Module({
   imports: [
@@ -58,6 +63,11 @@ import { CompanyModule } from './modules/company/company.module';
       }
     }),
     CompanyModule,
+    AgreementModule,
+    UploadFilesModule,
+    TutorModule,
+    ProjectModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [

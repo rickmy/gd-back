@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -19,13 +20,15 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RoleEntity } from './entities/role.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { PaginationResult } from 'src/core/models/paginationResult';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 @ApiTags('role')
 @Controller('role')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) {}
+  constructor(private readonly roleService: RoleService) { }
 
   @Post()
   @ApiOkResponse({ description: 'Rol creado', type: CreateRoleDto })
@@ -34,25 +37,23 @@ export class RoleController {
     return this.roleService.create(createRoleDto);
   }
 
-  @Get()
+  @Post('all')
   @ApiOkResponse({
-    type: RoleEntity,
+    type: PaginationResult<RoleEntity>,
     description: 'Roles encontrado',
-    isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los roles' })
-  findAll() {
-    return this.roleService.findAll();
+  findAll(@Body() options: PaginationOptions) {
+    return this.roleService.findAll(options);
   }
-  @Get('active')
+  @Post('active')
   @ApiOkResponse({
-    type: RoleEntity,
+    type: PaginationResult<RoleEntity>,
     description: 'Roles activos encontrados',
-    isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los roles activos' })
-  findAllActive() {
-    return this.roleService.findAll(true);
+  findAllActive(@Body() options: PaginationOptions) {
+    return this.roleService.findAll(options, true);
   }
 
   @Get(':id')
@@ -61,21 +62,21 @@ export class RoleController {
     description: 'Rol encontrado',
   })
   @ApiOperation({ summary: 'Encontrar un rol por su ID' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.roleService.findRoleWithPermissions(+id);
   }
 
   @Put(':id')
   @ApiOkResponse({ type: CreateRoleDto, description: 'Rol actualizado' })
   @ApiOperation({ summary: 'Actualizar un rol por su ID' })
-  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateRoleDto: UpdateRoleDto) {
     return this.roleService.update(+id, updateRoleDto);
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: CreateRoleDto, description: 'Rol eliminado' })
   @ApiOperation({ summary: 'Eliminar un rol por su ID' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.roleService.remove(+id);
   }
 }

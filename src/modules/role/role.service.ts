@@ -1,14 +1,17 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RoleWithPermission } from './dto/roleWithPermission.dto';
 import { PermissionEntity } from '../permissions/entities/permission.entity';
 import { RoleEntity } from './entities/role.entity';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { PaginationResult } from 'src/core/models/paginationResult';
 
 @Injectable()
 export class RoleService {
-  constructor(private _prismaService: PrismaService) {}
+  private logger = new Logger(RoleService.name);
+  constructor(private _prismaService: PrismaService) { }
 
   async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
     const { name, permissions } = createRoleDto;
@@ -33,13 +36,31 @@ export class RoleService {
     return new HttpException('Rol creado correctamente', 201);
   }
 
-  async findAll(allActive?: boolean): Promise<RoleEntity[]> {
+  async findAll(options: PaginationOptions, allActive?: boolean): Promise<PaginationResult<RoleEntity>> {
     try {
-      return await this._prismaService.rol.findMany({
-        where: {
-          state: allActive ? true : undefined,
-        },
+      const { page, limit } = options;
+
+      const optionsWhere = {
+        state: allActive ? true : undefined,
+        name: options.name ? { contains: options.name } : undefined,
+        code: options.identification ? { contains: options.identification } : undefined,
+      };
+
+      const hasFilter = !!options.name || !!options.identification;
+
+      const roles = await this._prismaService.rol.findMany({
+        where: optionsWhere,
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
       });
+
+      const total = await this._prismaService.rol.count({
+        where: optionsWhere,
+      });
+
+      if(!roles || roles.length === 0)  return new PaginationResult<RoleEntity>([], total, page, limit);
+
+      return new PaginationResult<RoleEntity>(roles, total, page, limit);
     } catch (error) {
       throw new HttpException(error.message, 500);
     }
@@ -59,14 +80,25 @@ export class RoleService {
 
   async findRoleByName(name: string): Promise<RoleEntity> {
     try {
+      let nameRole = '%' + name + '%';
+      const role = await this._prismaService.$queryRaw<RoleEntity>`SELECT * FROM "Rol" WHERE name LIKE ${nameRole}`;
+      if (!role) throw new HttpException('El rol no existe', 404);
+      this.logger.log('Rol encontrado');
+      return role;
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
+  }
+
+  async findByCode(code: string): Promise<RoleEntity> {
+    try {
       const role = await this._prismaService.rol.findFirst({
         where: {
-          name: {
-            contains: name,
-          },
+          code,
         },
       });
       if (!role) throw new HttpException('El rol no existe', 404);
+      this.logger.log('Rol encontrado');
       return role;
     } catch (error) {
       throw new HttpException(error.message, 500);

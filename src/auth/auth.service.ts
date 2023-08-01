@@ -107,34 +107,37 @@ export class AuthService {
   async resetPassword(
     resetPasswordDto: ResetPasswordDto,
   ): Promise<HttpException> {
-    const payload = await this.verifyToken(resetPasswordDto.token);
-    if (!payload)
-      throw new HttpException(
-        'El token no es valido',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    const userExist = await this._userService.findOne(payload.id);
-    if (!userExist)
-      throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
-    if (!userExist.state)
-      throw new HttpException(
-        'El usuario se encuentra inactivo/bloqueado',
-        HttpStatus.CONFLICT,
-      );
-    userExist.password = this.hashPassword(resetPasswordDto.newPassword);
-    const ok = await this._userService.update(userExist.id, userExist);
-    if (!ok)
-      throw new HttpException(
-        'Error al actualizar la contraseña',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    return new HttpException('Contraseña actualizada', HttpStatus.OK);
+    try {
+      const payload = await this.verifyToken(resetPasswordDto.token);
+      if (!payload)
+        throw new HttpException(
+          'El token no es valido',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      const userExist = await this._userService.findByEmail(payload.email);
+      if (!userExist)
+        throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
+      if (!userExist.state)
+        throw new HttpException(
+          'El usuario se encuentra inactivo/bloqueado',
+          HttpStatus.CONFLICT,
+        );
+      const ok = await this._userService.updatePassword(userExist.id, resetPasswordDto.newPassword);
+      if (!ok)
+        throw new HttpException(
+          'Error al actualizar la contraseña',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      return new HttpException('Contraseña actualizada', HttpStatus.OK);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
   async changePassword(
     changePasswordDto: ChangePasswordDto,
   ): Promise<HttpException> {
-    const userExist = await this._userService.findOne(changePasswordDto.userId);
+    const userExist = await this._userService.findByEmail(changePasswordDto.email);
     if (!userExist)
       throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
     if (!userExist.state)
@@ -151,8 +154,7 @@ export class AuthService {
         'La contraseña actual no coincide',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    userExist.password = this.hashPassword(changePasswordDto.newPassword);
-    const changed = await this._userService.update(userExist.id, userExist);
+    const changed = await this._userService.updatePassword(userExist.id,  changePasswordDto.newPassword);
     if (!changed)
       throw new HttpException(
         'Error al actualizar la contraseña',
@@ -165,8 +167,15 @@ export class AuthService {
     return await this._userService.validateUser(payload);
   }
 
-  hashPassword(password: string): string {
-    return bcrypt.hashSync(password, 10);
+  async userByToken(token: string) {
+    const payload = await this.verifyToken(token);
+    if (!payload)
+      throw new HttpException(
+        'El token no es valido',
+        HttpStatus.UNAUTHORIZED,
+      );
+    const userExist = await this._userService.findByEmail(payload.email);
+    return await this._userService.findOne(userExist.id);
   }
 
   async comparePassword(

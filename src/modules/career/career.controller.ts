@@ -8,6 +8,7 @@ import {
   UseGuards,
   Put,
   HttpException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CareerService } from './career.service';
 import { CreateCareerDto } from './dto/create-career.dto';
@@ -22,9 +23,11 @@ import {
 } from '@nestjs/swagger';
 import { CareerDto } from './dto/career.dto';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { PaginationResult } from 'src/core/models/paginationResult';
 @ApiTags('career')
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('career')
 export class CareerController {
   constructor(private readonly careerService: CareerService) {}
@@ -39,26 +42,26 @@ export class CareerController {
     return this.careerService.create(createCareerDto);
   }
 
-  @Get()
+  
+
+  @Post('all')
   @ApiOkResponse({
     description: 'Carreras encontradas correctamente',
-    type: CareerDto,
-    isArray: true,
+    type: PaginationResult<CareerDto>,
   })
   @ApiOperation({ summary: 'Listar carreras' })
-  findAll() {
-    return this.careerService.findAll();
+  findAll(@Body() options: PaginationOptions){
+    return this.careerService.findAllCareers(options);
   }
 
-  @Get('active')
+  @Post('active')
   @ApiOkResponse({
     description: 'Carreras activas encontradas correctamente',
-    type: CareerDto,
-    isArray: true,
+    type: PaginationResult<CareerDto>,
   })
   @ApiOperation({ summary: 'Listar carreras activas' })
-  findAllActive() {
-    return this.careerService.findAll(true);
+  findAllActive(@Body() options: PaginationOptions) {
+    return this.careerService.findAllCareers(options);
   }
 
   @Get(':id')
@@ -67,7 +70,7 @@ export class CareerController {
     type: CareerDto,
   })
   @ApiOperation({ summary: 'Buscar carrera por id' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.careerService.findOne(+id);
   }
 
@@ -77,7 +80,7 @@ export class CareerController {
     type: CareerDto,
   })
   @ApiOperation({ summary: 'Actualizar carrera' })
-  update(@Param('id') id: string, @Body() updateCareerDto: UpdateCareerDto) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() updateCareerDto: UpdateCareerDto) {
     return this.careerService.update(+id, updateCareerDto);
   }
 
@@ -89,7 +92,7 @@ export class CareerController {
     description: 'Error al eliminar la carrera',
   })
   @ApiOperation({ summary: 'Eliminar carrera' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.careerService.remove(+id);
   }
 }

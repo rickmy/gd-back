@@ -22,6 +22,21 @@ export class ProjectService {
   ) { }
   async create(createProjectDto: CreateProjectDto): Promise<ProjectEntity> {
     try {
+      const projectExists = await this._prismaService.project.findFirst({
+        where: {
+          name: {
+            equals: createProjectDto.name,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+      });
+
+      if (projectExists) 
+        throw new HttpException(
+          'Ya existe un proyecto con ese nombre',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      
       const project = await this._prismaService.project.create({
         data: {
           name: createProjectDto.name,

@@ -35,7 +35,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentsDto } from './dto/students.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { StudentDto } from './dto/student.dto';
-import { AssignedToProjectDto } from './dto/assigned-to-project.dto';
+import { AssignedToProjectDto, AssinedStudentsToProjectDto } from './dto/assigned-to-project.dto';
 import { AssignedToCompanyDto, AssinedStudentsToCompanyDto } from './dto/assigned-to-company.dto';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 
@@ -127,7 +127,17 @@ export class StudentsController {
     return this.studentsService.findAllStudentsPendingToAssign(+idCareer);
   }
 
-
+  @Get('withNullProject/:idCompany')
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados sin proyecto asignado',
+    type: StudentDto,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los estudiantes sin proyecto asignado por compañía' })
+  @ApiParam({ name: 'idCompany', required: true, type: Number })
+  async findAllStudentsWithNullProject(@Param('idCompany', ParseIntPipe) idCompany: number): Promise<StudentDto[]> {
+    return this.studentsService.findAllStudentsWithNullProject(idCompany);
+  }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })
   @ApiOperation({ summary: 'Encontrar un estudiante por su Id' })
@@ -178,6 +188,17 @@ export class StudentsController {
   @ApiBody({ type: AssinedStudentsToCompanyDto })
   assignStudentsToCompany(@Body() assinedStudentsToCompanyDto: AssinedStudentsToCompanyDto) {
     return this.studentsService.assignStudentsToCompany(assinedStudentsToCompanyDto);
+  }
+
+  @Put('assign-students-to-project')
+  @ApiOkResponse({
+    description: 'Estudiantes para asignar a un proyecto',
+    type: HttpException,
+  })
+  @ApiOperation({ summary: 'Asignar estudiantes a un proyecto' })
+  @ApiBody({ type: AssinedStudentsToProjectDto })
+  assignStudentsToProject(@Body() assinedStudentsToProjectDto: AssinedStudentsToProjectDto) {
+    return this.studentsService.assignStudentsToProject(assinedStudentsToProjectDto);
   }
 
   @Put('unassign-to-company/:id')

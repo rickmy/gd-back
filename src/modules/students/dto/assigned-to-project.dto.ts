@@ -9,3 +9,12 @@ export class AssignedToProjectDto {
   @ApiProperty({ description: 'id empresa', example: '1' })
   idProject: number;
 }
+
+export class AssinedStudentsToProjectDto {
+  @IsNumber()
+  @ApiProperty({ description: 'id empresa', example: '1' })
+  idProject: number;
+  @IsNumber({}, {each: true, message: 'El campo idStudents debe ser un array de numeros'})
+  @ApiProperty({ description: 'id estudiantes', example: '[1,2,3]' })
+  idStudents: number[];
+}

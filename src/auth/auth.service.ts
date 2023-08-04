@@ -31,10 +31,7 @@ export class AuthService {
     const user = await this._userService.findByEmail(credentials.email);
     if (!user) {
       this.logger.log(`User not found ${credentials.email}`);
-      throw new HttpException({
-        status: HttpStatus.NOT_FOUND,
-        error: 'Usuario no encontrado',
-      }, HttpStatus.NOT_FOUND);
+      throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
     }
     if (!user.state) throw new UnauthorizedException('Usuario inactivo');
     const isMatch = await this.comparePassword(

@@ -67,10 +67,10 @@ export class ProjectService {
         where: {
           state: allActive ? true : undefined,
           idCompany: idCompany ? idCompany : undefined,
-          name: hasFilter ? { contains: options.name, mode: Prisma.QueryMode.insensitive } : undefined,
-          company: hasFilter ? { name: { contains: options.company, mode: Prisma.QueryMode.insensitive } } : undefined,
-          academicTutor: hasFilter ? { firstName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive } } : undefined,
-          businessTutor: hasFilter ? { firstName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive } } : undefined,
+          name: !!options.name ? { contains: options.name, mode: Prisma.QueryMode.insensitive } : undefined,
+          company: !!options.company ? { name: { contains: options.company, mode: Prisma.QueryMode.insensitive } } : undefined,
+          academicTutor: !!options.tutorAcademic ? { firstName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive } } : undefined,
+          businessTutor: !!options.tutorBusiness ? { firstName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive } } : undefined,
         },
         include: {
           company: true,
@@ -87,7 +87,6 @@ export class ProjectService {
       if (!projects || projects.length === 0) {
         throw new HttpException('No hay proyectos', HttpStatus.NOT_FOUND);
       }
-      console.log(projects);
       return {
         results: projects.map((project) => {
           return {

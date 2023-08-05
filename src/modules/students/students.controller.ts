@@ -131,13 +131,13 @@ export class StudentsController {
   @Get('withNullProject/:idCompany')
   @ApiOkResponse({
     description: 'Estudiantes encontrados sin proyecto asignado',
-    type: StudentDto,
+    type: StudentsDto,
     isArray: true,
   })
   @ApiOperation({ summary: 'Encontrar todos los estudiantes sin proyecto asignado por compañía' })
   @ApiParam({ name: 'idCompany', required: true, type: Number })
-  async findAllStudentsWithNullProject(@Param('idCompany', ParseIntPipe) idCompany: number): Promise<StudentDto[]> {
-    return this.studentsService.findAllStudentsWithNullProject(idCompany);
+  async findAllStudentsWithNullProject(@Param('idCompany', ParseIntPipe) idCompany: string) {
+    return this.studentsService.findAllStudentsWithNullProject(+idCompany);
   }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })

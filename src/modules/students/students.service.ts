@@ -444,7 +444,7 @@ export class StudentsService {
       return studentsWithNullProject.map((registration) => {
         const student = registration.student;
         return {
-          
+          id: student.id,
           dni: student.dni,
           completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
           career: student.career.name,
@@ -906,6 +906,7 @@ export class StudentsService {
         },
         data: {
           idProject: updateStudentDto.idProject,
+
         },
       });
       return new HttpException(

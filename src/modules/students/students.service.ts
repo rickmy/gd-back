@@ -437,7 +437,7 @@ export class StudentsService {
           company: true,
         },
       });
-      
+
       if (!studentsWithNullProject.length) {
         return [];
       }
@@ -459,13 +459,13 @@ export class StudentsService {
           status: student.status,
           idCompany: registration.idCompany,
           company: registration.company.name,
-          project: null, 
-          academicTutor: 'N/A', 
+          project: null,
+          academicTutor: 'N/A',
           businessTutor: null,
         };
       });
     } catch (error) {
-      
+
       throw new HttpException('Error al buscar estudiantes sin proyecto asignado', HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
@@ -595,7 +595,7 @@ export class StudentsService {
 
       if (!companyExists)
         throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
-        
+
       const companyWithAgreement = await this._prismaService.company.findUnique({
         where: {
           id: companyExists.id,
@@ -608,13 +608,13 @@ export class StudentsService {
           },
         },
       });
-  
+
       const agreement = companyWithAgreement?.agreement[0];
 
       if (!agreement || agreement.status !== StatusProject.ACTIVO) {
-     
-      throw new HttpException('La empresa no puede recibir estudiantes hasta que su convenio esté aprobado', HttpStatus.UNPROCESSABLE_ENTITY);
-    }
+
+        throw new HttpException('La empresa no puede recibir estudiantes hasta que su convenio esté aprobado', HttpStatus.UNPROCESSABLE_ENTITY);
+      }
       const registrationUpdate = await this._prismaService.studentAssignedToCompany.updateMany({
         where: {
           idStudent: {
@@ -759,18 +759,37 @@ export class StudentsService {
   async update(
     id: number,
     updateStudentDto: UpdateStudentDto,
-  ): Promise<StudentEntity> {
-    const studentExists = await this.findOne(id);
-    if (!studentExists) {
-      throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
-    }
+  ): Promise<HttpException> {
+
     try {
-      return await this._prismaService.student.update({
+      const studentExists = await this.findOne(id);
+      if (!studentExists) {
+        throw new HttpException('El estudiante no existe', HttpStatus.NOT_FOUND);
+      }
+      await this._prismaService.student.update({
         where: {
-          id
+          id,
         },
-        data: updateStudentDto,
+        data: {
+          firstName: updateStudentDto.firstName,
+          secondName: updateStudentDto.secondName,
+          lastName: updateStudentDto.lastName,
+          secondLastName: updateStudentDto.secondLastName,
+          idCareer: updateStudentDto.idCareer,
+        },
       });
+      await this._prismaService.studentAssignedToCompany.update({
+        where: {
+          id,
+        },
+        data: {
+          parallel: updateStudentDto.parallel,
+          electivePeriod: updateStudentDto.electivePeriod,
+          academicPeriod: updateStudentDto.academicPeriod,
+        },
+      });
+
+      return new HttpException('Estudiante actualizado correctamente', HttpStatus.OK)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
@@ -801,7 +820,7 @@ export class StudentsService {
     if (!agreement || agreement.status !== StatusProject.ACTIVO) {
       throw new HttpException('La empresa no tiene un convenio activo', HttpStatus.NOT_FOUND);
     }
-  
+
 
     const registrationExists = await this._prismaService.studentAssignedToCompany.findFirst({
       where: {
@@ -845,13 +864,13 @@ export class StudentsService {
           },
         },
       });
-  
+
       const agreement = companyWithAgreement?.agreement[0];
 
       if (!agreement || agreement.status !== StatusProject.ACTIVO) {
-     
-      throw new HttpException('La empresa no puede recibir estudiantes hasta que su convenio esté aprobado', HttpStatus.UNPROCESSABLE_ENTITY);
-    }
+
+        throw new HttpException('La empresa no puede recibir estudiantes hasta que su convenio esté aprobado', HttpStatus.UNPROCESSABLE_ENTITY);
+      }
       const registrationUpdate = await this._prismaService.studentAssignedToCompany.updateMany({
         where: {
           idStudent: {

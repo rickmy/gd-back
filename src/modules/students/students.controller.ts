@@ -12,6 +12,7 @@ import {
   Query,
   ParseIntPipe,
   HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -212,14 +213,15 @@ export class StudentsController {
     return this.studentsService.unassignToCompany(+id);
   }
 
-  @ApiOkResponse({
-    description: 'Estudiante Actualizado',
-    type: CreateStudentDto,
-  })
-  @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: string, @Body() updateStudentDto: StudentEntity) {
-    return this.studentsService.update(+id, updateStudentDto);
+  @ApiOperation({ summary: 'Actualizar un estudiante por su ID' })
+  async updateStudent(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateStudentDto: UpdateStudentDto,) {
+
+    
+    return await this.studentsService.update(id, updateStudentDto);
+      
   }
 
   @Delete(':id')

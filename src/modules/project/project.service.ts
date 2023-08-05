@@ -66,9 +66,9 @@ export class ProjectService {
       const projects = await this._prismaService.project.findMany({
         where: {
           state: allActive ? true : undefined,
-          idCompany: idCompany,
-          name: hasFilter ? { contains: options.name } : undefined,
-          company: hasFilter ? { name: { contains: options.company } } : undefined,
+          idCompany: idCompany ? idCompany : undefined,
+          name: hasFilter ? { contains: options.name, mode: Prisma.QueryMode.insensitive } : undefined,
+          company: hasFilter ? { name: { contains: options.company, mode: Prisma.QueryMode.insensitive } } : undefined,
           academicTutor: hasFilter ? { firstName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive } } : undefined,
           businessTutor: hasFilter ? { firstName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive } } : undefined,
         },

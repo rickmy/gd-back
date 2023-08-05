@@ -421,7 +421,7 @@ export class StudentsService {
     }
   }
 
-  async findAllStudentsWithNullProject(idCompany: number): Promise<StudentDto[]> {
+  async findAllStudentsWithNullProject(idCompany: number): Promise<StudentsDto[]> {
     try {
       const studentsWithNullProject = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
@@ -444,24 +444,15 @@ export class StudentsService {
       return studentsWithNullProject.map((registration) => {
         const student = registration.student;
         return {
-          id: student.id,
+          
           dni: student.dni,
-          firstName: student.firstName,
-          secondName: student.secondName,
-          lastName: student.lastName,
-          secondLastName: student.secondLastName,
-          idCareer: student.career.id,
+          completeNames: `${student.firstName} ${student.secondName} ${student.lastName} ${student.secondLastName}`,
           career: student.career.name,
           parallel: registration.parallel,
           email: student.email,
-          electivePeriod: registration.electivePeriod,
-          academicPeriod: registration.academicPeriod,
+          periodElective: registration.electivePeriod,
+          periodAcademic: registration.academicPeriod,
           status: student.status,
-          idCompany: registration.idCompany,
-          company: registration.company.name,
-          project: null,
-          academicTutor: 'N/A',
-          businessTutor: null,
         };
       });
     } catch (error) {

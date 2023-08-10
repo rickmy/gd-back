@@ -46,6 +46,17 @@ export class ProjectController {
     return this.projectService.findAll(idCompany, options, true);
   }
 
+  @Post('active/:idCareer')
+  @ApiOkResponse({
+    description: 'Proyectos activos encontrados',
+    type: PaginationOptions,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los proyectos activos por carrera' })
+  findAllActiveByCareer(@Param('idCareer', ParseIntPipe) idCareer: number,@Body() options: PaginationOptions) {
+    return this.projectService.findAll(idCareer, options, true);
+  }
+
   @Put('assign-academic-tutor')
   @ApiBody({ type: AssignAcademicTutorDto })
   assignAcademicTutor(@Body () assignAcademicTutorDto: AssignAcademicTutorDto) {

@@ -58,6 +58,7 @@ export class ProjectController {
   }
 
   @Put('assign-academic-tutor')
+  @ApiOperation({ summary: 'Asignar tutor academico a un proyecto' })
   @ApiBody({ type: AssignAcademicTutorDto })
   assignAcademicTutor(@Body () assignAcademicTutorDto: AssignAcademicTutorDto) {
     
@@ -71,13 +72,12 @@ export class ProjectController {
     description: 'Información del proyecto encontrada',
     type: ProjectInfoDto,
   })
-  @ApiOperation({ summary: 'Encontrar información del proyecto por su ID' })
+  @ApiOperation({ summary: 'Asignar tutor empresaril a un proyecto' })
   @Get(':id')
   findProjectInfoById(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.findProjectInfoById(id);
   }
-
-  @Post('/assign-business-tutor/')
+  @Put('/assign-business-tutor')
   assignBusinessTutor(@Body () assignBusinessTutorDto: AssignBusinessTutorDto) {
     return this.projectService.assignBusinessTutor(
       assignBusinessTutorDto.projectId,
@@ -85,7 +85,8 @@ export class ProjectController {
     );
   }
   
-  @Post('/assign-student/')
+  @Put('/assign-student')
+  @ApiOperation({ summary: 'Asignar estudainte a un proyecto' })
   assignStudent(@Body () assignStudentDto: AssignStudentDto) {
     return this.projectService.assignStudent(
       assignStudentDto.projectId, 

@@ -46,7 +46,7 @@ export class ProjectController {
     return this.projectService.findAll(idCompany, options, true);
   }
 
-  @Post('active/:idCareer')
+  @Post('active/career/:idCareer')
   @ApiOkResponse({
     description: 'Proyectos activos encontrados',
     type: PaginationOptions,

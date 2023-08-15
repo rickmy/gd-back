@@ -121,12 +121,12 @@ export class ReportService {
         throw new HttpException('La empresa no existe', HttpStatus.NOT_FOUND);
       }
 
-      const companyData = await this._prismaService.studentAssignedToCompany.findFirst({
+      const registration = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
           idCompany: companyName.id,
         },
-        include: { 
-          student:true,
+        include: {
+          student: true,
           company: true,
           project: {
             include: {
@@ -137,28 +137,26 @@ export class ReportService {
         },
       });
 
-      if (!companyData) {
+      if (!registration) {
         throw new HttpException('No existen proyectos y/o estudiantes asignados a esta empresa', HttpStatus.NOT_FOUND);
       }
 
-      const student: StudentProjectDto = {
-        completeNames: `${companyData.student.firstName} ${companyData.student.secondName ?? ''} ${companyData.student.lastName} ${companyData.student.secondLastName ?? ''}`,
-        periodElective: companyData.electivePeriod,
-        periodAcademic: companyData.academicPeriod,
-        project: companyData.project?.name ?? '',
-      };
-
-      const academicTutor: string = `${companyData.project?.academicTutor?.firstName ?? ''} ${companyData.project?.academicTutor?.lastName ?? ''}`
-      
-
-      const businessTutor: string = `${companyData.project?.businessTutor?.firstName ?? ''} ${companyData.project?.businessTutor?.lastName ?? ''}`
-
+  
+      const students: StudentProjectDto[] = registration.map(registration => ({
+        completeNames: `${registration.student.firstName} ${registration.student.secondName ?? ''} ${registration.student.lastName} ${registration.student.secondLastName ?? ''}`,
+        periodElective: registration.electivePeriod,
+        periodAcademic: registration.academicPeriod,
+        project: registration.project?.name ?? null,
+      }));
+  
+      const academicTutor: string = `${registration[0].project?.academicTutor?.firstName ?? null} ${registration[0].project?.academicTutor?.lastName ?? null}`;
+      const businessTutor: string = `${registration[0].project?.businessTutor?.firstName ?? null} ${registration[0].project?.businessTutor?.lastName ?? null}`;
+  
       const reportCompanyDto: ReportCompanyDto = {
-       
-        company: companyData.company.name,
+        company: registration[0].company.name,
         academicTutor,
         businessTutor,
-        students: [student], 
+        students,
       };
       
       return reportCompanyDto;

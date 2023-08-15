@@ -9,6 +9,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JWTstrategy } from './strategy/jwt.strategy';
 import { UserModule } from 'src/modules/user/user.module';
 import { StudentsModule } from 'src/modules/students/students.module';
+import { RoleModule } from 'src/modules/role/role.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { StudentsModule } from 'src/modules/students/students.module';
       }),
     }),
     UserModule,
-    StudentsModule
+    StudentsModule,
+    RoleModule
   ],
   controllers: [AuthController],
   providers: [AuthService, JWTstrategy],

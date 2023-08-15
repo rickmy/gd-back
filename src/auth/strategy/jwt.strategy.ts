@@ -4,24 +4,25 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AuthService } from '../auth.service';
 import config from 'src/core/config';
 import { PayloadModel } from '../models/payloadModel';
+import { Request } from 'express';
 
 @Injectable()
 export class JWTstrategy extends PassportStrategy(Strategy) {
+  route: string;
   constructor(private _authService: AuthService) {
     super({
       secretOrKey: config().jwtSecret,
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => {
+          this.route = `${req.method} ${req.route.path}`;
+          return req?.cookies?.Authentication;
+        },
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       ignoreExpiration: false,
     });
   }
   async validate(payload: PayloadModel) {
-    return await this._authService.validateUser(payload);
-  }
-  handleRequest(err: any, user: any, info: Error): any {
-    if (err || !user) {
-      //this.loggerService.error('Error en la estrategia de autenticación', err?.stack || info?.stack);
-      throw err || new UnauthorizedException('No autorizado');
-    }
-    return user;
+    return await this._authService.validateToken(payload, this.route);
   }
 }

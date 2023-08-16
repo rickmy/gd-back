@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Put, UseGuards } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -11,9 +11,11 @@ import { ProjectInfoDto } from './dto/project-info.dto';
 import { AssignAcademicTutorDto } from './dto/project-asign-academic-tutor.dto';
 import { AssignBusinessTutorDto } from './dto/project-assign-business-tutor.dto';
 import { AssignStudentDto } from './dto/project-assign-student..dto';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
 @Controller('project')
 @ApiTags('project')
+@UseGuards(JwtAuthGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 

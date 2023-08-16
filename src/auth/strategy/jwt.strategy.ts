@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AuthService } from '../auth.service';
@@ -8,6 +8,7 @@ import { Request } from 'express';
 
 @Injectable()
 export class JWTstrategy extends PassportStrategy(Strategy) {
+  private logger = new Logger('JWTstrategy');
   route: string;
   constructor(private _authService: AuthService) {
     super({
@@ -23,6 +24,7 @@ export class JWTstrategy extends PassportStrategy(Strategy) {
     });
   }
   async validate(payload: PayloadModel) {
+    this.logger.log(this.route);
     return await this._authService.validateToken(payload, this.route);
   }
 }

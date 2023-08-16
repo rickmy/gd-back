@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpException, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { TutorService } from './tutor.service';
 import { CreateTutorDto } from './dto/create-tutor.dto';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
@@ -10,9 +10,11 @@ import { TutorDto } from './dto/tutor.dto';
 import { TutorAcademicDto } from './dto/tutor-academic.dto';
 import { TutorBussinesDto } from './dto/tutor-bussines.dto';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
 @ApiTags('Tutor')
 @Controller('tutor')
+@UseGuards(JwtAuthGuard)
 export class TutorController {
   constructor(private readonly tutorService: TutorService) { }
 

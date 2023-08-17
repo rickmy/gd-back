@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -14,9 +14,10 @@ export class RoleService {
   constructor(private _prismaService: PrismaService) { }
 
   async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
-    const { name, permissions } = createRoleDto;
+    const { code, name, permissions } = createRoleDto;
     const role = await this._prismaService.rol.create({
       data: {
+        code,
         name,
       },
     });
@@ -143,27 +144,28 @@ export class RoleService {
     id: number,
     updateRoleDto: UpdateRoleDto,
   ): Promise<RoleWithPermission> {
+
     const { permissions } = updateRoleDto;
+
     const roleUpdate = await this.updateOnlyRole(id, updateRoleDto);
-    if (!roleUpdate) throw new HttpException('Error al actualizar el rol', 500);
+
+    if (!roleUpdate) throw new NotFoundException('Error al actualizar el rol');
 
     const permissionDB = (await this.findRoleWithPermissions(id, true))
       .permissions;
+
     const permissionDelete = permissionDB.filter((permission) => {
-      return permissions.some((permissionUpdate) => {
+      return !permissions.some((permissionUpdate) => {
         return permissionUpdate.id === permission.id && permissionUpdate.state;
       });
     });
-    const permissionUpdate = permissionDB.filter((permission) => {
-      return !permissions.some((permissionUpdate) => {
-        return permissionUpdate.id === permission.id && !permissionUpdate.state;
-      });
-    });
+
     const permissionCreate = permissions.filter((permission) => {
       return !permissionDB.some((permissionUpdate) => {
         return permissionUpdate.id === permission.id;
       });
     });
+
     if (permissionDelete.length > 0) {
       try {
         await this._prismaService.rolHasPermission.updateMany({
@@ -175,23 +177,6 @@ export class RoleService {
           },
           data: {
             state: false,
-          },
-        });
-      } catch (error) {
-        throw new HttpException(error.message, 500);
-      }
-    }
-    if (permissionUpdate.length > 0) {
-      try {
-        await this._prismaService.rolHasPermission.updateMany({
-          where: {
-            idRol: id,
-            idPermission: {
-              in: permissionDelete.map((permission) => permission.id),
-            },
-          },
-          data: {
-            state: true,
           },
         });
       } catch (error) {

@@ -67,8 +67,8 @@ export class ReportService {
         };
         return {
           company: registration.company.name,
-          academicTutor: registration.project.academicTutor.firstName,
-          businessTutor: registration.project.businessTutor.firstName,
+          academicTutor: !!registration.project.academicTutor ? `${registration.project.academicTutor.firstName} ${registration.project.academicTutor.lastName}` : null,
+          businessTutor: !!registration.project.academicTutor ? `${registration.project.businessTutor.firstName} ${registration.project.businessTutor.lastName}` : null,
           student,
         };
       });
@@ -149,8 +149,8 @@ export class ReportService {
         project: registration.project?.name ?? null,
       }));
   
-      const academicTutor: string = `${registration[0].project?.academicTutor?.firstName ?? null} ${registration[0].project?.academicTutor?.lastName ?? null}`;
-      const businessTutor: string = `${registration[0].project?.businessTutor?.firstName ?? null} ${registration[0].project?.businessTutor?.lastName ?? null}`;
+      const academicTutor = !!registration[0].project?.academicTutor ? `${registration[0].project?.academicTutor?.firstName} ${registration[0].project?.academicTutor?.lastName}` : null;
+      const businessTutor = !!registration[0].project?.businessTutor ? `${registration[0].project?.businessTutor?.firstName} ${registration[0].project?.businessTutor?.lastName}`: null;
   
       const reportCompanyDto: ReportCompanyDto = {
         company: registration[0].company.name,

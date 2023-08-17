@@ -237,6 +237,7 @@ export class ProjectService {
         id: project.id,
         name: project.name,
         description: project.description,
+        status: project.status,
         businessTutor: {
           id: project.businessTutor?.id,
           firstName: project.businessTutor?.firstName,

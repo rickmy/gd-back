@@ -3,6 +3,7 @@ import { BusinessTutor } from "./project-businessTutor.dto";
 import { ProjectStudents } from "./project-students.dto";
 import { ProjectCompany } from "./project-company.dto";
 import { ApiProperty } from "@nestjs/swagger";
+import { StatusProject } from "@prisma/client";
 export class ProjectInfoDto{
 
     @ApiProperty({ example: '1', description: 'Id proyecto' })
@@ -19,4 +20,6 @@ export class ProjectInfoDto{
     company: ProjectCompany;
     @ApiProperty({ type: [ProjectStudents], description: 'Estudiantes asignados al proyecto' })
     students: ProjectStudents[];
+    @ApiProperty({ example: StatusProject.ACTIVO , description: 'estado del proyecto' })
+    status: StatusProject;
 }

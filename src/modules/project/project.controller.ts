@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Put, U
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProjectEntity } from './entities/project.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { ProjectDto } from './dto/project.dto';
@@ -13,6 +13,7 @@ import { AssignBusinessTutorDto } from './dto/project-assign-business-tutor.dto'
 import { AssignStudentDto } from './dto/project-assign-student..dto';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
+@ApiBearerAuth()
 @Controller('project')
 @ApiTags('project')
 @UseGuards(JwtAuthGuard)
@@ -74,12 +75,13 @@ export class ProjectController {
     description: 'Información del proyecto encontrada',
     type: ProjectInfoDto,
   })
-  @ApiOperation({ summary: 'Asignar tutor empresaril a un proyecto' })
+  @ApiOperation({ summary: 'Encontrar información del proyecto por su ID' })
   @Get(':id')
   findProjectInfoById(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.findProjectInfoById(id);
   }
   @Put('/assign-business-tutor')
+  @ApiOperation({ summary: 'Asignar tutor empresarial a un proyecto' })
   assignBusinessTutor(@Body () assignBusinessTutorDto: AssignBusinessTutorDto) {
     return this.projectService.assignBusinessTutor(
       assignBusinessTutorDto.projectId,
@@ -88,7 +90,7 @@ export class ProjectController {
   }
   
   @Put('/assign-student')
-  @ApiOperation({ summary: 'Asignar estudainte a un proyecto' })
+  @ApiOperation({ summary: 'Asignar estudiante a un proyecto' })
   assignStudent(@Body () assignStudentDto: AssignStudentDto) {
     return this.projectService.assignStudent(
       assignStudentDto.projectId, 

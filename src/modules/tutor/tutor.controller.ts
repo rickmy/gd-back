@@ -4,7 +4,7 @@ import { CreateTutorDto } from './dto/create-tutor.dto';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
 import { CreateAcademicTutorDto } from './dto/create-tutor-academic.dto';
 import { CreateBussinesTutorDto } from './dto/create-tutor-bussiness.dto';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { TutorEntity } from './entities/tutor.entity';
 import { TutorDto } from './dto/tutor.dto';
 import { TutorAcademicDto } from './dto/tutor-academic.dto';
@@ -12,6 +12,7 @@ import { TutorBussinesDto } from './dto/tutor-bussines.dto';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
+@ApiBearerAuth()
 @ApiTags('Tutor')
 @Controller('tutor')
 @UseGuards(JwtAuthGuard)

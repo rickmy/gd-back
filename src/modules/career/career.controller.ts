@@ -42,13 +42,12 @@ export class CareerController {
     return this.careerService.create(createCareerDto);
   }
 
-  
-
   @Post('all')
   @ApiOkResponse({
     description: 'Carreras encontradas correctamente',
     type: PaginationResult<CareerDto>,
   })
+  
   @ApiOperation({ summary: 'Listar carreras' })
   findAll(@Body() options: PaginationOptions){
     return this.careerService.findAllCareers(options);

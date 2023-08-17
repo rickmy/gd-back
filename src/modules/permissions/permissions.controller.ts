@@ -19,9 +19,10 @@ import {
   ApiResponse,
   ApiOperation,
   ApiOkResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
-
+@ApiBearerAuth()
 @ApiTags('permissions')
 @Controller('permissions')
 @UseGuards(JwtAuthGuard)

@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 
 export class CreateStudentDto {
+  
   @IsEnum(TypeDNI, { message: 'El tipo de DNI es inválido' })
   @ApiProperty({
     description: 'Tipo de DNI',
@@ -17,10 +18,13 @@ export class CreateStudentDto {
     default: TypeDNI.CEDULA,
   })
   typeDni: TypeDNI;
+
+  
   @IsString({ message: 'el dni debe ser un string' })
   @IsNotEmpty({ message: 'el dni no debe estar vacio' })
   @ApiProperty({ description: 'dni estudiante', example: '1724345645' })
   dni: string;
+  
   @IsString({ message: 'el primer nombre debe ser un string' })
   @IsNotEmpty({ message: 'el primer nombre no debe estar vacio' })
   @ApiProperty({ description: 'primer nombre estudiante', example: 'Hugo' })
@@ -40,6 +44,7 @@ export class CreateStudentDto {
     example: 'Sánchez',
   })
   secondLastName: string;
+  
   @IsString({ message: 'el correo electrónico debe ser un string' })
   @IsNotEmpty({ message: 'el correo electrónico no debe estar vacio' })
   @ApiProperty({

@@ -19,12 +19,13 @@ import {
   ApiResponse,
   ApiOperation,
   ApiOkResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
-
-@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 @ApiTags('permissions')
 @Controller('permissions')
+@UseGuards(JwtAuthGuard)
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 

@@ -17,6 +17,7 @@ import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import * as bcrypt from 'bcrypt';
 import { StudentsService } from 'src/modules/students/students.service';
+import { RoleService } from 'src/modules/role/role.service';
 @Injectable()
 export class AuthService {
   private logger = new Logger(AuthService.name);
@@ -24,6 +25,7 @@ export class AuthService {
     private _mailService: MailService,
     private _userService: UserService,
     private _jwtService: JwtService,
+    private _roleService: RoleService,
   ) { }
 
   async login(credentials: CredentialsDto): Promise<ResponseAuthModel> {
@@ -31,10 +33,7 @@ export class AuthService {
     const user = await this._userService.findByEmail(credentials.email);
     if (!user) {
       this.logger.log(`User not found ${credentials.email}`);
-      throw new HttpException({
-        status: HttpStatus.NOT_FOUND,
-        error: 'Usuario no encontrado',
-      }, HttpStatus.NOT_FOUND);
+      throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
     }
     if (!user.state) throw new UnauthorizedException('Usuario inactivo');
     const isMatch = await this.comparePassword(
@@ -163,19 +162,16 @@ export class AuthService {
     return new HttpException('Contraseña actualizada', HttpStatus.OK);
   }
 
-  async validateUser(payload: PayloadModel): Promise<boolean> {
-    return await this._userService.validateUser(payload);
-  }
-
-  async userByToken(token: string) {
-    const payload = await this.verifyToken(token);
-    if (!payload)
-      throw new HttpException(
-        'El token no es valido',
-        HttpStatus.UNAUTHORIZED,
-      );
-    const userExist = await this._userService.findByEmail(payload.email);
-    return await this._userService.findOne(userExist.id);
+  async validateToken(payload: PayloadModel, route: string): Promise<boolean> {
+    const hasUser = await this._userService.validateUser(payload);
+    if (!hasUser) throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
+    const hasPermission = await this._roleService.validatePermission(
+      payload.role,
+      route,
+    );
+    if (!hasPermission)
+      throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
+    return true;
   }
 
   async comparePassword(

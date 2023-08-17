@@ -12,6 +12,7 @@ import {
   Query,
   ParseIntPipe,
   HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -35,7 +36,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentsDto } from './dto/students.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { StudentDto } from './dto/student.dto';
-import { AssignedToProjectDto } from './dto/assigned-to-project.dto';
+import { AssignedToProjectDto, AssinedStudentsToProjectDto } from './dto/assigned-to-project.dto';
 import { AssignedToCompanyDto, AssinedStudentsToCompanyDto } from './dto/assigned-to-company.dto';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 
@@ -127,7 +128,17 @@ export class StudentsController {
     return this.studentsService.findAllStudentsPendingToAssign(+idCareer);
   }
 
-
+  @Get('withNullProject/:idCompany')
+  @ApiOkResponse({
+    description: 'Estudiantes encontrados sin proyecto asignado',
+    type: StudentsDto,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los estudiantes sin proyecto asignado por compañía' })
+  @ApiParam({ name: 'idCompany', required: true, type: Number })
+  async findAllStudentsWithNullProject(@Param('idCompany', ParseIntPipe) idCompany: string) {
+    return this.studentsService.findAllStudentsWithNullProject(+idCompany);
+  }
 
   @ApiOkResponse({ description: 'Estudiante encontrado', type: StudentDto })
   @ApiOperation({ summary: 'Encontrar un estudiante por su Id' })
@@ -180,6 +191,17 @@ export class StudentsController {
     return this.studentsService.assignStudentsToCompany(assinedStudentsToCompanyDto);
   }
 
+  @Put('assign-students-to-project')
+  @ApiOkResponse({
+    description: 'Estudiantes para asignar a un proyecto',
+    type: HttpException,
+  })
+  @ApiOperation({ summary: 'Asignar estudiantes a un proyecto' })
+  @ApiBody({ type: AssinedStudentsToProjectDto })
+  assignStudentsToProject(@Body() assinedStudentsToProjectDto: AssinedStudentsToProjectDto) {
+    return this.studentsService.assignStudentsToProject(assinedStudentsToProjectDto);
+  }
+
   @Put('unassign-to-company/:id')
   @ApiOkResponse({
     description: 'Estudiante desasignado a empresa',
@@ -191,14 +213,15 @@ export class StudentsController {
     return this.studentsService.unassignToCompany(+id);
   }
 
-  @ApiOkResponse({
-    description: 'Estudiante Actualizado',
-    type: CreateStudentDto,
-  })
-  @ApiOperation({ summary: 'Actualizar un estudiante por su IDNI' })
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: string, @Body() updateStudentDto: StudentEntity) {
-    return this.studentsService.update(+id, updateStudentDto);
+  @ApiOperation({ summary: 'Actualizar un estudiante por su ID' })
+  async updateStudent(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateStudentDto: UpdateStudentDto,) {
+
+    
+    return await this.studentsService.update(id, updateStudentDto);
+      
   }
 
   @Delete(':id')

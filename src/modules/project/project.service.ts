@@ -22,6 +22,21 @@ export class ProjectService {
   ) { }
   async create(createProjectDto: CreateProjectDto): Promise<ProjectEntity> {
     try {
+      const projectExists = await this._prismaService.project.findFirst({
+        where: {
+          name: {
+            equals: createProjectDto.name,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+      });
+
+      if (projectExists) 
+        throw new HttpException(
+          'Ya existe un proyecto con ese nombre',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      
       const project = await this._prismaService.project.create({
         data: {
           name: createProjectDto.name,
@@ -51,11 +66,11 @@ export class ProjectService {
       const projects = await this._prismaService.project.findMany({
         where: {
           state: allActive ? true : undefined,
-          idCompany: idCompany,
-          name: hasFilter ? { contains: options.name } : undefined,
-          company: hasFilter ? { name: { contains: options.company } } : undefined,
-          academicTutor: hasFilter ? { firstName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive } } : undefined,
-          businessTutor: hasFilter ? { firstName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive } } : undefined,
+          idCompany: idCompany ? idCompany : undefined,
+          name: !!options.name ? { contains: options.name, mode: Prisma.QueryMode.insensitive } : undefined,
+          company: !!options.company ? { name: { contains: options.company, mode: Prisma.QueryMode.insensitive } } : undefined,
+          academicTutor: !!options.tutorAcademic ? { firstName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive } } : undefined,
+          businessTutor: !!options.tutorBusiness ? { firstName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive } } : undefined,
         },
         include: {
           company: true,
@@ -72,7 +87,6 @@ export class ProjectService {
       if (!projects || projects.length === 0) {
         throw new HttpException('No hay proyectos', HttpStatus.NOT_FOUND);
       }
-      console.log(projects);
       return {
         results: projects.map((project) => {
           return {
@@ -102,7 +116,78 @@ export class ProjectService {
 
   }
 
+  async findAllByCareer(
+    idCareer: number,
+    options: PaginationOptions,
+    allActive?: boolean
+  ): Promise<PaginationResult<ProjectDto>> {
+  
+    const { page, limit } = options;
+  
+    const hasFilter = !!options.name || !!options.company || !!options.tutorAcademic || !!options.tutorBusiness;
+  
+    try {
+      const projects = await this._prismaService.project.findMany({
+        where: {
+          state: allActive ? true : undefined,
+          company: {
+            career: {
+              id: idCareer ? idCareer : undefined,
+            },
+          },
+          name: !!options.name ? { contains: options.name, mode: Prisma.QueryMode.insensitive } : undefined,
+          academicTutor: !!options.tutorAcademic ? { firstName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorAcademic, mode: Prisma.QueryMode.insensitive } } : undefined,
+          businessTutor: !!options.tutorBusiness ? { firstName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive }, lastName: { contains: options.tutorBusiness, mode: Prisma.QueryMode.insensitive } } : undefined,
+        },
+        include: {
+          company: true,
+          academicTutor: true,
+          businessTutor: true,
+        },
+        orderBy: {
+          createdAt: Prisma.SortOrder.desc,
+        },
+        take: hasFilter ? undefined : limit,
+        skip: hasFilter ? undefined : page,
+      });
+  
+      if (!projects || projects.length === 0) {
+        throw new HttpException('No hay proyectos', HttpStatus.NOT_FOUND);
+      }
+      return {
+        results: projects.map((project) => {
+          return {
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            status: project.status,
+            idCompany: project.idCompany,
+            company: project.company.name,
+            idAcademicTutor: project.idAcademicTutor,
+            academicTutor:  project.academicTutor != null ? `${project.academicTutor?.firstName} ${project.academicTutor?.lastName}` : null,
+            idBusinessTutor: project.idBusinessTutor,
+            businessTutor: `${project.businessTutor.firstName} ${project.businessTutor.lastName}`,
+          };
+        }),
+        page: page,
+        limit: limit,
+        total: await this._prismaService.project.count({
+          where: {
+            state: allActive ? true : undefined,
+            company: {
+              career: {
+                id: idCareer ? idCareer : undefined,
+              },
+            },
+          },
+        }),
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
 
+  
   async assignAcademicTutor(idProject: number, idAcademicTutor: number): Promise<ProjectEntity> {
     const project = await this.findOne(idProject);
     if (!project) {
@@ -152,6 +237,7 @@ export class ProjectService {
         id: project.id,
         name: project.name,
         description: project.description,
+        status: project.status,
         businessTutor: {
           id: project.businessTutor?.id,
           firstName: project.businessTutor?.firstName,

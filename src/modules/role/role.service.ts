@@ -251,4 +251,11 @@ export class RoleService {
       throw new HttpException(error.message, 500);
     }
   }
+
+  async validatePermission(idRole:number, route: string): Promise<boolean> {
+    const roleWithPermission = await this.findRoleWithPermissions(idRole, true);
+    return roleWithPermission.permissions.some((permission) => {
+      return permission.endpoint === route;
+    });
+  }
 }

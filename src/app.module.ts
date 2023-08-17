@@ -27,10 +27,6 @@ import { ReportModule } from './modules/report/report.module';
   imports: [
     ConfigModule.forRoot({ load: [config], isGlobal: true }),
     PrismaModule,
-    JwtModule.register({
-      secret: 'clave',
-      signOptions: { expiresIn: '1h' },
-    }),
     AuthModule,
     UserModule,
     RoleModule,

@@ -1,13 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpException, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { AgreementService } from './agreement.service';
 import { CreateAgreementDto } from './dto/create-agreement.dto';
 import { UpdateAgreementDto } from './dto/update-agreement.dto';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AgreementEntity } from './entities/agreement.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
+@ApiBearerAuth()
 @Controller('agreement')
 @ApiTags('agreement')
+@UseGuards(JwtAuthGuard)
 export class AgreementController {
   constructor(private readonly agreementService: AgreementService) { }
 

@@ -1,16 +1,19 @@
-import { Controller, UseInterceptors, UploadedFile, Post, Body, HttpException, Res } from '@nestjs/common';
+import { Controller, UseInterceptors, UploadedFile, Post, Body, HttpException, Res, UseGuards } from '@nestjs/common';
 import { UploadFilesService } from './upload-files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {  FileNameDto} from './dto/file.dto';
 import { Response } from 'express';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
 
 class Path {
   path: string;
 }
+@ApiBearerAuth()
 @ApiTags('upload-files')
 @Controller('upload-files')
+@UseGuards(JwtAuthGuard)
 export class UploadFilesController {
   constructor(private readonly uploadFilesService: UploadFilesService) { }
   @Post()

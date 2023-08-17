@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Put, UseGuards } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProjectEntity } from './entities/project.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { ProjectDto } from './dto/project.dto';
@@ -11,9 +11,12 @@ import { ProjectInfoDto } from './dto/project-info.dto';
 import { AssignAcademicTutorDto } from './dto/project-asign-academic-tutor.dto';
 import { AssignBusinessTutorDto } from './dto/project-assign-business-tutor.dto';
 import { AssignStudentDto } from './dto/project-assign-student..dto';
+import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 
+@ApiBearerAuth()
 @Controller('project')
 @ApiTags('project')
+@UseGuards(JwtAuthGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
@@ -46,7 +49,19 @@ export class ProjectController {
     return this.projectService.findAll(idCompany, options, true);
   }
 
+  @Post('active/career/:idCareer')
+  @ApiOkResponse({
+    description: 'Proyectos activos encontrados',
+    type: PaginationOptions,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Encontrar todos los proyectos activos por carrera' })
+  findAllActiveByCareer(@Param('idCareer', ParseIntPipe) idCareer: number,@Body() options: PaginationOptions) {
+    return this.projectService.findAll(idCareer, options, true);
+  }
+
   @Put('assign-academic-tutor')
+  @ApiOperation({ summary: 'Asignar tutor academico a un proyecto' })
   @ApiBody({ type: AssignAcademicTutorDto })
   assignAcademicTutor(@Body () assignAcademicTutorDto: AssignAcademicTutorDto) {
     
@@ -65,8 +80,8 @@ export class ProjectController {
   findProjectInfoById(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.findProjectInfoById(id);
   }
-
-  @Post('/assign-business-tutor/')
+  @Put('/assign-business-tutor')
+  @ApiOperation({ summary: 'Asignar tutor empresarial a un proyecto' })
   assignBusinessTutor(@Body () assignBusinessTutorDto: AssignBusinessTutorDto) {
     return this.projectService.assignBusinessTutor(
       assignBusinessTutorDto.projectId,
@@ -74,7 +89,8 @@ export class ProjectController {
     );
   }
   
-  @Post('/assign-student/')
+  @Put('/assign-student')
+  @ApiOperation({ summary: 'Asignar estudiante a un proyecto' })
   assignStudent(@Body () assignStudentDto: AssignStudentDto) {
     return this.projectService.assignStudent(
       assignStudentDto.projectId, 

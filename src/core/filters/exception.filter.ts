@@ -16,7 +16,7 @@ import * as fs from 'fs';
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
-    const logger = new Logger('AllExceptionsFilter');
+    const logger = new Logger(AllExceptionsFilter.name);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
@@ -40,7 +40,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       method: request.method,
     }
 
-    const errorLog = `Response Code: ${errorResponse.statusCode} - Method: ${errorResponse.method} - Path: ${errorResponse.path} - Message: ${JSON.stringify(errorMsg)} - Timestamp: ${errorResponse.timestamp} - CorrelationId: ${errorResponse.currentId}`;
+    const errorLog = `Response Code: ${errorResponse.statusCode} - Method: ${errorResponse.method} - Path: ${errorResponse.path} - Message: ${JSON.stringify(errorMsg)} - Timestamp: ${errorResponse.timestamp} - currentId: ${errorResponse.currentId}`;
 
     logger.error(errorLog);
     

@@ -827,6 +827,15 @@ export class StudentsService {
           idCompany: updateStudentDto.idCompany,
         },
       });
+
+      await this._prismaService.student.update({
+        where: {
+          id: updateStudentDto.idStudent,
+        },
+        data: {
+          status: StatusStudent.ASIGNADO,
+        },
+      });
       return new HttpException(
         'Estudiante asignado a empresa o proyecto actualizado correctamente',
         HttpStatus.OK,
@@ -874,6 +883,17 @@ export class StudentsService {
       });
       if (!registrationUpdate)
         throw new HttpException('No se pudo actualizar los estudiantes', HttpStatus.NOT_FOUND);
+
+      await this._prismaService.student.updateMany({
+        where: {
+          id: {
+            in: assinedStudentsToCompanyDto.idStudents,
+          },
+        },
+        data: {
+          status: StatusStudent.ASIGNADO,
+        },
+      });
       return new HttpException(
         'Estudiantes asignados correctamente',
         HttpStatus.OK,
@@ -966,6 +986,16 @@ export class StudentsService {
           idProject: null,
         },
       });
+
+      await this._prismaService.student.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: StatusStudent.APROBADO,
+        },
+      });
+      
       return new HttpException(
         'Estudiante eliminado de la empresa correctamente',
         HttpStatus.OK,

@@ -18,7 +18,7 @@ export class ReportController {
     description: 'Reporte por tutor académico',
     type: ReportByTutorDto,
   })
-  @Get('byAcademicTutor')
+  @Get('byAcademicTutor/:idAcademicTutor')
   @ApiOperation({ summary: 'Generar reporte por tutor académico' })
   reportByAcademicTutor(@Param('idAcademicTutor', ParseIntPipe) idAcademicTutor: number){
     return this.reportService.reportByAcademicTutor(idAcademicTutor);

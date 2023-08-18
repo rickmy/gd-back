@@ -25,12 +25,12 @@ export class ReportController {
   }
 
   @ApiOkResponse({
-    description: 'Reporte por nombre de empresa',
+    description: 'Reporte por empresa',
     type: ReportCompanyDto,
   })
   @ApiOperation({ summary: 'Generar reporte por empresa' })
-  @Get('byCompanyName')
-   reportByCompany(@Query('companyName') company: string){
-    return this.reportService.reportByCompany(company);
+  @Get('byCompany/:idCompany')
+   reportByCompany(@Param('idCompany', ParseIntPipe) idCompany: number){
+    return this.reportService.reportByCompany(idCompany);
   }
 }

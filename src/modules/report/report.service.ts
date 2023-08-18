@@ -91,17 +91,14 @@ export class ReportService {
 
   }
 
-  async reportByCompany(company: string): Promise<ReportCompanyDto> {
+  async reportByCompany(idCompany: number): Promise<ReportCompanyDto> {
     try {
 
       const companyName = await this._prismaService.company.findFirst({
         where: {
-          name: {
-            contains: company,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          state: true,
+          id: idCompany,
         },
+        
       });
 
       if (!companyName) {
@@ -111,6 +108,7 @@ export class ReportService {
       const registration = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
           idCompany: companyName.id,
+          state: true,
         },
         include: {
           student: true,

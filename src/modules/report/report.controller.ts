@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
@@ -20,10 +20,8 @@ export class ReportController {
   })
   @Get('byAcademicTutor')
   @ApiOperation({ summary: 'Generar reporte por tutor académico' })
-  reportByAcademicTutor(
-    @Query('academicTutor') academicTutor: string,
-  ){
-    return this.reportService.reportByAcademicTutor(academicTutor);
+  reportByAcademicTutor(@Param('idAcademicTutor', ParseIntPipe) idAcademicTutor: number){
+    return this.reportService.reportByAcademicTutor(idAcademicTutor);
   }
 
   @ApiOkResponse({

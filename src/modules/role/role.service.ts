@@ -17,7 +17,14 @@ export class RoleService {
     const { code, name, permissions } = createRoleDto;
     const roleExist = await this._prismaService.rol.findFirst({
       where: {
-        code,
+        OR: [
+          {
+            code,
+          },
+          {
+            name,
+          }
+        ]
       },
     });
     if(roleExist) throw new HttpException('El rol ya existe', HttpStatus.BAD_REQUEST);
@@ -39,7 +46,7 @@ export class RoleService {
         data: rolHasPermission,
       });
     if (!rolesWithPermission)
-      throw new HttpException('Error al enlazar el rol con sus permisos', 500);
+      throw new HttpException('Error al enlazar el rol con sus permisos', HttpStatus.UNPROCESSABLE_ENTITY);
     return new HttpException('Rol creado correctamente', 201);
   }
 

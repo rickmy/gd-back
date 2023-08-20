@@ -57,7 +57,7 @@ export class ProjectController {
   })
   @ApiOperation({ summary: 'Encontrar todos los proyectos activos por carrera' })
   findAllActiveByCareer(@Param('idCareer', ParseIntPipe) idCareer: number,@Body() options: PaginationOptions) {
-    return this.projectService.findAll(idCareer, options, true);
+    return this.projectService.findAllByCareer(idCareer, options, true);
   }
 
   @Put('assign-academic-tutor')

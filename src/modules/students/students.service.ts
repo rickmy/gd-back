@@ -208,7 +208,7 @@ export class StudentsService {
 
       } catch (error) {
         this.logger.error(error);
-        throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
+        throw new HttpException(error.message, error.status);
       }
 
     }
@@ -243,7 +243,7 @@ export class StudentsService {
 
         } catch (error) {
           this.logger.error(error);
-          throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+          throw new HttpException(error.message, error.status);
         }
 
         try {
@@ -261,7 +261,7 @@ export class StudentsService {
             },
           });
         } catch (error) {
-          throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+          throw new HttpException(error.message, error.status);
         }
       });
     }
@@ -315,7 +315,7 @@ export class StudentsService {
 
     } catch (error) {
       this.logger.error(error);
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -417,7 +417,7 @@ export class StudentsService {
       };
     } catch (error) {
       this.logger.error(error);
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -624,7 +624,7 @@ export class StudentsService {
       );
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -673,7 +673,7 @@ export class StudentsService {
         }
       })
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -731,7 +731,7 @@ export class StudentsService {
       };
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -743,7 +743,7 @@ export class StudentsService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -782,7 +782,7 @@ export class StudentsService {
 
       return new HttpException('Estudiante actualizado correctamente', HttpStatus.OK)
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -841,7 +841,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -900,7 +900,7 @@ export class StudentsService {
       );
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -934,7 +934,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -962,7 +962,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -1001,7 +1001,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -1023,7 +1023,7 @@ export class StudentsService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -1052,7 +1052,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 

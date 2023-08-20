@@ -131,7 +131,7 @@ export class CareerService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 

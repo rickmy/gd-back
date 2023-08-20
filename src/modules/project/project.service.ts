@@ -48,7 +48,7 @@ export class ProjectService {
       });
       return project;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -116,7 +116,7 @@ export class ProjectService {
         }),
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
 
   }
@@ -193,7 +193,7 @@ export class ProjectService {
         }),
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -217,7 +217,7 @@ export class ProjectService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -273,7 +273,7 @@ export class ProjectService {
 
       return projectInfo;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -296,7 +296,7 @@ export class ProjectService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -309,7 +309,7 @@ export class ProjectService {
       await this._studentService.assignToProject({ idStudent: idStudent, idProject: idProject });
       return await this.findOne(idProject);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -328,7 +328,7 @@ export class ProjectService {
       }
       return project;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -346,7 +346,7 @@ export class ProjectService {
         data: updateProjectDto,
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -366,7 +366,7 @@ export class ProjectService {
       });
       return new HttpException('Proyecto eliminado', HttpStatus.OK);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 }

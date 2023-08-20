@@ -51,7 +51,7 @@ export class CompanyService {
       });
       return company;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
 
   }
@@ -71,7 +71,7 @@ export class CompanyService {
       });
       return company;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -149,7 +149,7 @@ export class CompanyService {
         data: updateCompanyDto,
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -266,7 +266,7 @@ export class CompanyService {
       return new HttpException('La empresa ha sido eliminada', HttpStatus.OK);
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 

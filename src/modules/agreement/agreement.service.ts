@@ -39,22 +39,24 @@ export class AgreementService {
 
       const agreementsByCode = await this._prismaService.agreement.findMany({
         where: {
-          code: createAgreementDto.code,
+          idCompany: createAgreementDto.idCompany,
         },
       });
 
-      if (!agreementsByCode || agreementsByCode.length > 0) {
+      if (!!agreementsByCode || agreementsByCode.length > 0) {
         try {
           await this._prismaService.agreement.updateMany({
             where: {
-              code: createAgreementDto.code,
+              id: {
+                in: agreementsByCode.map((agreement) => agreement.id),
+              }
             },
             data: {
               status: StatusProject.INACTIVO,
             },
           });
         } catch (error) {
-          throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+          throw new HttpException(error.message, error.status);
         }
       }
 
@@ -76,11 +78,9 @@ export class AgreementService {
           HttpStatus.BAD_REQUEST,
         );
 
-      
-
       return agreement;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -161,7 +161,7 @@ export class AgreementService {
         }),
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -219,7 +219,7 @@ export class AgreementService {
       return new HttpException('Correo enviado correctamente', HttpStatus.OK);
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -248,7 +248,7 @@ export class AgreementService {
 
       return agreement;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -338,7 +338,7 @@ export class AgreementService {
 
       return new HttpException('Convenio eliminado', HttpStatus.OK);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 }

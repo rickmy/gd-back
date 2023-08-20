@@ -69,7 +69,7 @@ export class RoleService {
 
       return new PaginationResult<RoleEntity>(roles, total, page, limit);
     } catch (error) {
-      throw new HttpException(error.message, 500);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -81,7 +81,7 @@ export class RoleService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, 404);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -93,7 +93,7 @@ export class RoleService {
       this.logger.log('Rol encontrado');
       return role;
     } catch (error) {
-      throw new HttpException(error.message, 500);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -108,7 +108,7 @@ export class RoleService {
       this.logger.log('Rol encontrado');
       return role;
     } catch (error) {
-      throw new HttpException(error.message, 500);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -131,7 +131,7 @@ export class RoleService {
         },
       );
     } catch (error) {
-      throw new HttpException(error.message, 500);
+      throw new HttpException(error.message, error.status);
     }
     const permissions: PermissionEntity[] = permissionsWithRole.map(
       (permission) => {
@@ -186,7 +186,7 @@ export class RoleService {
           },
         });
       } catch (error) {
-        throw new HttpException(error.message, 500);
+        throw new HttpException(error.message, error.status);
       }
     }
     if (permissionCreate.length > 0) {
@@ -202,7 +202,7 @@ export class RoleService {
           data: rolHasPermission,
         });
       } catch (error) {
-        throw new HttpException(error.message, 500);
+        throw new HttpException(error.message, error.status);
       }
     }
     return await this.findRoleWithPermissions(id);
@@ -223,7 +223,7 @@ export class RoleService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, 500);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -237,9 +237,9 @@ export class RoleService {
           state: false,
         },
       });
-      return new HttpException('Rol eliminado correctamente', 200);
+      return new HttpException('Rol eliminado correctamente', HttpStatus.OK);
     } catch (error) {
-      throw new HttpException(error.message, 500);
+      throw new HttpException(error.message, error.status);
     }
   }
 

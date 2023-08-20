@@ -129,7 +129,7 @@ export class AuthService {
         );
       return new HttpException('Contraseña actualizada', HttpStatus.OK);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 

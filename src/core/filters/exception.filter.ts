@@ -33,7 +33,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const errorResponse = {
       statusCode: status,
-      message: errorMsg.message || errorMsg || 'Ah ocurrido un error en el servidor, por favor contacte al administrador',
+      message: status === 500 ? 'Ah ocurrido un error en el servidor, por favor contacte al administrador' : errorMsg.message || errorMsg,
       timestamp: new Date().toISOString(),
       currentId: request['X-Correlation-Id'],
       path: request.url,
@@ -43,7 +43,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const errorLog = `Response Code: ${errorResponse.statusCode} - Method: ${errorResponse.method} - Path: ${errorResponse.path} - Message: ${JSON.stringify(errorMsg)} - Timestamp: ${errorResponse.timestamp} - currentId: ${errorResponse.currentId}`;
 
     logger.error(errorLog);
-    
+
     fs.appendFile('logs/error.log', `${errorLog}\n`, 'utf8', (err) => {
       if (err) throw err;
     });

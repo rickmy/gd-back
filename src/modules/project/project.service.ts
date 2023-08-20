@@ -85,7 +85,12 @@ export class ProjectService {
       });
 
       if (!projects || projects.length === 0) {
-        throw new HttpException('No hay proyectos', HttpStatus.NOT_FOUND);
+        return {
+          results: [],
+          page: page,
+          limit: limit,
+          total: 0,
+        };
       }
       return {
         results: projects.map((project) => {
@@ -111,7 +116,7 @@ export class ProjectService {
         }),
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
   }
@@ -152,7 +157,12 @@ export class ProjectService {
       });
   
       if (!projects || projects.length === 0) {
-        throw new HttpException('No hay proyectos', HttpStatus.NOT_FOUND);
+        return {
+          results: [],
+          page: page,
+          limit: limit,
+          total: 0,
+        };
       }
       return {
         results: projects.map((project) => {
@@ -183,7 +193,7 @@ export class ProjectService {
         }),
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -207,7 +217,7 @@ export class ProjectService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -263,7 +273,7 @@ export class ProjectService {
 
       return projectInfo;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -286,7 +296,7 @@ export class ProjectService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -295,11 +305,13 @@ export class ProjectService {
     if (!project) {
       throw new HttpException('El proyecto no existe', HttpStatus.NOT_FOUND);
     }
-    await this._studentService.assignToProject({ idStudent: idStudent, idProject: idProject });
-    return await this.findOne(idProject);
+    try {
+      await this._studentService.assignToProject({ idStudent: idStudent, idProject: idProject });
+      return await this.findOne(idProject);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
-
-  
 
   async findOne(id: number): Promise<ProjectEntity> {
     try {
@@ -316,7 +328,7 @@ export class ProjectService {
       }
       return project;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -334,7 +346,7 @@ export class ProjectService {
         data: updateProjectDto,
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -354,7 +366,7 @@ export class ProjectService {
       });
       return new HttpException('Proyecto eliminado', HttpStatus.OK);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

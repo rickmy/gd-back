@@ -9,7 +9,7 @@ import { AgreementDto } from './dto/agreement.dto';
 import { UploadFilesService } from '../upload-files/upload-files.service';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
-import { Prisma } from '@prisma/client';
+import { Prisma, StatusProject } from '@prisma/client';
 
 @Injectable()
 export class AgreementService {
@@ -36,6 +36,28 @@ export class AgreementService {
           HttpStatus.UNPROCESSABLE_ENTITY,
         );
       }
+
+      const agreementsByCode = await this._prismaService.agreement.findMany({
+        where: {
+          code: createAgreementDto.code,
+        },
+      });
+
+      if (!agreementsByCode || agreementsByCode.length > 0) {
+        try {
+          await this._prismaService.agreement.updateMany({
+            where: {
+              code: createAgreementDto.code,
+            },
+            data: {
+              status: StatusProject.INACTIVO,
+            },
+          });
+        } catch (error) {
+          throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      }
+
       const agreement = await this._prismaService.agreement.create({
         data: {
           code: createAgreementDto.code,
@@ -53,9 +75,12 @@ export class AgreementService {
           'Error al crear el convenio',
           HttpStatus.BAD_REQUEST,
         );
+
+      
+
       return agreement;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -136,7 +161,7 @@ export class AgreementService {
         }),
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

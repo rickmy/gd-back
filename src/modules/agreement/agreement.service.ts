@@ -24,6 +24,18 @@ export class AgreementService {
   }
   async create(createAgreementDto: CreateAgreementDto) {
     try {
+      const existingAgreement = await this._prismaService.agreement.findUnique({
+        where: {
+          code: createAgreementDto.code,
+        },
+      });
+
+      if (existingAgreement) {
+        throw new HttpException(
+          'Ya existe un convenio con este código',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
       const agreement = await this._prismaService.agreement.create({
         data: {
           code: createAgreementDto.code,
@@ -216,7 +228,7 @@ export class AgreementService {
   }
 
   async listCareersWithAgreements() {
-    const job = cron.schedule('0 0 7 * * 1', async () => {
+    const job = cron.schedule('0 0 20 * * 1', async () => {
       try {
         const careers = await this._prismaService.career.findMany();
         const agreementsCodes: string[] = [];

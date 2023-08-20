@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -15,13 +15,19 @@ export class RoleService {
 
   async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
     const { code, name, permissions } = createRoleDto;
+    const roleExist = await this._prismaService.rol.findFirst({
+      where: {
+        code,
+      },
+    });
+    if(roleExist) throw new HttpException('El rol ya existe', HttpStatus.BAD_REQUEST);
     const role = await this._prismaService.rol.create({
       data: {
         code,
         name,
       },
     });
-    if (!role) throw new HttpException('Error al crear el rol', 500);
+    if (!role) throw new HttpException('Error al crear el rol', HttpStatus.UNPROCESSABLE_ENTITY);
     const rolHasPermission = permissions.map((permission) => {
       return {
         idPermission: permission.id,

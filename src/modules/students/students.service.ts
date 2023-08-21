@@ -107,10 +107,10 @@ export class StudentsService {
 
       const newStudent: CreateStudentsDto = {
         dni: student.dni,
-        firstName: student.names.split(' ')[2],
-        secondName: student.names.split(' ')[3],
-        lastName: student.names.split(' ')[0],
-        secondLastName: student.names.split(' ')[1],
+        firstName: student.names.split(' ')[2].toUpperCase(),
+        secondName: student.names.split(' ')[3].toUpperCase(),
+        lastName: student.names.split(' ')[0].toUpperCase(),
+        secondLastName: student.names.split(' ')[1].toUpperCase(),
         email: '',
         typeDni: TypeDNI.CEDULA,
         status: student.statusNotes.every(
@@ -288,10 +288,10 @@ export class StudentsService {
       const student = await this._prismaService.student.create({
         data: {
           dni: createStudentDto.dni,
-          firstName: createStudentDto.firstName,
-          secondName: createStudentDto.secondName,
-          lastName: createStudentDto.lastName,
-          secondLastName: createStudentDto.secondLastName,
+          firstName: createStudentDto.firstName.toUpperCase(),
+          secondName: createStudentDto.secondName.toUpperCase(),
+          lastName: createStudentDto.lastName.toUpperCase(),
+          secondLastName: createStudentDto.secondLastName.toUpperCase(),
           email: createStudentDto.email,
           typeDni: createStudentDto.typeDni,
           status: createStudentDto.status,

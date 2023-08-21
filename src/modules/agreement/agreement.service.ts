@@ -9,7 +9,7 @@ import { AgreementDto } from './dto/agreement.dto';
 import { UploadFilesService } from '../upload-files/upload-files.service';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
-import { Prisma } from '@prisma/client';
+import { Prisma, StatusProject } from '@prisma/client';
 
 @Injectable()
 export class AgreementService {
@@ -24,6 +24,42 @@ export class AgreementService {
   }
   async create(createAgreementDto: CreateAgreementDto) {
     try {
+      const existingAgreement = await this._prismaService.agreement.findUnique({
+        where: {
+          code: createAgreementDto.code,
+        },
+      });
+
+      if (existingAgreement) {
+        throw new HttpException(
+          'Ya existe un convenio con este código',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+
+      const agreementsByCode = await this._prismaService.agreement.findMany({
+        where: {
+          idCompany: createAgreementDto.idCompany,
+        },
+      });
+
+      if (!!agreementsByCode || agreementsByCode.length > 0) {
+        try {
+          await this._prismaService.agreement.updateMany({
+            where: {
+              id: {
+                in: agreementsByCode.map((agreement) => agreement.id),
+              }
+            },
+            data: {
+              status: StatusProject.INACTIVO,
+            },
+          });
+        } catch (error) {
+          throw new HttpException(error.message, error.status);
+        }
+      }
+
       const agreement = await this._prismaService.agreement.create({
         data: {
           code: createAgreementDto.code,
@@ -41,9 +77,10 @@ export class AgreementService {
           'Error al crear el convenio',
           HttpStatus.BAD_REQUEST,
         );
+
       return agreement;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -124,7 +161,7 @@ export class AgreementService {
         }),
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -182,7 +219,7 @@ export class AgreementService {
       return new HttpException('Correo enviado correctamente', HttpStatus.OK);
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -211,12 +248,12 @@ export class AgreementService {
 
       return agreement;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
   async listCareersWithAgreements() {
-    const job = cron.schedule('0 0 7 * * 1', async () => {
+    const job = cron.schedule('0 0 20 * * 1', async () => {
       try {
         const careers = await this._prismaService.career.findMany();
         const agreementsCodes: string[] = [];
@@ -301,7 +338,7 @@ export class AgreementService {
 
       return new HttpException('Convenio eliminado', HttpStatus.OK);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 }

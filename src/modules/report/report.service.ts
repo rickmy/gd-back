@@ -16,28 +16,15 @@ export class ReportService {
 
   constructor(private _prismaService: PrismaService) { }
 
-  async reportByAcademicTutor(academicTutor: string): Promise<ReportByTutorDto[]> {
-    this.logger.log(`Report by academic tutor ${academicTutor}`);
+  async reportByAcademicTutor(idAcademicTutor: number): Promise<ReportByTutorDto[]> {
+    this.logger.log(`Report by academic tutor id: ${idAcademicTutor}`);
 
     try {
       const registration = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
           project: {
             academicTutor: {
-              OR: [
-                {
-                  firstName: {
-                    contains: academicTutor,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-                {
-                  lastName: {
-                    contains: academicTutor,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-              ],
+              id: idAcademicTutor,
             },
             state: true,
           }
@@ -104,17 +91,14 @@ export class ReportService {
 
   }
 
-  async reportByCompany(company: string): Promise<ReportCompanyDto> {
+  async reportByCompany(idCompany: number): Promise<ReportCompanyDto> {
     try {
 
       const companyName = await this._prismaService.company.findFirst({
         where: {
-          name: {
-            contains: company,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          state: true,
+          id: idCompany,
         },
+        
       });
 
       if (!companyName) {
@@ -124,6 +108,7 @@ export class ReportService {
       const registration = await this._prismaService.studentAssignedToCompany.findMany({
         where: {
           idCompany: companyName.id,
+          state: true,
         },
         include: {
           student: true,

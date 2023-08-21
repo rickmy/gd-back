@@ -56,7 +56,7 @@ export class TutorService {
       this.logger.log('Tutor Creado correctamente')
       return tutor;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -87,7 +87,7 @@ export class TutorService {
       this.logger.log('Tutor Creado correctamente')
       return tutor;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -101,7 +101,7 @@ export class TutorService {
       });
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -149,7 +149,7 @@ export class TutorService {
         };
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -204,7 +204,7 @@ export class TutorService {
         };
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -223,7 +223,7 @@ export class TutorService {
         throw new HttpException('No se encontró el tutor', HttpStatus.NOT_FOUND);
       return tutor;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -238,7 +238,7 @@ export class TutorService {
       return null;
       return tutor;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -255,7 +255,7 @@ export class TutorService {
       });
       return tutorUpdated;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -273,7 +273,7 @@ export class TutorService {
       await this._userService.remove(tutor.idUser);
       return new HttpException('Tutor eliminado correctamente', HttpStatus.OK);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 }

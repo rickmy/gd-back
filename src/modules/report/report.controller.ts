@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
@@ -18,21 +18,19 @@ export class ReportController {
     description: 'Reporte por tutor académico',
     type: ReportByTutorDto,
   })
-  @Get('byAcademicTutor')
+  @Get('byAcademicTutor/:idAcademicTutor')
   @ApiOperation({ summary: 'Generar reporte por tutor académico' })
-  reportByAcademicTutor(
-    @Query('academicTutor') academicTutor: string,
-  ){
-    return this.reportService.reportByAcademicTutor(academicTutor);
+  reportByAcademicTutor(@Param('idAcademicTutor', ParseIntPipe) idAcademicTutor: number){
+    return this.reportService.reportByAcademicTutor(idAcademicTutor);
   }
 
   @ApiOkResponse({
-    description: 'Reporte por nombre de empresa',
+    description: 'Reporte por empresa',
     type: ReportCompanyDto,
   })
   @ApiOperation({ summary: 'Generar reporte por empresa' })
-  @Get('byCompanyName')
-   reportByCompany(@Query('companyName') company: string){
-    return this.reportService.reportByCompany(company);
+  @Get('byCompany/:idCompany')
+   reportByCompany(@Param('idCompany', ParseIntPipe) idCompany: number){
+    return this.reportService.reportByCompany(idCompany);
   }
 }

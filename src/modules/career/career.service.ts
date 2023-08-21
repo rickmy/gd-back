@@ -131,7 +131,7 @@ export class CareerService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -157,7 +157,7 @@ export class CareerService {
         where: optionsWhere,
       });
       if (!careersDB || careersDB.length === 0)
-        throw new PaginationResult<CareerEntity>([], total, page, limit); 
+        return new PaginationResult<CareerEntity>([], total, page, limit); 
       this.logger.log('Carreras encontradas correctamente');
       return new PaginationResult<CareerEntity>(careersDB, total, page, limit);
     } catch (error) {

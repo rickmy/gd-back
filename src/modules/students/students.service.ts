@@ -208,7 +208,7 @@ export class StudentsService {
 
       } catch (error) {
         this.logger.error(error);
-        throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY)
+        throw new HttpException(error.message, error.status);
       }
 
     }
@@ -243,7 +243,7 @@ export class StudentsService {
 
         } catch (error) {
           this.logger.error(error);
-          throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+          throw new HttpException(error.message, error.status);
         }
 
         try {
@@ -261,7 +261,7 @@ export class StudentsService {
             },
           });
         } catch (error) {
-          throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+          throw new HttpException(error.message, error.status);
         }
       });
     }
@@ -315,7 +315,7 @@ export class StudentsService {
 
     } catch (error) {
       this.logger.error(error);
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -417,7 +417,7 @@ export class StudentsService {
       };
     } catch (error) {
       this.logger.error(error);
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -624,7 +624,7 @@ export class StudentsService {
       );
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -673,7 +673,7 @@ export class StudentsService {
         }
       })
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -731,7 +731,7 @@ export class StudentsService {
       };
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -743,7 +743,7 @@ export class StudentsService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -782,7 +782,7 @@ export class StudentsService {
 
       return new HttpException('Estudiante actualizado correctamente', HttpStatus.OK)
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -827,12 +827,21 @@ export class StudentsService {
           idCompany: updateStudentDto.idCompany,
         },
       });
+
+      await this._prismaService.student.update({
+        where: {
+          id: updateStudentDto.idStudent,
+        },
+        data: {
+          status: StatusStudent.ASIGNADO,
+        },
+      });
       return new HttpException(
         'Estudiante asignado a empresa o proyecto actualizado correctamente',
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -874,13 +883,24 @@ export class StudentsService {
       });
       if (!registrationUpdate)
         throw new HttpException('No se pudo actualizar los estudiantes', HttpStatus.NOT_FOUND);
+
+      await this._prismaService.student.updateMany({
+        where: {
+          id: {
+            in: assinedStudentsToCompanyDto.idStudents,
+          },
+        },
+        data: {
+          status: StatusStudent.ASIGNADO,
+        },
+      });
       return new HttpException(
         'Estudiantes asignados correctamente',
         HttpStatus.OK,
       );
 
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -914,7 +934,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -942,7 +962,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -966,12 +986,22 @@ export class StudentsService {
           idProject: null,
         },
       });
+
+      await this._prismaService.student.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: StatusStudent.APROBADO,
+        },
+      });
+      
       return new HttpException(
         'Estudiante eliminado de la empresa correctamente',
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -993,7 +1023,7 @@ export class StudentsService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -1022,7 +1052,7 @@ export class StudentsService {
         HttpStatus.OK,
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(error.message, error.status);
     }
   }
 

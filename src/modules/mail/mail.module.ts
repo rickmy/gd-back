@@ -20,7 +20,7 @@ import { ConfigService } from '@nestjs/config';
           },
         },
         defaults: {
-          from: `"No Contestar" <${config().mailFrom}>`,
+          from: `"Yavirac" <${config().mailFrom}>`,
         },
         template: {
           dir: join(__dirname, 'templates'),

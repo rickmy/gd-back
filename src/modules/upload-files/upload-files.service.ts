@@ -63,7 +63,6 @@ export class UploadFilesService {
   }
 
   async downloadFile(name: FileNameDto, res: Response) {
-    console.log(name);
     const { data, error } = await this.storage
       .from(this.bucket)
       .download(name.name);

@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import config from 'src/core/config';
 
 @Injectable()
 export class MailService {
+  private logger = new Logger(MailService.name);
   constructor(private readonly _mailerService: MailerService) {}
 
   async sendTestEmail(email: string): Promise<boolean> {
@@ -17,10 +19,10 @@ export class MailService {
           email,
         },
       });
-      console.log(res);
+      this.logger.log(res);
       return true;
     } catch (err) {
-      console.log(err);
+      this.logger.error(err);
       return false;
     }
   }
@@ -36,15 +38,15 @@ export class MailService {
         subject: 'Recuperar contraseña',
         template: './forget-password',
         context: {
-          url: `http://localhost:4200/auth/reset-password?token=${token}`,
+          url: `${config().frontUrl}/auth/reset-password?token=${token}`,
           siteName: 'Yavirac',
           fullName,
         },
       });
-      console.log(res);
+      this.logger.log(res);
       return true;
     } catch (err) {
-      console.log(err);
+      this.logger.error(err);
       return false;
     }
   }
@@ -66,10 +68,10 @@ export class MailService {
           codes,
         },
       });
-      console.log(res);
+      this.logger.log(res);
       return true;
     } catch (err) {
-      console.log(err);
+      this.logger.error(err);
       return false;
     }
   }
@@ -92,10 +94,10 @@ export class MailService {
           code,
         },
       });
-      console.log(res);
+      this.logger.log(res);
       return true;
     } catch (err) {
-      console.log(err);
+      this.logger.error(err);
       return false;
     }
   }

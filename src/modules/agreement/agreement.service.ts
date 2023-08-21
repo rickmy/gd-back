@@ -253,7 +253,7 @@ export class AgreementService {
   }
 
   async listCareersWithAgreements() {
-    const job = cron.schedule('0 0 20 * * 1', async () => {
+    const job = cron.schedule('0 47 14 * * 1', async () => {
       try {
         const careers = await this._prismaService.career.findMany();
         const agreementsCodes: string[] = [];

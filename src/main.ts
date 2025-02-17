@@ -11,15 +11,15 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix('/api');
   const configSwagger = new DocumentBuilder()
-    .setTitle('Api Rest Complexivo')
-    .setDescription('Api rest para el manejo de complejidad del sistema para el modulo de alumons y convenios.')
+    .setTitle('Api Rest GesDoc')
+    .setDescription('Api rest para el sistema de gestión documental')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, configSwagger);
   SwaggerModule.setup('docs', app, document);
   app.enableCors({
-    origin: config().frontUrl,
+    origin: '*', //config().frontUrl,
   });
   await app.listen(3000);
 }

@@ -1,7 +1,4 @@
-/*
-https://docs.nestjs.com/exception-filters#exception-filters-1
-*/
-
+/* eslint-disable prettier/prettier */
 import {
   ExceptionFilter,
   Catch,
@@ -20,6 +17,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
+    const date = new Date();
 
     const status =
       exception instanceof HttpException
@@ -29,25 +27,36 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const errorMsg =
       exception instanceof HttpException
         ? exception.getResponse()
-        : exception['message'] || exception['response'] || exception || 'Critical error in server';
+        : exception['message'] ||
+          exception['response'] ||
+          exception ||
+          'Critical error in server';
 
     const errorResponse = {
       statusCode: status,
-      message: status === 500 ? `Ah ocurrido un error en el servidor, por favor contacte al administrador. Error: #${request['X-Correlation-Id']}` : errorMsg.message || errorMsg,
-      timestamp: new Date().toISOString(),
-      currentId: request['X-Correlation-Id'],
+      message:
+        status === 500
+          ? `Ah ocurrido un error en el servidor, por favor contacte al administrador. Error: #${request['X-Request-Id']}`
+          : errorMsg.message || errorMsg,
+      timestamp: date.toLocaleString(),
+      currentId: request['X-Request-Id'],
       path: request.url,
       method: request.method,
-    }
+    };
 
-    const errorLog = `Response Code: ${errorResponse.statusCode} - Method: ${errorResponse.method} - Path: ${errorResponse.path} - Message: ${JSON.stringify(errorMsg)} - Timestamp: ${errorResponse.timestamp} - currentId: ${errorResponse.currentId}`;
+    const errorLog = `Response Code: ${errorResponse.statusCode} - Method: ${
+      errorResponse.method
+    } - Path: ${errorResponse.path} - Message: ${JSON.stringify(
+      errorMsg,
+    )} - Timestamp: ${errorResponse.timestamp} - currentId: ${
+      errorResponse.currentId
+    }`;
 
     logger.error(errorLog);
 
-    fs.appendFile('logs/error.log', `${errorLog}\n`, 'utf8', (err) => {
+    fs.appendFile(`logs/error.log`, `${errorLog}\n`, 'utf8', (err) => {
       if (err) throw err;
     });
-
 
     response.status(status).json(errorResponse);
   }

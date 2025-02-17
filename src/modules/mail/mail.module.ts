@@ -1,26 +1,31 @@
 import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
-import config from 'src/core/config';
+import {
+  MAIL_FROM,
+  MAIL_PASSWORD,
+  MAIL_PORT,
+  MAIL_HOST,
+  MAIL_USER,
+} from 'src/core/config';
 import { MailService } from './mail.service';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     MailerModule.forRootAsync({
       useFactory: () => ({
         transport: {
-          host: config().mailHost,
-          port: +config().mailPort,
+          host: MAIL_HOST,
+          port: +MAIL_PORT,
           secure: false,
           auth: {
-            user: config().mailUser,
-            pass: config().mailPassword,
+            user: MAIL_USER,
+            pass: MAIL_PASSWORD,
           },
         },
         defaults: {
-          from: `"Yavirac" <${config().mailFrom}>`,
+          from: `"Yavirac" <${MAIL_FROM}>`,
         },
         template: {
           dir: join(__dirname, 'templates'),
@@ -30,7 +35,6 @@ import { ConfigService } from '@nestjs/config';
           },
         },
       }),
-      inject: [ConfigService],
     }),
   ],
   providers: [MailService],

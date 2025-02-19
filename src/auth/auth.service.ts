@@ -168,15 +168,10 @@ export class AuthService {
     return new HttpException('Contraseña actualizada', HttpStatus.OK);
   }
 
-  async validateToken(payload: PayloadModel, route: string): Promise<boolean> {
+  async validateToken(payload: PayloadModel): Promise<boolean> {
     const hasUser = await this._userService.validateUser(payload);
-    if (!hasUser) throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
-    const hasPermission = await this._roleService.validatePermission(
-      payload.role,
-      route,
-    );
-    if (!hasPermission) throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
-    return true;
+    //if (!hasPermission) throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
+    return hasUser;
   }
 
   async comparePassword(

@@ -16,7 +16,7 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
 
     response.status(HttpStatus.UNAUTHORIZED).json({
       statusCode: HttpStatus.UNAUTHORIZED,
-      message: 'Acceso no autorizado',
+      message: '🚫 NO AUTORIZADO. 🚫',
       timestamp: date.toLocaleString(),
       currentId: request['X-Request-Id'],
       path: request.url,

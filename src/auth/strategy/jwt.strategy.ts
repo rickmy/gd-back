@@ -1,10 +1,10 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AuthService } from '../auth.service';
-import config from 'src/core/config';
 import { PayloadModel } from '../models/payloadModel';
 import { Request } from 'express';
+import { JWT_SECRET } from 'src/core/config';
 
 @Injectable()
 export class JWTstrategy extends PassportStrategy(Strategy) {
@@ -12,7 +12,7 @@ export class JWTstrategy extends PassportStrategy(Strategy) {
   route: string;
   constructor(private _authService: AuthService) {
     super({
-      secretOrKey: config().jwtSecret,
+      secretOrKey: JWT_SECRET,
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => {
           this.route = `${req.method} ${req.route.path}`;

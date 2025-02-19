@@ -2,8 +2,6 @@ import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from './core/filters/exception.filter';
 import { PrismaModule } from './prisma/prisma.module';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
@@ -51,7 +49,7 @@ import { UnauthorizedExceptionFilter } from './core/filters/UnauthorizedExceptio
     }),
     UploadFilesModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
     {
       provide: APP_FILTER,
@@ -61,7 +59,6 @@ import { UnauthorizedExceptionFilter } from './core/filters/UnauthorizedExceptio
       provide: APP_FILTER,
       useClass: UnauthorizedExceptionFilter,
     },
-    AppService,
   ],
 })
 export class AppModule implements NestModule {

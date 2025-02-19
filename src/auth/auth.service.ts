@@ -1,7 +1,6 @@
 import {
   Injectable,
   UnauthorizedException,
-  UnprocessableEntityException,
   HttpException,
   HttpStatus,
   BadRequestException,
@@ -16,7 +15,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import * as bcrypt from 'bcrypt';
-import { StudentsService } from 'src/modules/students/students.service';
 import { RoleService } from 'src/modules/role/role.service';
 @Injectable()
 export class AuthService {
@@ -26,7 +24,7 @@ export class AuthService {
     private _userService: UserService,
     private _jwtService: JwtService,
     private _roleService: RoleService,
-  ) { }
+  ) {}
 
   async login(credentials: CredentialsDto): Promise<ResponseAuthModel> {
     this.logger.log(`Login attempt for ${credentials.email}`);
@@ -89,7 +87,7 @@ export class AuthService {
       },
       { expiresIn: '5m' },
     );
-    const fullName = `${userExist.email }`;
+    const fullName = `${userExist.email}`;
     const send = await this._mailService.sendForgetPasswordEmail(
       email,
       token,
@@ -121,7 +119,10 @@ export class AuthService {
           'El usuario se encuentra inactivo/bloqueado',
           HttpStatus.CONFLICT,
         );
-      const ok = await this._userService.updatePassword(userExist.id, resetPasswordDto.newPassword);
+      const ok = await this._userService.updatePassword(
+        userExist.id,
+        resetPasswordDto.newPassword,
+      );
       if (!ok)
         throw new HttpException(
           'Error al actualizar la contraseña',
@@ -136,7 +137,9 @@ export class AuthService {
   async changePassword(
     changePasswordDto: ChangePasswordDto,
   ): Promise<HttpException> {
-    const userExist = await this._userService.findByEmail(changePasswordDto.email);
+    const userExist = await this._userService.findByEmail(
+      changePasswordDto.email,
+    );
     if (!userExist)
       throw new HttpException('Usuario no existe', HttpStatus.BAD_REQUEST);
     if (!userExist.state)
@@ -153,7 +156,10 @@ export class AuthService {
         'La contraseña actual no coincide',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    const changed = await this._userService.updatePassword(userExist.id,  changePasswordDto.newPassword);
+    const changed = await this._userService.updatePassword(
+      userExist.id,
+      changePasswordDto.newPassword,
+    );
     if (!changed)
       throw new HttpException(
         'Error al actualizar la contraseña',
@@ -169,8 +175,7 @@ export class AuthService {
       payload.role,
       route,
     );
-    if (!hasPermission)
-      throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
+    if (!hasPermission) throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
     return true;
   }
 

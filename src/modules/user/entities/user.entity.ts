@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TypeDNI, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { IsNumber } from 'class-validator';
 
 export class UserEntity implements User {
@@ -8,13 +8,6 @@ export class UserEntity implements User {
   id: number;
   @ApiProperty({ example: '12345678', description: 'DNI', type: 'string' })
   dni: string;
-  @ApiProperty({
-    example: 'CEDULA',
-    description: 'Tipo de DNI',
-    enum: TypeDNI,
-    type: 'string',
-  })
-  typeDni: TypeDNI;
   @ApiProperty({
     example: 'hector.ruiz',
     description: 'Nombre de usuario',

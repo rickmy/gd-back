@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import config from 'src/core/config';
+import { FRONT_URL } from 'src/core/config';
 
 @Injectable()
 export class MailService {
@@ -38,7 +38,7 @@ export class MailService {
         subject: 'Recuperar contraseña',
         template: './forget-password',
         context: {
-          url: `${config().frontUrl}/auth/reset-password?token=${token}`,
+          url: `${FRONT_URL}/auth/reset-password?token=${token}`,
           siteName: 'Yavirac',
           fullName,
         },
@@ -64,7 +64,7 @@ export class MailService {
         template: './alert-agreements-to-expire',
         context: {
           siteName: 'Yavirac',
-          
+
           codes,
         },
       });
@@ -101,6 +101,4 @@ export class MailService {
       return false;
     }
   }
-
-
 }

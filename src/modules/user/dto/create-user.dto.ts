@@ -1,12 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TypeDNI } from '@prisma/client';
-import {
-  IsEmail,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsNumber, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: '12345678', description: 'DNI', type: 'string' })

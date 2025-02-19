@@ -15,7 +15,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import * as bcrypt from 'bcrypt';
-import { RoleService } from 'src/modules/role/role.service';
 @Injectable()
 export class AuthService {
   private logger = new Logger(AuthService.name);
@@ -23,7 +22,6 @@ export class AuthService {
     private _mailService: MailService,
     private _userService: UserService,
     private _jwtService: JwtService,
-    private _roleService: RoleService,
   ) {}
 
   async login(credentials: CredentialsDto): Promise<ResponseAuthModel> {
@@ -44,7 +42,7 @@ export class AuthService {
     const payload: PayloadModel = {
       id: user.id,
       email: user.email,
-      role: user.idRol,
+      role: user.rolId,
     };
     user.password = undefined;
     this.logger.log(`Login success for ${credentials.email}`);
@@ -120,7 +118,7 @@ export class AuthService {
           HttpStatus.CONFLICT,
         );
       const ok = await this._userService.updatePassword(
-        userExist.id,
+        userExist.userId,
         resetPasswordDto.newPassword,
       );
       if (!ok)
@@ -157,7 +155,7 @@ export class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     const changed = await this._userService.updatePassword(
-      userExist.id,
+      userExist.userId,
       changePasswordDto.newPassword,
     );
     if (!changed)

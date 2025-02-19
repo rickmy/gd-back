@@ -28,11 +28,17 @@ export class UserService {
     const existEmail = await this.findByEmail(email);
     if (existEmail)
       throw new UnprocessableEntityException('El usuario ya existe');
-    createUserDto.password = this.hashPassword(createUserDto.password);
+    const password = this.hashPassword(createUserDto.password);
+    const salt = bcrypt.genSaltSync(10);
+    createUserDto.password = bcrypt.hashSync(password, salt);
     try {
       this.logger.log('Creando usuario');
       const newUser = this._prismaService.user.create({
-        data: createUserDto,
+        data: {
+          ...createUserDto,
+          completeName: `${createUserDto.name} ${createUserDto.lastName}`,
+          salt,
+        },
       });
       this.logger.log('Usuario creado');
       return newUser;
@@ -74,7 +80,7 @@ export class UserService {
       const users = await this._prismaService.user.findMany({
         where: {
           state: allActive ? true : undefined,
-          userName: hasFilter
+          name: hasFilter
             ? {
                 contains: options.name,
                 mode: Prisma.QueryMode.insensitive,
@@ -116,11 +122,8 @@ export class UserService {
         results: users.map((user) => {
           delete user.password;
           return {
-            id: user.id,
-            dni: user.dni,
-            userName: user.userName,
-            email: user.email,
-            state: user.state,
+            ...user,
+            id: user.userId,
             role: user.rol.name,
           };
         }),
@@ -137,16 +140,17 @@ export class UserService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const user = await this._prismaService.user.findUnique({
         where: {
-          id,
+          userId: id,
         },
         select: {
           id: true,
           dni: true,
-          userName: true,
+          name: true,
+          lastName: true,
           email: true,
           rol: {
             select: {
@@ -165,11 +169,11 @@ export class UserService {
     }
   }
 
-  async findAllByRole(idRol: number): Promise<UserDto[]> {
+  async findAllByRole(rolId: string): Promise<UserDto[]> {
     try {
       const users = await this._prismaService.user.findMany({
         where: {
-          idRol,
+          rolId,
           state: true,
         },
         include: {
@@ -190,11 +194,8 @@ export class UserService {
       return users.map((user) => {
         delete user.password;
         return {
-          id: user.id,
-          dni: user.dni,
-          userName: user.userName,
-          email: user.email,
-          state: user.state,
+          ...user,
+          id: user.userId,
           role: user.rol.name,
         };
       });
@@ -227,16 +228,16 @@ export class UserService {
     });
   }
 
-  async changeRole(id: number, idRole: number) {
+  async changeRole(userId: string, rolId: string) {
     try {
-      const user = await this.findOne(id);
+      const user = await this.findOne(userId);
       if (!user) throw new UnprocessableEntityException('El usuario no existe');
       const updatedUser = await this._prismaService.user.update({
         where: {
-          id,
+          userId,
         },
         data: {
-          idRol: idRole,
+          rolId,
         },
       });
       if (!updatedUser)
@@ -247,16 +248,40 @@ export class UserService {
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
-    const user = await this.findOne(id);
+  async update(
+    userId: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<User | null> {
+    const user = await this.findOne(userId);
     if (!user) throw new UnprocessableEntityException('El usuario no existe');
     try {
       const updatedUser = await this._prismaService.user.update({
         where: {
-          id,
+          userId,
+        },
+        data: updateUserDto,
+      });
+      return updatedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async updatePassword(userId: string, password: string): Promise<User | null> {
+    try {
+      const user = await this.findOne(userId);
+      if (!user) throw new UnprocessableEntityException('El usuario no existe');
+
+      const salt = bcrypt.genSaltSync(10);
+      const newPassword = bcrypt.hashSync(this.hashPassword(password), salt);
+
+      const updatedUser = await this._prismaService.user.update({
+        where: {
+          userId,
         },
         data: {
-          userName: updateUserDto.userName,
+          password: this.hashPassword(newPassword),
+          salt,
         },
       });
       return updatedUser;
@@ -265,29 +290,11 @@ export class UserService {
     }
   }
 
-  async updatePassword(id: number, password: string): Promise<User | null> {
-    const user = await this.findOne(id);
-    if (!user) throw new UnprocessableEntityException('El usuario no existe');
-    try {
-      const updatedUser = await this._prismaService.user.update({
-        where: {
-          id,
-        },
-        data: {
-          password: this.hashPassword(password),
-        },
-      });
-      return updatedUser;
-    } catch (error) {
-      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
-    }
-  }
-
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       return await this._prismaService.user.update({
         where: {
-          id,
+          userId: id,
         },
         data: {
           state: false,

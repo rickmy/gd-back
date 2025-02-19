@@ -11,20 +11,28 @@ datasource db {
 }
 
 model User {
-  id                  Int      @id @default(autoincrement())
-  dni                 String   @unique
-  userName            String   @unique
-  email               String   @unique
-  password            String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  state               Boolean  @default(true)
-  idRol               Int      @default(1)
-  rol                 Rol      @relation(fields: [idRol], references: [id])
+  id             Int      @default(autoincrement())
+  userId         String   @id @default(uuid())
+  dni            String   @unique
+  name           String
+  secondName     String?
+  lastName       String
+  secondLastName String?
+  completeName   String
+  email          String   @unique
+  password       String
+  salt           String
+  phone          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  state          Boolean  @default(true)
+  rolId          String
+  rol            Rol      @relation(fields: [rolId], references: [rolId])
 }
 
 model Rol {
-  id               Int                @id @default(autoincrement())
+  id               Int                @default(autoincrement())
+  rolId            String             @id @default(uuid())
   code             String?            @unique
   name             String             @unique
   createdAt        DateTime           @default(now())
@@ -35,23 +43,35 @@ model Rol {
 }
 
 model Permission {
-  id               Int                @id @default(autoincrement())
+  id               Int                @default(autoincrement())
+  permissionId     String             @id @default(uuid())
   name             String             @unique
-  endpoint         String
+  resourceId       String
+  resource         Resource           @relation(fields: [resourceId], references: [resourceId])
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   state            Boolean            @default(true)
   rolHasPermission RolHasPermission[]
 }
 
+model Resource {
+  id         Int          @default(autoincrement())
+  resourceId String       @id @default(uuid())
+  name       String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  state      Boolean      @default(true)
+  Permission Permission[]
+}
+
 model RolHasPermission {
-  idRol        Int
-  idPermission Int
-  rol          Rol        @relation(fields: [idRol], references: [id])
-  permission   Permission @relation(fields: [idPermission], references: [id])
+  rolId        String
+  permissionId String
+  rol          Rol        @relation(fields: [rolId], references: [rolId])
+  permission   Permission @relation(fields: [permissionId], references: [permissionId])
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   state        Boolean    @default(true)
 
-  @@id([idRol, idPermission])
+  @@id([rolId, permissionId])
 }

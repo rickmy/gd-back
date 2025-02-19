@@ -6,16 +6,12 @@ export class UserEntity implements User {
   @ApiProperty({ example: 1, description: 'Identificador', type: 'number' })
   @IsNumber()
   id: number;
+  @ApiProperty({ example: '12345678', description: 'user Id', type: 'string' })
+  userId: string;
   @ApiProperty({ example: '12345678', description: 'DNI', type: 'string' })
   dni: string;
-  @ApiProperty({
-    example: 'hector.ruiz',
-    description: 'Nombre de usuario',
-    type: 'string',
-  })
-  userName: string;
   @ApiProperty({ example: 'Hector', description: 'Student first name' })
-  firstName: string;
+  name: string;
   @ApiProperty({
     example: 'Hugo',
     description: 'Student second name',
@@ -34,9 +30,28 @@ export class UserEntity implements User {
     readOnly: true,
   })
   secondLastName: string;
+  @ApiProperty({
+    example: 'Hugo Ruiz',
+    description: 'Student complete name',
+    readOnly: true,
+  })
+  completeName: string;
+  @ApiProperty({
+    example: 'example@example.com',
+    description: 'Correo',
+    type: 'string',
+  })
   email: string;
+  @ApiProperty({
+    example: '0987654321',
+    description: 'Teléfono',
+    type: 'string',
+  })
+  phone: string;
   @ApiProperty({ example: '', description: 'Contraseña', type: 'string' })
   password: string;
+  @ApiProperty({ example: '', description: 'Salt', type: 'string' })
+  salt: string;
   @ApiProperty({
     example: '2021-10-10T00:00:00.000Z',
     description: 'Fecha de creación',
@@ -52,5 +67,5 @@ export class UserEntity implements User {
   @ApiProperty({ example: true, description: 'Estado', type: 'boolean' })
   state: boolean;
   @ApiProperty({ example: 1, description: 'Rol', type: 'number' })
-  idRol: number;
+  rolId: string;
 }

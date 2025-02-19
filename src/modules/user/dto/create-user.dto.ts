@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNumber, IsString } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: '12345678', description: 'DNI', type: 'string' })
@@ -11,7 +11,14 @@ export class CreateUserDto {
     type: 'string',
   })
   @IsString({ message: 'el nombre de usuario debe ser un string' })
-  userName: string;
+  name: string;
+  @ApiProperty({
+    example: 'ruiz',
+    description: 'Apellido de usuario',
+    type: 'string',
+  })
+  @IsString({ message: 'el apellido de usuario debe ser un string' })
+  lastName: string;
   @ApiProperty({
     example: 'example@yavirac.edu.ec',
     description: 'Correo',
@@ -27,9 +34,6 @@ export class CreateUserDto {
   @IsString({ message: 'el campo debe ser un string' })
   password: string;
   @ApiProperty({ example: '1', description: 'Rol', type: 'number' })
-  @IsNumber(
-    { allowNaN: false, allowInfinity: false, maxDecimalPlaces: 0 },
-    { message: 'El rol debe ser un número' },
-  )
-  idRol: number;
+  @IsString({ message: 'El rol debe ser un string' })
+  rolId: string;
 }

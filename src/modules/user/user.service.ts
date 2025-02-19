@@ -34,6 +34,9 @@ export class UserService {
           rolId: createUserDto.rolId,
           completeName: createUserDto.completeName,
         },
+        include: {
+          rol: true,
+        },
       });
       this.logger.log('Usuario creado');
       return newUser;
@@ -115,7 +118,7 @@ export class UserService {
           return {
             ...user,
             id: user.userId,
-            role: user.rol.name,
+            rol: user.rol.name,
           };
         }),
         total: await this._prismaService.user.count({
@@ -187,7 +190,7 @@ export class UserService {
         return {
           ...user,
           id: user.userId,
-          role: user.rol.name,
+          rol: user.rol.name,
         };
       });
     } catch (error) {

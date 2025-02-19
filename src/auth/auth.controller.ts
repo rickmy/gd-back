@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ApiTags,
@@ -12,6 +12,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResponseAuthModel } from './models/responseAuth';
 import { JwtAuthGuard } from './guards/auth/auth.guard';
+import { RegisterDto } from './dto/register.dto';
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
@@ -30,6 +31,21 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   login(@Body() credentials: CredentialsDto) {
     return this.authService.login(credentials);
+  }
+
+  @Post('register')
+  @ApiOperation({ summary: 'Registro' })
+  @ApiBody({
+    type: RegisterDto,
+    description: 'Datos del usuario a registrar',
+  })
+  @ApiOkResponse({
+    description: 'Usuario registrado correctamente',
+    type: ResponseAuthModel,
+  })
+  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
+  register(@Body() credentials: RegisterDto) {
+    return this.authService.register(credentials);
   }
 
   @Post('forget-password')

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { UserDto } from 'src/modules/user/dto/user.dto';
 
 export class ResponseAuthModel {
   @ApiProperty({
@@ -7,4 +7,9 @@ export class ResponseAuthModel {
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
   })
   accessToken: string;
+  @ApiProperty({
+    description: 'Datos del usuario',
+    type: UserDto,
+  })
+  user: UserDto;
 }

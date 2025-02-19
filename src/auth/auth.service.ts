@@ -48,10 +48,22 @@ export class AuthService {
     };
     user.password = undefined;
     this.logger.log(`Login success for ${credentials.email}`);
-    return { accessToken: await this.createToken(payload) };
+    return {
+      accessToken: await this.createToken(payload),
+      user: {
+        id: user.userId,
+        name: user.name,
+        lastName: user.lastName,
+        completeName: user.completeName,
+        email: user.email,
+        state: user.state,
+        rolId: user.rolId,
+        rol: user.rol.name,
+      },
+    };
   }
 
-  async register(register: RegisterDto): Promise<ResponseAuthModel> {
+  async register(register: RegisterDto): Promise<HttpException> {
     const { email } = register;
     const existEmail = await this._userService.findByEmail(email);
     if (existEmail)
@@ -60,19 +72,14 @@ export class AuthService {
     const password = this.hashPassword(register.password, salt);
     try {
       this.logger.log('Creando usuario');
-      const newUser = await this._userService.create({
+      await this._userService.create({
         ...register,
         password,
         completeName: `${register.name} ${register.lastName}`,
         salt,
       });
-      const payload: PayloadModel = {
-        id: newUser.userId,
-        email: newUser.email,
-        role: newUser.rolId,
-      };
       this.logger.log(`Login success for ${register.email}`);
-      return { accessToken: await this.createToken(payload) };
+      return new HttpException('Usuario creado', HttpStatus.CREATED);
     } catch (error) {
       this.logger.error(error);
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);

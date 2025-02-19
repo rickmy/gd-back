@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsEmail, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreatePermissionDto {
   @IsString({ message: 'El nombre debe ser un string' })
@@ -9,8 +9,8 @@ export class CreatePermissionDto {
   @IsString({ message: 'El end point debe ser un string' })
   @IsNotEmpty({ message: 'El end point es requerido.' })
   @ApiProperty({
-    description: 'endpoint',
-    example: 'http://proyecto.complexivo.com/student/ver-empresa',
+    description: 'id del recurso',
+    example: 'sdfsdfsd',
   })
-  endpoint: string;
+  resourceId: string;
 }

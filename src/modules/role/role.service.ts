@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -11,7 +17,7 @@ import { PaginationResult } from 'src/core/models/paginationResult';
 @Injectable()
 export class RoleService {
   private logger = new Logger(RoleService.name);
-  constructor(private _prismaService: PrismaService) { }
+  constructor(private _prismaService: PrismaService) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
     const { code, name, permissions } = createRoleDto;
@@ -23,22 +29,27 @@ export class RoleService {
           },
           {
             name,
-          }
-        ]
+          },
+        ],
       },
     });
-    if(roleExist) throw new HttpException('El rol ya existe', HttpStatus.BAD_REQUEST);
+    if (roleExist)
+      throw new HttpException('El rol ya existe', HttpStatus.BAD_REQUEST);
     const role = await this._prismaService.rol.create({
       data: {
         code,
         name,
       },
     });
-    if (!role) throw new HttpException('Error al crear el rol', HttpStatus.UNPROCESSABLE_ENTITY);
+    if (!role)
+      throw new HttpException(
+        'Error al crear el rol',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     const rolHasPermission = permissions.map((permission) => {
       return {
-        idPermission: permission.id,
-        idRol: role.id,
+        permissionId: permission.permissionId,
+        rolId: role.rolId,
       };
     });
     const rolesWithPermission =
@@ -46,18 +57,26 @@ export class RoleService {
         data: rolHasPermission,
       });
     if (!rolesWithPermission)
-      throw new HttpException('Error al enlazar el rol con sus permisos', HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(
+        'Error al enlazar el rol con sus permisos',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     return new HttpException('Rol creado correctamente', 201);
   }
 
-  async findAll(options: PaginationOptions, allActive?: boolean): Promise<PaginationResult<RoleEntity>> {
+  async findAll(
+    options: PaginationOptions,
+    allActive?: boolean,
+  ): Promise<PaginationResult<RoleEntity>> {
     try {
       const { page, limit } = options;
 
       const optionsWhere = {
         state: allActive ? true : undefined,
         name: options.name ? { contains: options.name } : undefined,
-        code: options.identification ? { contains: options.identification } : undefined,
+        code: options.identification
+          ? { contains: options.identification }
+          : undefined,
       };
 
       const hasFilter = !!options.name || !!options.identification;
@@ -72,7 +91,8 @@ export class RoleService {
         where: optionsWhere,
       });
 
-      if(!roles || roles.length === 0)  return new PaginationResult<RoleEntity>([], total, page, limit);
+      if (!roles || roles.length === 0)
+        return new PaginationResult<RoleEntity>([], total, page, limit);
 
       return new PaginationResult<RoleEntity>(roles, total, page, limit);
     } catch (error) {
@@ -80,11 +100,11 @@ export class RoleService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(rolId: string) {
     try {
       return await this._prismaService.rol.findFirstOrThrow({
         where: {
-          id,
+          rolId,
         },
       });
     } catch (error) {
@@ -94,8 +114,9 @@ export class RoleService {
 
   async findRoleByName(name: string): Promise<RoleEntity> {
     try {
-      let nameRole = '%' + name + '%';
-      const role = await this._prismaService.$queryRaw<RoleEntity>`SELECT * FROM "Rol" WHERE name LIKE ${nameRole}`;
+      const nameRole = '%' + name + '%';
+      const role = await this._prismaService
+        .$queryRaw<RoleEntity>`SELECT * FROM "Rol" WHERE name LIKE ${nameRole}`;
       if (!role) throw new HttpException('El rol no existe', 404);
       this.logger.log('Rol encontrado');
       return role;
@@ -120,16 +141,16 @@ export class RoleService {
   }
 
   async findRoleWithPermissions(
-    id: number,
+    rolId: string,
     all?: boolean,
   ): Promise<RoleWithPermission> {
-    const role = await this.findOne(id);
+    const role = await this.findOne(rolId);
     let permissionsWithRole = [];
     try {
       permissionsWithRole = await this._prismaService.rolHasPermission.findMany(
         {
           where: {
-            idRol: id,
+            rolId,
             state: all ? undefined : true,
           },
           include: {
@@ -154,17 +175,16 @@ export class RoleService {
   }
 
   async update(
-    id: number,
+    rolId: string,
     updateRoleDto: UpdateRoleDto,
   ): Promise<RoleWithPermission> {
-
     const { permissions } = updateRoleDto;
 
-    const roleUpdate = await this.updateOnlyRole(id, updateRoleDto);
+    const roleUpdate = await this.updateOnlyRole(rolId, updateRoleDto);
 
     if (!roleUpdate) throw new NotFoundException('Error al actualizar el rol');
 
-    const permissionDB = (await this.findRoleWithPermissions(id, true))
+    const permissionDB = (await this.findRoleWithPermissions(rolId, true))
       .permissions;
 
     const permissionDelete = permissionDB.filter((permission) => {
@@ -183,9 +203,9 @@ export class RoleService {
       try {
         await this._prismaService.rolHasPermission.updateMany({
           where: {
-            idRol: id,
-            idPermission: {
-              in: permissionDelete.map((permission) => permission.id),
+            rolId,
+            permissionId: {
+              in: permissionDelete.map((permission) => permission.permissionId),
             },
           },
           data: {
@@ -199,8 +219,8 @@ export class RoleService {
     if (permissionCreate.length > 0) {
       const rolHasPermission = permissionCreate.map((permission) => {
         return {
-          idPermission: permission.id,
-          idRol: id,
+          permissionId: permission.permissionId,
+          rolId,
         };
       });
 
@@ -212,18 +232,18 @@ export class RoleService {
         throw new HttpException(error.message, error.status);
       }
     }
-    return await this.findRoleWithPermissions(id);
+    return await this.findRoleWithPermissions(rolId);
   }
 
   async updateOnlyRole(
-    id: number,
+    rolId: string,
     updateRoleDto: UpdateRoleDto,
   ): Promise<RoleEntity> {
     const { name } = updateRoleDto;
     try {
       return await this._prismaService.rol.update({
         where: {
-          id,
+          rolId,
         },
         data: {
           name,
@@ -234,11 +254,11 @@ export class RoleService {
     }
   }
 
-  async remove(id: number): Promise<HttpException> {
+  async remove(rolId: string): Promise<HttpException> {
     try {
       await this._prismaService.rol.update({
         where: {
-          id,
+          rolId,
         },
         data: {
           state: false,
@@ -248,12 +268,5 @@ export class RoleService {
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
-  }
-
-  async validatePermission(idRole:number, route: string): Promise<boolean> {
-    const roleWithPermission = await this.findRoleWithPermissions(idRole, true);
-    return roleWithPermission.permissions.some((permission) => {
-      return permission.endpoint === route;
-    });
   }
 }

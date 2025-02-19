@@ -33,51 +33,54 @@ export class PermissionsService {
     });
   }
 
-  async findOne(id: string): Promise<PermissionEntity> {
+  async findOne(permissionId: string): Promise<PermissionEntity> {
     const permission = await this._prismaService.permission.findUnique({
       where: {
-        id: parseInt(id),
+        permissionId,
       },
     });
     if (!permission)
       throw new HttpException(
-        `Permiso con el id: ${id}, no existe`,
+        `Permiso con el id: ${permissionId}, no existe`,
         HttpStatus.NOT_FOUND,
       );
     return permission;
   }
 
   async update(
-    id: string,
+    permissionId: string,
     permission: UpdatePermissionDto,
   ): Promise<PermissionEntity> {
     return await this._prismaService.permission.update({
       where: {
-        id: parseInt(id),
+        permissionId,
       },
       data: permission,
     });
   }
 
-  async remove(id: string): Promise<HttpException> {
+  async remove(permissionId: string): Promise<HttpException> {
     const permissionExists = await this._prismaService.permission.findUnique({
       where: {
-        id: parseInt(id),
+        permissionId,
       },
     });
     if (!permissionExists)
       throw new HttpException(
-        `Permiso con el id:${id}, no existe`,
+        `Permiso con el id:${permissionId}, no existe`,
         HttpStatus.NOT_FOUND,
       );
     await this._prismaService.permission.update({
       where: {
-        id: parseInt(id),
+        permissionId,
       },
       data: {
         state: false,
       },
     });
-    return new HttpException(`Permiso:${id} eliminado`, HttpStatus.OK);
+    return new HttpException(
+      `Permiso:${permissionId} eliminado`,
+      HttpStatus.OK,
+    );
   }
 }

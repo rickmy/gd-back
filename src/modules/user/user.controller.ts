@@ -32,7 +32,7 @@ import { PaginationResult } from 'src/core/models/paginationResult';
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @ApiOkResponse({ description: 'Usuario Creado', type: CreateUserDto })
   @ApiOperation({ summary: 'Crear usuario' })
@@ -72,9 +72,8 @@ export class UserController {
   @ApiOperation({ summary: 'Encontrar todos los usuarios por rol' })
   @UseGuards(JwtAuthGuard)
   findAllByRole(@Param('id') id: string) {
-    return this.userService.findAllByRole(+id);
+    return this.userService.findAllByRole(id);
   }
-
 
   @ApiOkResponse({
     description: 'Usuario encontrado',
@@ -87,11 +86,9 @@ export class UserController {
   @ApiOperation({ summary: 'Encontrar usuario por su ID' })
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id', ParseIntPipe) id: string) {
-    return this.userService.findOne(+id);
+  findOne(@Param('id') id: string) {
+    return this.userService.findOne(id);
   }
-
-
 
   @ApiOkResponse({
     description: 'Usuario Actualizado',
@@ -100,18 +97,9 @@ export class UserController {
   @ApiOperation({ summary: 'Actualizar un usuario por su ID' })
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBody({
-    schema: {
-      properties: {
-        userName: { type: 'string' },
-      },
-      required: ['userName'],
-    },
-  })
-  update(@Param('id', ParseIntPipe) id: string, @Body('userName') userName: string): UpdateUserResponseDto {
-    const updateUserDto: UpdateUserDto = { userName };
-    this.userService.update(+id, updateUserDto);
-    return { message: 'Usuario Actualizado' };
+  @ApiBody({ type: UpdateUserDto })
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -120,6 +108,6 @@ export class UserController {
   @ApiOperation({ summary: 'Eliminar usuario por su ID' })
   @UseGuards(JwtAuthGuard)
   remove(@Param('id', ParseIntPipe) id: string) {
-    return this.userService.remove(+id);
+    return this.userService.remove(id);
   }
 }

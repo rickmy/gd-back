@@ -7,7 +7,6 @@ import {
   Delete,
   Put,
   UseGuards,
-  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -28,7 +27,7 @@ import { PaginationOptions } from 'src/core/models/paginationOptions';
 @ApiTags('role')
 @Controller('role')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) { }
+  constructor(private readonly roleService: RoleService) {}
 
   @Post()
   @ApiOkResponse({ description: 'Rol creado', type: CreateRoleDto })
@@ -62,21 +61,21 @@ export class RoleController {
     description: 'Rol encontrado',
   })
   @ApiOperation({ summary: 'Encontrar un rol por su ID' })
-  findOne(@Param('id', ParseIntPipe) id: string) {
-    return this.roleService.findRoleWithPermissions(+id);
+  findOne(@Param('id') id: string) {
+    return this.roleService.findRoleWithPermissions(id);
   }
 
   @Put(':id')
   @ApiOkResponse({ type: CreateRoleDto, description: 'Rol actualizado' })
   @ApiOperation({ summary: 'Actualizar un rol por su ID' })
-  update(@Param('id', ParseIntPipe) id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.roleService.update(+id, updateRoleDto);
+  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+    return this.roleService.update(id, updateRoleDto);
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: CreateRoleDto, description: 'Rol eliminado' })
   @ApiOperation({ summary: 'Eliminar un rol por su ID' })
-  remove(@Param('id', ParseIntPipe) id: string) {
-    return this.roleService.remove(+id);
+  remove(@Param('id') id: string) {
+    return this.roleService.remove(id);
   }
 }

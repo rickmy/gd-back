@@ -1,13 +1,13 @@
 import { RolHasPermission } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 export class RoleHasPermissionEntity implements RolHasPermission {
-  @ApiProperty({ example: '1', description: 'Rol ID' })
-  idRol: number;
-  @ApiProperty({ example: '1', description: 'Permiso ID' })
-  idPermission: number;
-  @ApiProperty({ example: '1', description: 'Role has permission ID' })
-  id: number;
+  rolId: string;
+  @ApiProperty({ description: 'ID of the permission' })
+  permissionId: string;
+  @ApiProperty({ description: 'Creation date', readOnly: true })
   createdAt: Date;
+  @ApiProperty({ description: 'Update date', readOnly: true })
   updatedAt: Date;
+  @ApiProperty({ description: 'State of the permission' })
   state: boolean;
 }

@@ -5,6 +5,7 @@ import {
   HttpStatus,
   BadRequestException,
   Logger,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { MailService } from 'src/modules/mail/mail.service';
 import { PayloadModel } from './models/payloadModel';
@@ -15,6 +16,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import * as bcrypt from 'bcrypt';
+import { RegisterDto } from './dto/register.dto';
 @Injectable()
 export class AuthService {
   private logger = new Logger(AuthService.name);
@@ -40,13 +42,41 @@ export class AuthService {
       throw new BadRequestException('Credenciales invalidas');
     }
     const payload: PayloadModel = {
-      id: user.id,
+      id: user.userId,
       email: user.email,
       role: user.rolId,
     };
     user.password = undefined;
     this.logger.log(`Login success for ${credentials.email}`);
     return { accessToken: await this.createToken(payload) };
+  }
+
+  async register(register: RegisterDto): Promise<ResponseAuthModel> {
+    const { email } = register;
+    const existEmail = await this._userService.findByEmail(email);
+    if (existEmail)
+      throw new UnprocessableEntityException('El usuario ya existe');
+    const salt = bcrypt.genSaltSync(10);
+    const password = this.hashPassword(register.password, salt);
+    try {
+      this.logger.log('Creando usuario');
+      const newUser = await this._userService.create({
+        ...register,
+        password,
+        completeName: `${register.name} ${register.lastName}`,
+        salt,
+      });
+      const payload: PayloadModel = {
+        id: newUser.userId,
+        email: newUser.email,
+        role: newUser.rolId,
+      };
+      this.logger.log(`Login success for ${register.email}`);
+      return { accessToken: await this.createToken(payload) };
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
   async createToken(payload: PayloadModel): Promise<string> {
@@ -117,9 +147,15 @@ export class AuthService {
           'El usuario se encuentra inactivo/bloqueado',
           HttpStatus.CONFLICT,
         );
+      const salt = bcrypt.genSaltSync(10);
+      const newPassword = bcrypt.hashSync(
+        this.hashPassword(resetPasswordDto.newPassword, salt),
+        salt,
+      );
       const ok = await this._userService.updatePassword(
         userExist.userId,
-        resetPasswordDto.newPassword,
+        newPassword,
+        salt,
       );
       if (!ok)
         throw new HttpException(
@@ -154,9 +190,15 @@ export class AuthService {
         'La contraseña actual no coincide',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
+    const salt = bcrypt.genSaltSync(10);
+    const newPassword = bcrypt.hashSync(
+      this.hashPassword(changePasswordDto.newPassword, salt),
+      salt,
+    );
     const changed = await this._userService.updatePassword(
       userExist.userId,
-      changePasswordDto.newPassword,
+      newPassword,
+      salt,
     );
     if (!changed)
       throw new HttpException(
@@ -177,5 +219,9 @@ export class AuthService {
     storedPasswordHash: string,
   ): Promise<boolean> {
     return bcrypt.compareSync(password, storedPasswordHash);
+  }
+
+  hashPassword(password: string, salt: string): string {
+    return bcrypt.hashSync(password, salt);
   }
 }

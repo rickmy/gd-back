@@ -21,23 +21,18 @@ export class UserService {
   constructor(private _prismaService: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<User | null> {
-    const { dni, email } = createUserDto;
-    const existDni = await this.findByDni(dni);
-    if (existDni)
-      throw new UnprocessableEntityException('El usuario ya existe');
-    const existEmail = await this.findByEmail(email);
-    if (existEmail)
-      throw new UnprocessableEntityException('El usuario ya existe');
-    const password = this.hashPassword(createUserDto.password);
-    const salt = bcrypt.genSaltSync(10);
-    createUserDto.password = bcrypt.hashSync(password, salt);
     try {
       this.logger.log('Creando usuario');
       const newUser = this._prismaService.user.create({
         data: {
-          ...createUserDto,
-          completeName: `${createUserDto.name} ${createUserDto.lastName}`,
-          salt,
+          name: createUserDto.name,
+          lastName: createUserDto.lastName,
+          email: createUserDto.email,
+          dni: '',
+          password: createUserDto.password,
+          salt: createUserDto.salt,
+          rolId: createUserDto.rolId,
+          completeName: createUserDto.completeName,
         },
       });
       this.logger.log('Usuario creado');
@@ -61,10 +56,6 @@ export class UserService {
       throw new HttpException('Usuario no existe', HttpStatus.UNAUTHORIZED);
     }
     return !!user;
-  }
-
-  hashPassword(password: string): string {
-    return bcrypt.hashSync(password, 10);
   }
 
   async findAll(
@@ -267,20 +258,20 @@ export class UserService {
     }
   }
 
-  async updatePassword(userId: string, password: string): Promise<User | null> {
+  async updatePassword(
+    userId: string,
+    password: string,
+    salt: string,
+  ): Promise<User | null> {
     try {
       const user = await this.findOne(userId);
       if (!user) throw new UnprocessableEntityException('El usuario no existe');
-
-      const salt = bcrypt.genSaltSync(10);
-      const newPassword = bcrypt.hashSync(this.hashPassword(password), salt);
-
       const updatedUser = await this._prismaService.user.update({
         where: {
           userId,
         },
         data: {
-          password: this.hashPassword(newPassword),
+          password,
           salt,
         },
       });

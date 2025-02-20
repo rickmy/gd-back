@@ -14,6 +14,9 @@ import {
 import { Request } from 'express';
 import { UploadFilesModule } from './modules/upload-files/upload-files.module';
 import { UnauthorizedExceptionFilter } from './core/filters/UnauthorizedException.filter';
+import { InstituteModule } from './modules/institute/institute.module';
+import { CareerModule } from './modules/career/career.module';
+import { DocumentModule } from './modules/document/document.module';
 
 @Module({
   imports: [
@@ -48,6 +51,9 @@ import { UnauthorizedExceptionFilter } from './core/filters/UnauthorizedExceptio
       },
     }),
     UploadFilesModule,
+    InstituteModule,
+    CareerModule,
+    DocumentModule,
   ],
   controllers: [],
   providers: [

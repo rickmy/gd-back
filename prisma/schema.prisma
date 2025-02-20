@@ -11,23 +11,27 @@ datasource db {
 }
 
 model User {
-  id             Int      @default(autoincrement())
-  userId         String   @id @default(uuid())
-  dni            String   @unique
+  id             Int             @default(autoincrement())
+  userId         String          @id @default(uuid())
+  dni            String          @unique
   name           String
   secondName     String?
   lastName       String
   secondLastName String?
   completeName   String
-  email          String   @unique
+  email          String          @unique
   password       String
   salt           String
   phone          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  state          Boolean  @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  state          Boolean         @default(true)
   rolId          String
-  rol            Rol      @relation(fields: [rolId], references: [rolId])
+  rol            Rol             @relation(fields: [rolId], references: [rolId])
+  documents      Document[]
+  userHasCareer  UserHasCareer[]
+
+  @@index([dni, email])
 }
 
 model Rol {
@@ -61,7 +65,7 @@ model Resource {
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   state      Boolean      @default(true)
-  Permission Permission[]
+  permission Permission[]
 }
 
 model RolHasPermission {
@@ -74,4 +78,96 @@ model RolHasPermission {
   state        Boolean    @default(true)
 
   @@id([rolId, permissionId])
+}
+
+model Career {
+  id               Int             @default(autoincrement())
+  careerId         String          @id @default(uuid())
+  code             String          @unique
+  codeAuth         String          @unique
+  resolutionNumber String          @unique
+  name             String
+  titleAwarded     String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  state            Boolean         @default(true)
+  instituteId      String
+  institute        Institute       @relation(fields: [instituteId], references: [instituteId])
+  modalityId       String
+  modality         Modality        @relation(fields: [modalityId], references: [modalityId])
+  typeCareerId     String
+  typeCareer       TypeCareer      @relation(fields: [typeCareerId], references: [typeCareerId])
+  userHasCareer    UserHasCareer[]
+}
+
+model UserHasCareer {
+  userId    String
+  careerId  String
+  user      User     @relation(fields: [userId], references: [userId])
+  career    Career   @relation(fields: [careerId], references: [careerId])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  state     Boolean  @default(true)
+
+  @@id([userId, careerId])
+}
+
+model Institute {
+  id          Int      @default(autoincrement())
+  instituteId String   @id @default(uuid())
+  code        String   @unique
+  codeAuth    String   @unique
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  state       Boolean  @default(true)
+  careers     Career[]
+}
+
+model Modality {
+  id         Int      @default(autoincrement())
+  modalityId String   @id @default(uuid())
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  state      Boolean  @default(true)
+  careers    Career[]
+}
+
+model TypeCareer {
+  id           Int      @default(autoincrement())
+  typeCareerId String   @id @default(uuid())
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  state        Boolean  @default(true)
+  careers      Career[]
+}
+
+model Document {
+  id         Int      @default(autoincrement())
+  documentId String   @id @default(uuid())
+  code       String   @unique
+  name       String
+  path       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  state      Boolean  @default(true)
+  typeDocId  String
+  typeDoc    TypeDoc  @relation(fields: [typeDocId], references: [typeDocId])
+  userId     String
+  user       User     @relation(fields: [userId], references: [userId])
+}
+
+model TypeDoc {
+  id        Int        @default(autoincrement())
+  typeDocId String     @id @default(uuid())
+  name      String
+  header    String?
+  content   String?
+  footer    String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  state     Boolean    @default(true)
+  documents Document[]
 }

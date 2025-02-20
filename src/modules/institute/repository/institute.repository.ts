@@ -1,25 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Institute, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { getSkip, getTake } from 'src/core/utils/pagination.utils';
+import { InstituteEntity } from '../entities/institute.entity';
+import { CreateInstituteDto } from '../dto/create-institute.dto';
+import { UpdateInstituteDto } from '../dto/update-institute.dto';
 
 @Injectable()
 export class InstituteRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(instituteData: any): Promise<Institute> {
+  async create(instituteData: CreateInstituteDto): Promise<InstituteEntity> {
     return this.prismaService.institute.create({
       data: instituteData,
     });
   }
 
-  async findByCode(code: string): Promise<Institute | null> {
+  async findByCode(code: string): Promise<InstituteEntity | null> {
     return this.prismaService.institute.findUnique({
       where: { code },
     });
   }
 
-  async findById(instituteId: string): Promise<Institute | null> {
+  async findById(instituteId: string): Promise<InstituteEntity | null> {
     return this.prismaService.institute.findUnique({
       where: { instituteId },
     });
@@ -29,7 +32,7 @@ export class InstituteRepository {
     whereConditions: any,
     limit: number,
     page: number,
-  ): Promise<Institute[]> {
+  ): Promise<InstituteEntity[]> {
     return this.prismaService.institute.findMany({
       where: whereConditions,
       orderBy: {
@@ -40,14 +43,17 @@ export class InstituteRepository {
     });
   }
 
-  async update(instituteId: string, updateData: any): Promise<Institute> {
+  async update(
+    instituteId: string,
+    updateData: UpdateInstituteDto,
+  ): Promise<InstituteEntity> {
     return this.prismaService.institute.update({
       where: { instituteId },
       data: updateData,
     });
   }
 
-  async softDelete(instituteId: string): Promise<Institute> {
+  async softDelete(instituteId: string): Promise<InstituteEntity> {
     return this.prismaService.institute.update({
       where: { instituteId },
       data: { state: false },

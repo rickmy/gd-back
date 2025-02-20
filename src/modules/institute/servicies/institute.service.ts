@@ -77,15 +77,15 @@ export class InstituteService {
   async update(
     instituteId: string,
     updateInstituteDto: UpdateInstituteDto,
-  ): Promise<string> {
+  ): Promise<HttpException> {
     await this.instituteValidator.validateCodeNotExist(updateInstituteDto.code);
     await this.instituteRepository.update(instituteId, updateInstituteDto);
-    return 'Institute updated successfully';
+    return new HttpException('Institute updated successfully', HttpStatus.OK);
   }
 
-  async remove(instituteId: string): Promise<string> {
+  async remove(instituteId: string): Promise<HttpException> {
     await this.instituteRepository.softDelete(instituteId);
-    return 'Institute deleted successfully';
+    return new HttpException('Institute deleted successfully', HttpStatus.OK);
   }
 
   private buildWhereConditions(

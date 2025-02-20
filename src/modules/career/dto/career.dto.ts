@@ -1,17 +1,15 @@
-import { Career } from '@prisma/client';
-
-export class CareerEntity implements Career {
-  id: number;
+export class CareerDto {
   careerId: string;
   code: string;
   codeAuth: string;
   resolutionNumber: string;
   name: string;
   titleAwarded: string;
-  createdAt: Date;
-  updatedAt: Date;
   state: boolean;
   instituteId: string;
+  institute: string;
   modalityId: string;
+  modality: string;
   typeCareerId: string;
+  typeCareer: string;
 }

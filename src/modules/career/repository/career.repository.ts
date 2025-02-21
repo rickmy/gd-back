@@ -1,9 +1,11 @@
-import { PrismaService } from '@prisma/prisma.service';
 import { CareerEntity } from '../entities/career.entity';
 import { CreateCareerDto } from '../dto/create-career.dto';
 import { Prisma } from '@prisma/client';
 import { getSkip, getTake } from '@core/utils/pagination.utils';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class CareerRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
@@ -56,6 +58,11 @@ export class CareerRepository {
       },
       take: getTake(limit, whereConditions),
       skip: getSkip(page, whereConditions),
+      include: {
+        institute: true,
+        modality: true,
+        typeCareer: true,
+      },
     });
   }
 

@@ -18,7 +18,7 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
       statusCode: HttpStatus.UNAUTHORIZED,
       message: '🚫 NO AUTORIZADO. 🚫',
       timestamp: date.toLocaleString(),
-      currentId: request['X-Request-Id'],
+      requestId: request['X-Request-Id'],
       path: request.url,
       method: request.method,
     });

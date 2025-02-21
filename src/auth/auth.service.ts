@@ -217,6 +217,7 @@ export class AuthService {
 
   async validateToken(payload: PayloadModel): Promise<boolean> {
     const hasUser = await this._userService.validateUser(payload);
+    console.log('hasUser', hasUser);
     //if (!hasPermission) throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
     return hasUser;
   }

@@ -1,7 +1,7 @@
 import { CareerDto } from '../dto/career.dto';
 import { CareerEntity } from '../entities/career.entity';
 
-export const careerMapper = (
+export const mapCareerMapper = (
   entity: CareerEntity,
   institute: string,
   modality: string,

@@ -39,7 +39,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? `Ah ocurrido un error en el servidor, por favor contacte al administrador. Error: #${request['X-Request-Id']}`
           : errorMsg.message || errorMsg,
       timestamp: date.toLocaleString(),
-      currentId: request['X-Request-Id'],
+      requestId: request['X-Request-Id'],
       path: request.url,
       method: request.method,
     };
@@ -48,8 +48,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorResponse.method
     } - Path: ${errorResponse.path} - Message: ${JSON.stringify(
       errorMsg,
-    )} - Timestamp: ${errorResponse.timestamp} - currentId: ${
-      errorResponse.currentId
+    )} - Timestamp: ${errorResponse.timestamp} - requestId: ${
+      errorResponse.requestId
     }`;
 
     logger.error(errorLog);

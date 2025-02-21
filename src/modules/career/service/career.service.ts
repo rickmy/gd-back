@@ -8,12 +8,12 @@ import { CreateCareerDto } from '../dto/create-career.dto';
 import { UpdateCareerDto } from '../dto/update-career.dto';
 import { CareerRepository } from '../repository/career.repository';
 import { FilterCareerDto } from '../dto/filter-career.dto';
-import { mapInstituteToDto } from '@modules/institute/mappers/institute.mapper';
 import {
   buildContainsCondition,
   buildContainsNameCondition,
   buildWhereConditions,
 } from '@core/utils/buildWhereCondition.utils';
+import { mapCareerMapper } from '../mappers/career.mapper';
 
 @Injectable()
 export class CareerService {
@@ -30,22 +30,29 @@ export class CareerService {
   async findAll(options: FilterCareerDto, allActive?: boolean) {
     try {
       const { page, limit } = options;
+      console.log(options);
 
       const whereConditions = this.buildWhereConditions(options, allActive);
 
-      const institutes = await this.careerRepository.findAll(
+      console.log(whereConditions);
+
+      const careers = await this.careerRepository.findAll(
         whereConditions,
         limit,
         page,
       );
 
-      if (!institutes)
-        throw new HttpException(
-          'No se encontraron usuarios',
-          HttpStatus.NO_CONTENT,
-        );
+      if (!careers)
+        throw new HttpException('Not found careers', HttpStatus.NO_CONTENT);
       return {
-        results: institutes.map(mapInstituteToDto),
+        results: careers.map((career) =>
+          mapCareerMapper(
+            career,
+            'career.institute',
+            'career.modality',
+            'career.typeCareer',
+          ),
+        ),
         total: await this.careerRepository.getTotalCount(allActive),
         page,
         limit,

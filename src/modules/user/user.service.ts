@@ -9,7 +9,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 import { PayloadModel } from 'src/auth/models/payloadModel';
 import { UserDto } from './dto/user.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
@@ -44,13 +43,6 @@ export class UserService {
       this.logger.error(error);
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
-  }
-
-  async comparePassword(
-    password: string,
-    storedPasswordHash: string,
-  ): Promise<boolean> {
-    return bcrypt.compareSync(password, storedPasswordHash);
   }
 
   async validateUser(payload: PayloadModel): Promise<boolean> {

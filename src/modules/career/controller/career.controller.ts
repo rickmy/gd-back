@@ -46,7 +46,7 @@ export class CareerController {
   })
   @ApiOperation({ summary: 'Find all Careers' })
   @UseGuards(JwtAuthGuard)
-  @Post()
+  @Post('all')
   findAll(@Body() options: FilterCareerDto) {
     return this.careerService.findAll(options);
   }

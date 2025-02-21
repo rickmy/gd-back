@@ -13,7 +13,6 @@
     "paths": {
       "@core/*": ["./src/core/*"],
       "@auth/*": ["./src/auth/*"],
-      "@prisma/*": ["./src/prisma/*"],
       "@modules/*": ["./src/modules/*"]
     },
     "incremental": true,

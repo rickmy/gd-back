@@ -24,17 +24,23 @@ export class CareerService {
       createCareerDto.resolutionNumber,
       createCareerDto.codeAuth,
     );
-    return this.careerRepository.create(createCareerDto);
+    const career = await this.careerRepository.create(createCareerDto);
+    if (!career) {
+      throw new HttpException('Career not created', HttpStatus.BAD_REQUEST);
+    }
+    return mapCareerMapper(
+      career,
+      career.institute.name,
+      career.modality.name,
+      career.typeCareer.name,
+    );
   }
 
   async findAll(options: FilterCareerDto, allActive?: boolean) {
     try {
       const { page, limit } = options;
-      console.log(options);
 
       const whereConditions = this.buildWhereConditions(options, allActive);
-
-      console.log(whereConditions);
 
       const careers = await this.careerRepository.findAll(
         whereConditions,
@@ -48,9 +54,9 @@ export class CareerService {
         results: careers.map((career) =>
           mapCareerMapper(
             career,
-            'career.institute',
-            'career.modality',
-            'career.typeCareer',
+            career.institute.name,
+            career.modality.name,
+            career.typeCareer.name,
           ),
         ),
         total: await this.careerRepository.getTotalCount(allActive),

@@ -1,6 +1,6 @@
 import { CareerEntity } from '../entities/career.entity';
 import { CreateCareerDto } from '../dto/create-career.dto';
-import { Prisma } from '@prisma/client';
+import { Career, Prisma } from '@prisma/client';
 import { getSkip, getTake } from '@core/utils/pagination.utils';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
@@ -9,9 +9,14 @@ import { Injectable } from '@nestjs/common';
 export class CareerRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(careerData: CreateCareerDto): Promise<CareerEntity> {
+  async create(careerData: CreateCareerDto) {
     return this.prismaService.career.create({
       data: careerData,
+      include: {
+        institute: true,
+        modality: true,
+        typeCareer: true,
+      },
     });
   }
 
@@ -46,11 +51,7 @@ export class CareerRepository {
     });
   }
 
-  async findAll<T>(
-    whereConditions: T,
-    limit: number,
-    page: number,
-  ): Promise<CareerEntity[]> {
+  async findAll<T>(whereConditions: T, limit: number, page: number) {
     return this.prismaService.career.findMany({
       where: whereConditions,
       orderBy: {

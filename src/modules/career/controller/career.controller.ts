@@ -31,7 +31,7 @@ export class CareerController {
 
   @ApiOkResponse({
     description: 'Career created successfully',
-    type: CreateCareerDto,
+    type: CareerDto,
   })
   @ApiOperation({ summary: 'Create Career' })
   @UseGuards(JwtAuthGuard)
@@ -68,7 +68,7 @@ export class CareerController {
 
   @ApiOkResponse({
     description: 'Career updated successfully',
-    type: UpdateCareerDto,
+    type: CareerDto,
   })
   @ApiOperation({ summary: 'Update Career by id' })
   @UseGuards(JwtAuthGuard)

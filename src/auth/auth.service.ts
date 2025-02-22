@@ -54,6 +54,7 @@ export class AuthService {
       accessToken: await this.createToken(payload),
       user: {
         id: user.userId,
+        dni: user.dni,
         name: user.name,
         lastName: user.lastName,
         completeName: user.completeName,

@@ -58,7 +58,7 @@ export class CareerRepository {
         createdAt: Prisma.SortOrder.desc,
       },
       take: getTake(limit, whereConditions),
-      skip: getSkip(page, whereConditions),
+      skip: getSkip(page, limit, whereConditions),
       include: {
         institute: true,
         modality: true,

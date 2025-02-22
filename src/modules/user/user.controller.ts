@@ -68,7 +68,7 @@ export class UserController {
 
   @ApiOkResponse({
     description: 'Usuario encontrado',
-    type: UserEntity,
+    type: UserDto,
   })
   @ApiNoContentResponse({
     description: 'Usuario no encontrado',
@@ -98,7 +98,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   @ApiOperation({ summary: 'Eliminar usuario por su ID' })
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id', ParseIntPipe) id: string) {
+  remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }
 }

@@ -28,8 +28,8 @@ export class InstituteRepository {
     });
   }
 
-  async findAll(
-    whereConditions: any,
+  async findAll<T>(
+    whereConditions: T,
     limit: number,
     page: number,
   ): Promise<InstituteEntity[]> {
@@ -39,7 +39,7 @@ export class InstituteRepository {
         createdAt: Prisma.SortOrder.desc,
       },
       take: getTake(limit, whereConditions),
-      skip: getSkip(page, whereConditions),
+      skip: getSkip(page, limit, whereConditions),
     });
   }
 

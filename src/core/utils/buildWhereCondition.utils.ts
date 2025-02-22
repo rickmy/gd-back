@@ -30,6 +30,7 @@ export function buildWhereConditions(
     [keyId]: buildContainsCondition(options.identification),
     name: buildContainsCondition(options.name),
     code: buildContainsCondition(options.code),
+    email: buildContainsCondition(options.email),
   };
   return filters;
 }

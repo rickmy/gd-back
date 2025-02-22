@@ -9,9 +9,10 @@ export const getTake = (
 
 export const getSkip = (
   page: number,
+  limit: number,
   whereConditions: any,
 ): number | undefined => {
   return Object.values(whereConditions).some((val) => val !== undefined)
     ? undefined
-    : page;
+    : page * limit;
 };

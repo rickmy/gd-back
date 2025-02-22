@@ -17,6 +17,8 @@ import { CredentialsDto } from './dto/credentials.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterBasicDto } from './dto/register-basic.dto';
+import { UserDto } from '@modules/user/dto/user.dto';
 @Injectable()
 export class AuthService {
   private logger = new Logger(AuthService.name);
@@ -80,6 +82,31 @@ export class AuthService {
       });
       this.logger.log(`Login success for ${register.email}`);
       return new HttpException('Usuario creado', HttpStatus.CREATED);
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async registerBasic(register: RegisterBasicDto): Promise<UserDto> {
+    const { email, dni } = register;
+    const existEmail = await this._userService.findByEmail(email);
+    if (existEmail)
+      throw new UnprocessableEntityException('El usuario ya existe');
+    const existDni = await this._userService.findByDni(dni);
+    if (existDni) throw new UnprocessableEntityException('El DNI ya existe');
+    const salt = bcrypt.genSaltSync(10);
+    const password = this.hashPassword(register.dni, salt);
+    try {
+      this.logger.log('Creando usuario');
+      const user = await this._userService.create({
+        ...register,
+        password,
+        completeName: `${register.name} ${register.lastName}`,
+        salt,
+      });
+      this.logger.log(`Login success for ${register.email}`);
+      return user;
     } catch (error) {
       this.logger.error(error);
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
@@ -216,10 +243,7 @@ export class AuthService {
   }
 
   async validateToken(payload: PayloadModel): Promise<boolean> {
-    const hasUser = await this._userService.validateUser(payload);
-    console.log('hasUser', hasUser);
-    //if (!hasPermission) throw new UnauthorizedException('🚫 NO AUTORIZADO. 🚫');
-    return hasUser;
+    return await this._userService.validateUser(payload);
   }
 
   async comparePassword(

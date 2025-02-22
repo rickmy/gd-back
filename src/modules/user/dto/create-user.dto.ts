@@ -1,7 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserDto {
+  @ApiProperty({
+    example: '12345678',
+    description: 'Cédula/Pasaporte',
+    required: false,
+    type: 'string',
+  })
+  @IsString({ message: 'el campo debe ser un string', always: false })
+  @IsOptional()
+  dni?: string;
   @ApiProperty({
     example: 'hector.ruiz',
     description: 'Nombre de usuario',
@@ -42,6 +51,6 @@ export class CreateUserDto {
     type: 'string',
   })
   salt: string;
-  @ApiProperty({ example: '1', description: 'Rol', type: 'number' })
+  @ApiProperty({ example: '1', description: 'Rol' })
   rolId: string;
 }

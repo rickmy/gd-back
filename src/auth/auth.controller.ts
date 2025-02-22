@@ -13,6 +13,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResponseAuthModel } from './models/responseAuth';
 import { JwtAuthGuard } from './guards/auth/auth.guard';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterBasicDto } from './dto/register-basic.dto';
+import { UserDto } from '@modules/user/dto/user.dto';
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
@@ -31,6 +33,21 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   login(@Body() credentials: CredentialsDto) {
     return this.authService.login(credentials);
+  }
+
+  @Post('register-basic')
+  @ApiOperation({ summary: 'Registro bsico' })
+  @ApiBody({
+    type: RegisterBasicDto,
+    description: 'Datos del usuario a registrar',
+  })
+  @ApiOkResponse({
+    description: 'Usuario registrado correctamente',
+    type: UserDto,
+  })
+  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
+  registerBasic(@Body() credentials: RegisterBasicDto) {
+    return this.authService.registerBasic(credentials);
   }
 
   @Post('register')

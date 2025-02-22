@@ -10,7 +10,6 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiBearerAuth,
@@ -33,14 +32,6 @@ import { PaginationResult } from 'src/core/models/paginationResult';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @ApiOkResponse({ description: 'Usuario Creado', type: CreateUserDto })
-  @ApiOperation({ summary: 'Crear usuario' })
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
-
   @Post('all')
   @ApiOkResponse({
     description: 'Usuarios encontrados',

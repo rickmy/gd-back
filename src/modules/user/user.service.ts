@@ -13,21 +13,22 @@ import { PayloadModel } from 'src/auth/models/payloadModel';
 import { UserDto } from './dto/user.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { mapUser } from './mapper/user.mapper';
 
 @Injectable()
 export class UserService {
   private logger = new Logger(UserService.name);
   constructor(private _prismaService: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User | null> {
+  async create(createUserDto: CreateUserDto): Promise<UserDto | null> {
     try {
       this.logger.log('Creando usuario');
-      const newUser = this._prismaService.user.create({
+      const newUser = await this._prismaService.user.create({
         data: {
           name: createUserDto.name,
           lastName: createUserDto.lastName,
           email: createUserDto.email,
-          dni: '',
+          dni: createUserDto.dni,
           password: createUserDto.password,
           salt: createUserDto.salt,
           rolId: createUserDto.rolId,
@@ -38,7 +39,7 @@ export class UserService {
         },
       });
       this.logger.log('Usuario creado');
-      return newUser;
+      return mapUser(newUser, newUser.rol.name);
     } catch (error) {
       this.logger.error(error);
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);

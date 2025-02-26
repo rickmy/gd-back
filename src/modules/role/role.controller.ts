@@ -24,8 +24,8 @@ import { PaginationOptions } from 'src/core/models/paginationOptions';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@ApiTags('role')
-@Controller('role')
+@ApiTags('rol')
+@Controller('rol')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 

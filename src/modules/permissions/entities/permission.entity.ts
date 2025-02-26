@@ -17,11 +17,11 @@ export class PermissionEntity implements Permission {
   })
   resourceId: string;
   @ApiProperty({
-    example: 'Super usuario',
-    description: 'Permission name',
+    example: 'abc123',
+    description: 'action identifier',
     readOnly: true,
   })
-  name: string;
+  actionId: string;
   @ApiProperty({
     example: 'http://proyecto.complexivo.com/student/ver-empresa',
     description: 'Endpoint name',

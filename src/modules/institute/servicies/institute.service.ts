@@ -8,11 +8,14 @@ import { CreateInstituteDto } from '../dto/create-institute.dto';
 import { UpdateInstituteDto } from '../dto/update-institute.dto';
 import { InstituteDto } from '../dto/institute.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
-import { Prisma } from '@prisma/client';
 import { FilterInstituteDto } from '../dto/filter.institute.dto';
 import { mapInstituteToDto } from '../mappers/institute.mapper';
 import { InstituteRepository } from '../repository/institute.repository';
 import { InstituteValidator } from '../validation/institute.validator';
+import {
+  buildContainsCondition,
+  buildWhereConditions,
+} from '@core/utils/buildWhereCondition.utils';
 
 @Injectable()
 export class InstituteService {
@@ -92,25 +95,10 @@ export class InstituteService {
     options: FilterInstituteDto,
     allActive?: boolean,
   ) {
-    const hasFilter =
-      !!options.name ||
-      !!options.identification ||
-      !!options.code ||
-      !!options.codeAuth;
+    const basicFilter = buildWhereConditions(options, allActive, 'instituteId');
     return {
-      state: allActive ? true : undefined,
-      name: hasFilter
-        ? { contains: options.name, mode: Prisma.QueryMode.insensitive }
-        : undefined,
-      code: hasFilter
-        ? {
-            contains: options.identification,
-            mode: Prisma.QueryMode.insensitive,
-          }
-        : undefined,
-      codeAuth: hasFilter
-        ? { contains: options.codeAuth, mode: Prisma.QueryMode.insensitive }
-        : undefined,
+      ...basicFilter,
+      codeAuth: buildContainsCondition(options.codeAuth),
     };
   }
 }

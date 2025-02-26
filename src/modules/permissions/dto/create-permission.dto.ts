@@ -2,12 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreatePermissionDto {
-  @IsString({ message: 'El nombre debe ser un string' })
-  @IsNotEmpty({ message: 'El nombre del permiso es requerido.' })
-  @ApiProperty({ description: 'name', example: 'Super Usuario' })
-  name: string;
-  @IsString({ message: 'El end point debe ser un string' })
-  @IsNotEmpty({ message: 'El end point es requerido.' })
+  @IsString({ message: 'la acción debe ser un string' })
+  @IsNotEmpty({ message: 'La acción es requerida.' })
+  @ApiProperty({ description: 'action', example: 'create' })
+  actionId: string;
+  @IsString({ message: 'el recurso debe ser un string' })
+  @IsNotEmpty({ message: 'El recurso es requerido.' })
   @ApiProperty({
     description: 'id del recurso',
     example: 'sdfsdfsd',

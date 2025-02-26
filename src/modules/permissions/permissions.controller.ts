@@ -13,7 +13,6 @@ import {
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
-import { PermissionEntity } from './entities/permission.entity';
 import {
   ApiTags,
   ApiResponse,
@@ -22,6 +21,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
+import { PermissionDto } from './dto/permission.dto';
 @ApiBearerAuth()
 @ApiTags('permissions')
 @Controller('permissions')
@@ -36,30 +36,30 @@ export class PermissionsController {
     description: 'Crea un nuevo permiso',
   })
   @ApiOperation({ summary: 'Crear permiso' })
-  create(@Body() permission: CreatePermissionDto): Promise<PermissionEntity> {
+  create(@Body() permission: CreatePermissionDto): Promise<PermissionDto> {
     return this.permissionsService.create(permission);
   }
 
   @Get()
   @ApiResponse({
-    type: PermissionEntity,
+    type: PermissionDto,
     status: 200,
     description: 'Obtiene todos los permisos',
   })
   @ApiOperation({ summary: 'Obtener todos los permisos' })
-  findAll(): Promise<CreatePermissionDto[]> {
+  findAll(): Promise<PermissionDto[]> {
     return this.permissionsService.findAll();
   }
 
   @Get(':id')
   @ApiResponse({
-    type: PermissionEntity,
+    type: PermissionDto,
     status: 200,
     description: 'Obtiene un permiso por su ID',
   })
   @ApiResponse({ status: 404, description: 'Permiso no encontrado' })
   @ApiOperation({ summary: 'Obtener permiso por su ID' })
-  findOne(@Param('id', ParseIntPipe) id: string): Promise<PermissionEntity> {
+  findOne(@Param('id') id: string): Promise<PermissionDto> {
     return this.permissionsService.findOne(id);
   }
 
@@ -74,7 +74,7 @@ export class PermissionsController {
   update(
     @Param('id', ParseIntPipe) id: string,
     @Body() permission: UpdatePermissionDto,
-  ): Promise<PermissionEntity> {
+  ): Promise<PermissionDto> {
     return this.permissionsService.update(id, permission);
   }
 

@@ -49,13 +49,24 @@ model Rol {
 model Permission {
   id               Int                @default(autoincrement())
   permissionId     String             @id @default(uuid())
-  name             String             @unique
+  actionId         String
+  action           Action             @relation(fields: [actionId], references: [actionId])
   resourceId       String
   resource         Resource           @relation(fields: [resourceId], references: [resourceId])
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   state            Boolean            @default(true)
   rolHasPermission RolHasPermission[]
+}
+
+model Action {
+  id         Int          @default(autoincrement())
+  actionId   String       @id @default(uuid())
+  name       String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  state      Boolean      @default(true)
+  Permission Permission[]
 }
 
 model Resource {

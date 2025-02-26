@@ -104,7 +104,7 @@ export class UserRepository {
   }
 
   async getTotalCount(allActive?: boolean): Promise<number> {
-    return this.prismaService.career.count({
+    return this.prismaService.user.count({
       where: { state: allActive ? true : undefined },
     });
   }

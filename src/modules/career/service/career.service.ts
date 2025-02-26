@@ -14,6 +14,7 @@ import {
   buildWhereConditions,
 } from '@core/utils/buildWhereCondition.utils';
 import { mapCareerMapper } from '../mappers/career.mapper';
+import { CareerDto } from '../dto/career.dto';
 
 @Injectable()
 export class CareerService {
@@ -69,24 +70,35 @@ export class CareerService {
   }
 
   async findOne(id: string) {
-    const career = this.careerRepository.findById(id);
+    const career = await this.careerRepository.findById(id);
     if (!career) {
       throw new HttpException('Career not found', HttpStatus.NOT_FOUND);
     }
-    return career;
+    return mapCareerMapper(
+      career,
+      career.institute.name,
+      career.modality.name,
+      career.typeCareer.name,
+    );
   }
 
   async update(
     id: string,
     updateCareerDto: UpdateCareerDto,
-  ): Promise<HttpException> {
+  ): Promise<CareerDto> {
     await this.validateCodeNotExist(
       updateCareerDto.code,
       updateCareerDto.resolutionNumber,
       updateCareerDto.codeAuth,
+      id,
     );
-    await this.careerRepository.update(id, updateCareerDto);
-    return new HttpException('Career updated successfully', HttpStatus.OK);
+    const career = await this.careerRepository.update(id, updateCareerDto);
+    return mapCareerMapper(
+      career,
+      career.institute.name,
+      career.modality.name,
+      career.typeCareer.name,
+    );
   }
 
   async remove(id: string) {
@@ -98,11 +110,13 @@ export class CareerService {
     code: string,
     resolutionNumber: string,
     codeAuth: string,
+    careerId?: string,
   ) {
     const career = await this.careerRepository.findByCondition(
       code,
       resolutionNumber,
       codeAuth,
+      careerId,
     );
     if (career) {
       throw new BadRequestException(

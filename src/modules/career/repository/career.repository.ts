@@ -4,6 +4,7 @@ import { Career, Prisma } from '@prisma/client';
 import { getSkip, getTake } from '@core/utils/pagination.utils';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { UpdateCareerDto } from '../dto/update-career.dto';
 
 @Injectable()
 export class CareerRepository {
@@ -30,17 +31,23 @@ export class CareerRepository {
     code: string,
     resolutionNumber: string,
     codeAuth: string,
+    careerId?: string,
   ): Promise<CareerEntity | null> {
     return this.prismaService.career.findFirst({
       where: {
         codeAuth,
         resolutionNumber,
         code,
+        careerId: !!careerId
+          ? {
+              not: careerId,
+            }
+          : undefined,
       },
     });
   }
 
-  async findById(careerId: string): Promise<CareerEntity | null> {
+  async findById(careerId: string) {
     return this.prismaService.career.findUnique({
       where: { careerId },
       include: {
@@ -67,10 +74,15 @@ export class CareerRepository {
     });
   }
 
-  async update(careerId: string, careerData: any): Promise<CareerEntity> {
+  async update(careerId: string, careerData: UpdateCareerDto) {
     return this.prismaService.career.update({
       where: { careerId },
       data: careerData,
+      include: {
+        institute: true,
+        modality: true,
+        typeCareer: true,
+      },
     });
   }
 

@@ -1,9 +1,15 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RoleWithPermission } from './dto/roleWithPermission.dto';
-import { PermissionEntity } from '../permissions/entities/permission.entity';
 import { RoleEntity } from './entities/role.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
@@ -11,6 +17,8 @@ import { ResourceRepository } from '@modules/permissions/repository/resource.rep
 import { mapRolToDto } from './mappers/mapRolToDto.mapper';
 import { mapPermissionToDto } from '@modules/permissions/mappers/permission.mapper';
 import { ResourceWithPermission } from '@modules/permissions/dto/resource-with-permission.dto';
+import { RolRepository } from './repository/rol.repository';
+import { CreateRoleHasPermissionDto } from './dto/create-role-has-permission.dto';
 
 @Injectable()
 export class RoleService {
@@ -18,52 +26,35 @@ export class RoleService {
   constructor(
     private _prismaService: PrismaService,
     private _resourceRepository: ResourceRepository,
+    private _rolRepository: RolRepository,
   ) {}
 
-  async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
+  async create(createRoleDto: CreateRoleDto): Promise<RoleWithPermission> {
     const { code, name, permissions } = createRoleDto;
-    const roleExist = await this._prismaService.rol.findFirst({
-      where: {
-        OR: [
-          {
-            code,
-          },
-          {
-            name,
-          },
-        ],
-      },
-    });
-    if (roleExist)
-      throw new HttpException('El rol ya existe', HttpStatus.BAD_REQUEST);
-    const role = await this._prismaService.rol.create({
-      data: {
-        code,
-        name,
-      },
-    });
+    await this.validateCodeNotExist(code, name);
+    const role = await this._rolRepository.create(code, name);
     if (!role)
       throw new HttpException(
         'Error al crear el rol',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    const rolHasPermission = permissions.map((permission) => {
-      return {
-        permissionId: permission.permissionId,
-        state: permission.selected,
-        rolId: role.rolId,
-      };
-    });
+    const rolHasPermission: CreateRoleHasPermissionDto[] = permissions.map(
+      (permission) => {
+        return {
+          permissionId: permission.permissionId,
+          state: permission.selected,
+          rolId: role.rolId,
+        };
+      },
+    );
     const rolesWithPermission =
-      await this._prismaService.rolHasPermission.createMany({
-        data: rolHasPermission,
-      });
+      await this._rolRepository.createRolHasPermission(rolHasPermission);
     if (!rolesWithPermission)
       throw new HttpException(
         'Error al enlazar el rol con sus permisos',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
-    return new HttpException('Rol creado correctamente', 201);
+    return await this.findOne(role.rolId);
   }
 
   async findAll(
@@ -104,23 +95,13 @@ export class RoleService {
 
   async findOne(rolId: string): Promise<RoleWithPermission> {
     try {
-      const rol = await this._prismaService.rol.findFirstOrThrow({
-        where: {
-          rolId,
-        },
-        include: {
-          rolHasPermission: {
-            select: {
-              permissionId: true,
-              state: true,
-            },
-          },
-        },
-      });
+      const rol = await this._rolRepository.findOne(rolId);
+
+      if (!rol) throw new NotFoundException(`El rol con id ${rolId} no existe`);
+
       const permissionIds = rol.rolHasPermission.map(
         (permission) => permission.permissionId,
       );
-      if (!rol) throw new HttpException('El rol no existe', 404);
       const allPermission = await this._resourceRepository.findOneByPermissions(
         permissionIds,
       );
@@ -147,101 +128,54 @@ export class RoleService {
     }
   }
 
-  async findRoleByName(name: string): Promise<RoleEntity> {
-    try {
-      const nameRole = '%' + name + '%';
-      const role = await this._prismaService
-        .$queryRaw<RoleEntity>`SELECT * FROM "Rol" WHERE name LIKE ${nameRole}`;
-      if (!role) throw new HttpException('El rol no existe', 404);
-      this.logger.log('Rol encontrado');
-      return role;
-    } catch (error) {
-      throw new HttpException(error.message, error.status);
-    }
-  }
-
-  async findByCode(code: string): Promise<RoleEntity> {
-    try {
-      const role = await this._prismaService.rol.findFirst({
-        where: {
-          code,
-        },
-      });
-      if (!role) throw new HttpException('El rol no existe', 404);
-      this.logger.log('Rol encontrado');
-      return role;
-    } catch (error) {
-      throw new HttpException(error.message, error.status);
-    }
-  }
-
-  async findRoleWithPermissions(
-    rolId: string,
-    all?: boolean,
-  ): Promise<RoleWithPermission> {
-    const role = await this.findOne(rolId);
-    let permissionsWithRole = [];
-    try {
-      permissionsWithRole = await this._prismaService.rolHasPermission.findMany(
-        {
-          where: {
-            rolId,
-            state: all ? undefined : true,
-          },
-          include: {
-            permission: true,
-          },
-        },
+  async validateCodeNotExist(code: string, name: string, rolId?: string) {
+    const rol = await this._rolRepository.findByCondition(code, name, rolId);
+    if (rol) {
+      throw new BadRequestException(
+        `Rol with code ${code} or name: ${name} already exists`,
       );
-    } catch (error) {
-      throw new HttpException(error.message, error.status);
     }
-    const permissions: PermissionEntity[] = permissionsWithRole.map(
-      (permission) => {
-        return {
-          ...permission.permission,
-        };
-      },
-    );
-    return role;
   }
 
   async update(
     rolId: string,
     updateRoleDto: UpdateRoleDto,
   ): Promise<RoleWithPermission> {
-    return await this.findRoleWithPermissions(rolId);
-  }
+    await this.validateCodeNotExist(
+      updateRoleDto.code,
+      updateRoleDto.name,
+      rolId,
+    );
 
-  async updateOnlyRole(
-    rolId: string,
-    updateRoleDto: UpdateRoleDto,
-  ): Promise<RoleEntity> {
-    const { name } = updateRoleDto;
-    try {
-      return await this._prismaService.rol.update({
-        where: {
-          rolId,
-        },
-        data: {
-          name,
-        },
-      });
-    } catch (error) {
-      throw new HttpException(error.message, error.status);
-    }
+    const { permissions } = updateRoleDto;
+
+    const roleUpdate = await this._rolRepository.update(rolId, updateRoleDto);
+
+    if (!roleUpdate) throw new NotFoundException('Error al actualizar el rol');
+
+    const rolHasPermission: CreateRoleHasPermissionDto[] = permissions.map(
+      (permission) => {
+        return {
+          permissionId: permission.permissionId,
+          state: permission.selected,
+          rolId: rolId,
+        };
+      },
+    );
+
+    const rolesWithPermission =
+      await this._rolRepository.updateRolHasPermission(rolHasPermission);
+    if (!rolesWithPermission)
+      throw new HttpException(
+        'Error al enlazar el rol con sus permisos',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    return await this.findOne(rolId);
   }
 
   async remove(rolId: string): Promise<HttpException> {
     try {
-      await this._prismaService.rol.update({
-        where: {
-          rolId,
-        },
-        data: {
-          state: false,
-        },
-      });
+      await this._rolRepository.softDelete(rolId);
       return new HttpException('Rol eliminado correctamente', HttpStatus.OK);
     } catch (error) {
       throw new HttpException(error.message, error.status);

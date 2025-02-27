@@ -62,7 +62,7 @@ export class RoleController {
   })
   @ApiOperation({ summary: 'Encontrar un rol por su ID' })
   findOne(@Param('id') id: string) {
-    return this.roleService.findRoleWithPermissions(id);
+    return this.roleService.findOne(id);
   }
 
   @Put(':id')

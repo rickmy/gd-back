@@ -1,5 +1,5 @@
 import { ResourceWithPermission } from '@modules/permissions/dto/resource-with-permission.dto';
-import { IsArray, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsString } from 'class-validator';
 
 export class RoleWithPermission {
   @IsString({
@@ -14,6 +14,10 @@ export class RoleWithPermission {
     message: 'el nombre del rol debe ser un string',
   })
   name: string;
+  @IsBoolean({
+    message: 'el estado del rol debe ser un boolean',
+  })
+  state: boolean;
   @IsArray({
     message: 'los permisos deben ser un array',
   })

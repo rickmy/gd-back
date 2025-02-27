@@ -10,6 +10,7 @@ export const mapRolToDto = (
     rolId: rol.rolId,
     code: rol.code,
     name: rol.name,
+    state: rol.state,
     permissions: permission,
   };
 };

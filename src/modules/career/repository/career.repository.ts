@@ -1,6 +1,6 @@
 import { CareerEntity } from '../entities/career.entity';
 import { CreateCareerDto } from '../dto/create-career.dto';
-import { Career, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { getSkip, getTake } from '@core/utils/pagination.utils';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';

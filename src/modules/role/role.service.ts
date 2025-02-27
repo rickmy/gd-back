@@ -10,15 +10,17 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RoleWithPermission } from './dto/roleWithPermission.dto';
-import { RoleEntity } from './entities/role.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { ResourceRepository } from '@modules/permissions/repository/resource.repository';
-import { mapRolToDto } from './mappers/mapRolToDto.mapper';
 import { mapPermissionToDto } from '@modules/permissions/mappers/permission.mapper';
 import { ResourceWithPermission } from '@modules/permissions/dto/resource-with-permission.dto';
 import { RolRepository } from './repository/rol.repository';
 import { CreateRoleHasPermissionDto } from './dto/create-role-has-permission.dto';
+import { buildWhereConditions } from '@core/utils/buildWhereCondition.utils';
+import { RolDto } from './dto/rol.dto';
+import { mapRolToDto } from './mappers/mapRolToDto.mapper';
+import { mapRolWithPermissionToDto } from './mappers/mapRolWithPermissionToDto.mapper';
 
 @Injectable()
 export class RoleService {
@@ -60,34 +62,32 @@ export class RoleService {
   async findAll(
     options: PaginationOptions,
     allActive?: boolean,
-  ): Promise<PaginationResult<RoleEntity>> {
+  ): Promise<PaginationResult<RolDto>> {
     try {
       const { page, limit } = options;
 
-      const optionsWhere = {
-        state: allActive ? true : undefined,
-        name: options.name ? { contains: options.name } : undefined,
-        code: options.identification
-          ? { contains: options.identification }
-          : undefined,
-      };
+      const whereConditions = buildWhereConditions(options, allActive, 'rolId');
 
-      const hasFilter = !!options.name || !!options.identification;
+      const roles = await this._rolRepository.findAll(
+        whereConditions,
+        limit,
+        page,
+      );
 
-      const roles = await this._prismaService.rol.findMany({
-        where: optionsWhere,
-        take: hasFilter ? undefined : limit,
-        skip: hasFilter ? undefined : page,
-      });
-
-      const total = await this._prismaService.rol.count({
-        where: optionsWhere,
-      });
+      const total = await this._rolRepository.getTotalCount(allActive);
 
       if (!roles || roles.length === 0)
-        return new PaginationResult<RoleEntity>([], total, page, limit);
+        throw new HttpException(
+          'No se encontraron roles',
+          HttpStatus.NO_CONTENT,
+        );
 
-      return new PaginationResult<RoleEntity>(roles, total, page, limit);
+      return {
+        results: roles.map(mapRolToDto),
+        total: total,
+        page,
+        limit,
+      };
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
@@ -122,7 +122,7 @@ export class RoleService {
         });
       });
 
-      return mapRolToDto(rol, resourceWithPermission);
+      return mapRolWithPermissionToDto(rol, resourceWithPermission);
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }

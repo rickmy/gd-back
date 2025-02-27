@@ -1,16 +1,11 @@
-import { ResourceWithPermission } from '@modules/permissions/dto/resource-with-permission.dto';
-import { RoleWithPermission } from '../dto/roleWithPermission.dto';
 import { RoleEntity } from '../entities/role.entity';
+import { RolDto } from '../dto/rol.dto';
 
-export const mapRolToDto = (
-  rol: RoleEntity,
-  permission: ResourceWithPermission[],
-): RoleWithPermission => {
+export const mapRolToDto = (rol: RoleEntity): RolDto => {
   return {
     rolId: rol.rolId,
     code: rol.code,
     name: rol.name,
     state: rol.state,
-    permissions: permission,
   };
 };

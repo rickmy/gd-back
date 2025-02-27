@@ -2,10 +2,28 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRoleHasPermissionDto } from '../dto/create-role-has-permission.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
+import { RoleEntity } from '../entities/role.entity';
+import { Prisma } from '@prisma/client';
+import { getSkip, getTake } from '@core/utils/pagination.utils';
 
 @Injectable()
 export class RolRepository {
   constructor(private readonly _prismaService: PrismaService) {}
+
+  async findAll<T>(
+    whereConditions: T,
+    limit: number,
+    page: number,
+  ): Promise<RoleEntity[]> {
+    return this._prismaService.rol.findMany({
+      where: whereConditions,
+      orderBy: {
+        createdAt: Prisma.SortOrder.desc,
+      },
+      take: getTake(limit, whereConditions),
+      skip: getSkip(page, limit, whereConditions),
+    });
+  }
 
   async create(code: string, name: string) {
     return this._prismaService.rol.create({

@@ -19,6 +19,9 @@ import { CareerModule } from './modules/career/career.module';
 import { DocumentModule } from './modules/document/document.module';
 import { TypeCareerModule } from './modules/type-career/type-career.module';
 import { ModalityModule } from './modules/modality/modality.module';
+import { TypeDocumentModule } from './modules/type-document/type-document.module';
+import { TemplateDocumentModule } from './modules/template-document/template-document.module';
+import { DocumentComponentModule } from './modules/document-component/document-component.module';
 
 @Module({
   imports: [
@@ -58,6 +61,9 @@ import { ModalityModule } from './modules/modality/modality.module';
     DocumentModule,
     TypeCareerModule,
     ModalityModule,
+    TypeDocumentModule,
+    TemplateDocumentModule,
+    DocumentComponentModule,
   ],
   controllers: [],
   providers: [

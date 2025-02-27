@@ -159,15 +159,42 @@ model Document {
   id         Int      @default(autoincrement())
   documentId String   @id @default(uuid())
   code       String   @unique
-  name       String
   path       String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   state      Boolean  @default(true)
+  templateId String
+  template   Template @relation(fields: [templateId], references: [templateId])
   typeDocId  String
   typeDoc    TypeDoc  @relation(fields: [typeDocId], references: [typeDocId])
   userId     String
   user       User     @relation(fields: [userId], references: [userId])
+}
+
+model Template {
+  id                Int                 @default(autoincrement())
+  templateId        String              @id @default(uuid())
+  name              String
+  components        Json
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  state             Boolean             @default(true)
+  typeDocId         String
+  typeDoc           TypeDoc             @relation(fields: [typeDocId], references: [typeDocId])
+  Document          Document[]
+  DocumentComponent DocumentComponent[]
+}
+
+model DocumentComponent {
+  id                  Int      @default(autoincrement())
+  documentComponentId String   @id @default(uuid())
+  name                String   @unique
+  position            Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  state               Boolean  @default(true)
+  templateId          String
+  template            Template @relation(fields: [templateId], references: [templateId])
 }
 
 model TypeDoc {
@@ -181,4 +208,5 @@ model TypeDoc {
   updatedAt DateTime   @updatedAt
   state     Boolean    @default(true)
   documents Document[]
+  Template  Template[]
 }

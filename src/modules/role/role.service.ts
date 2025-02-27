@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -13,11 +7,18 @@ import { PermissionEntity } from '../permissions/entities/permission.entity';
 import { RoleEntity } from './entities/role.entity';
 import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
+import { ResourceRepository } from '@modules/permissions/repository/resource.repository';
+import { mapRolToDto } from './mappers/mapRolToDto.mapper';
+import { mapPermissionToDto } from '@modules/permissions/mappers/permission.mapper';
+import { ResourceWithPermission } from '@modules/permissions/dto/resource-with-permission.dto';
 
 @Injectable()
 export class RoleService {
   private logger = new Logger(RoleService.name);
-  constructor(private _prismaService: PrismaService) {}
+  constructor(
+    private _prismaService: PrismaService,
+    private _resourceRepository: ResourceRepository,
+  ) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<HttpException> {
     const { code, name, permissions } = createRoleDto;
@@ -48,7 +49,8 @@ export class RoleService {
       );
     const rolHasPermission = permissions.map((permission) => {
       return {
-        permissionId: permission,
+        permissionId: permission.permissionId,
+        state: permission.selected,
         rolId: role.rolId,
       };
     });
@@ -100,13 +102,46 @@ export class RoleService {
     }
   }
 
-  async findOne(rolId: string) {
+  async findOne(rolId: string): Promise<RoleWithPermission> {
     try {
-      return await this._prismaService.rol.findFirstOrThrow({
+      const rol = await this._prismaService.rol.findFirstOrThrow({
         where: {
           rolId,
         },
+        include: {
+          rolHasPermission: {
+            select: {
+              permissionId: true,
+              state: true,
+            },
+          },
+        },
       });
+      const permissionIds = rol.rolHasPermission.map(
+        (permission) => permission.permissionId,
+      );
+      if (!rol) throw new HttpException('El rol no existe', 404);
+      const allPermission = await this._resourceRepository.findOneByPermissions(
+        permissionIds,
+      );
+      const resourceWithPermission: ResourceWithPermission[] =
+        allPermission.map((permission) => ({
+          resource: permission.name,
+          permissions: permission.permission.map((perm) =>
+            mapPermissionToDto(perm, perm.action.name),
+          ),
+        }));
+
+      resourceWithPermission.forEach((src) => {
+        src.permissions.forEach((perm) => {
+          const exist = rol.rolHasPermission.find(
+            (p) => p.permissionId === perm.permissionId,
+          );
+          if (exist) perm.selected = exist.state;
+        });
+      });
+
+      return mapRolToDto(rol, resourceWithPermission);
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
@@ -168,70 +203,13 @@ export class RoleService {
         };
       },
     );
-    return {
-      role,
-      permissions,
-    };
+    return role;
   }
 
   async update(
     rolId: string,
     updateRoleDto: UpdateRoleDto,
   ): Promise<RoleWithPermission> {
-    const { permissions } = updateRoleDto;
-
-    const roleUpdate = await this.updateOnlyRole(rolId, updateRoleDto);
-
-    if (!roleUpdate) throw new NotFoundException('Error al actualizar el rol');
-
-    const permissionDB = (await this.findRoleWithPermissions(rolId, true))
-      .permissions;
-
-    const permissionDelete = permissionDB.filter((permission) => {
-      return !permissions.some((permissionUpdate) => {
-        return permissionUpdate === permission.permissionId;
-      });
-    });
-
-    const permissionCreate = permissions.filter((permission) => {
-      return !permissionDB.some((permissionUpdate) => {
-        return permissionUpdate.permissionId === permission;
-      });
-    });
-
-    if (permissionDelete.length > 0) {
-      try {
-        await this._prismaService.rolHasPermission.updateMany({
-          where: {
-            rolId,
-            permissionId: {
-              in: permissionDelete.map((permission) => permission.permissionId),
-            },
-          },
-          data: {
-            state: false,
-          },
-        });
-      } catch (error) {
-        throw new HttpException(error.message, error.status);
-      }
-    }
-    if (permissionCreate.length > 0) {
-      const rolHasPermission = permissionCreate.map((permission) => {
-        return {
-          permissionId: permission,
-          rolId,
-        };
-      });
-
-      try {
-        await this._prismaService.rolHasPermission.createMany({
-          data: rolHasPermission,
-        });
-      } catch (error) {
-        throw new HttpException(error.message, error.status);
-      }
-    }
     return await this.findRoleWithPermissions(rolId);
   }
 

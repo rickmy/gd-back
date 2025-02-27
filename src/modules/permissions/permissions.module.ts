@@ -8,6 +8,7 @@ import { ResourceRepository } from './repository/resource.repository';
 @Module({
   controllers: [PermissionsController],
   providers: [PermissionsService, PermissionRepository, ResourceRepository],
+  exports: [ResourceRepository],
   imports: [PrismaModule],
 })
 export class PermissionsModule {}

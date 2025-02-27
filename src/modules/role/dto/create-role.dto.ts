@@ -1,5 +1,6 @@
+import { PermissionDto } from '@modules/permissions/dto/permission.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray } from 'class-validator';
 
 export class CreateRoleDto {
   @ApiProperty({ description: 'codigo del rol', example: 'admin' })
@@ -15,6 +16,6 @@ export class CreateRoleDto {
     example: ['uuid'],
     isArray: true,
   })
-  @IsString({ message: 'los permisos deben ser un string', each: true })
-  permissions: string[];
+  @IsArray({ message: 'los permisos deben ser un array' })
+  permissions: PermissionDto[];
 }

@@ -1,16 +1,21 @@
-import { PermissionEntity } from 'src/modules/permissions/entities/permission.entity';
-import { RoleEntity } from '../entities/role.entity';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { ResourceWithPermission } from '@modules/permissions/dto/resource-with-permission.dto';
+import { IsArray, IsString } from 'class-validator';
 
 export class RoleWithPermission {
-  @ApiProperty({ type: RoleEntity, description: 'Role' })
-  role: RoleEntity;
-
-  @ApiProperty({
-    type: [PermissionEntity],
-    isArray: true,
-    description: 'Permissions',
+  @IsString({
+    message: 'el id del rol debe ser un string',
   })
-  permissions: PermissionEntity[];
+  rolId: string;
+  @IsString({
+    message: 'el codigo del rol debe ser un string',
+  })
+  code: string;
+  @IsString({
+    message: 'el nombre del rol debe ser un string',
+  })
+  name: string;
+  @IsArray({
+    message: 'los permisos deben ser un array',
+  })
+  permissions: ResourceWithPermission[];
 }

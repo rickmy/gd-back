@@ -1,6 +1,6 @@
 import { PermissionDto } from './permission.dto';
 
-export class TablePermissionDto {
+export class ResourceWithPermission {
   resource: string;
-  permission: Array<PermissionDto>;
+  permissions: PermissionDto[];
 }

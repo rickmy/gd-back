@@ -20,4 +20,25 @@ export class ResourceRepository {
       },
     });
   }
+
+  async findOneByPermissions(permissions: string[]) {
+    return this._prismaService.resource.findMany({
+      where: {
+        permission: {
+          some: {
+            permissionId: {
+              in: permissions,
+            },
+          },
+        },
+      },
+      include: {
+        permission: {
+          include: {
+            action: true,
+          },
+        },
+      },
+    });
+  }
 }

@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { PermissionDto } from './dto/permission.dto';
-import { TablePermissionDto } from './dto/table-permission.dto';
+import { ResourceWithPermission } from './dto/resource-with-permission.dto';
 @ApiBearerAuth()
 @ApiTags('permission')
 @Controller('permission')
@@ -54,7 +54,7 @@ export class PermissionsController {
 
   @Get('by-resource')
   @ApiResponse({
-    type: TablePermissionDto,
+    type: ResourceWithPermission,
     status: 200,
     description: 'Obtiene todos los permisos agrupado por recurso',
   })

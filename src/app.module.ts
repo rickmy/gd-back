@@ -17,6 +17,8 @@ import { UnauthorizedExceptionFilter } from './core/filters/UnauthorizedExceptio
 import { InstituteModule } from './modules/institute/institute.module';
 import { CareerModule } from './modules/career/career.module';
 import { DocumentModule } from './modules/document/document.module';
+import { TypeCareerModule } from './modules/type-career/type-career.module';
+import { ModalityModule } from './modules/modality/modality.module';
 
 @Module({
   imports: [
@@ -54,6 +56,8 @@ import { DocumentModule } from './modules/document/document.module';
     InstituteModule,
     CareerModule,
     DocumentModule,
+    TypeCareerModule,
+    ModalityModule,
   ],
   controllers: [],
   providers: [

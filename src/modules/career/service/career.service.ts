@@ -11,7 +11,6 @@ import { FilterCareerDto } from '../dto/filter-career.dto';
 import {
   buildContainsCondition,
   buildContainsNameCondition,
-  buildWhereConditions,
 } from '@core/utils/buildWhereCondition.utils';
 import { mapCareerMapper } from '../mappers/career.mapper';
 import { CareerDto } from '../dto/career.dto';
@@ -41,7 +40,7 @@ export class CareerService {
     try {
       const { page, limit } = options;
 
-      const whereConditions = this.buildWhereConditions(options, allActive);
+      const whereConditions = this.buildWhereConditions(options);
 
       const careers = await this.careerRepository.findAll(
         whereConditions,
@@ -125,10 +124,8 @@ export class CareerService {
     }
   }
 
-  private buildWhereConditions(options: FilterCareerDto, allActive?: boolean) {
-    const basicFilter = buildWhereConditions(options, allActive, 'careerId');
+  private buildWhereConditions(options: FilterCareerDto) {
     return {
-      ...basicFilter,
       codeAuth: buildContainsCondition(options.codeAuth),
       resolutionNumber: buildContainsCondition(options.resolutionNumber),
       institute: buildContainsNameCondition('name', options.institute),

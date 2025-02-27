@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -20,12 +19,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { UserDto } from './dto/user.dto';
 import { UpdateUserResponseDto } from './dto/update-user-response-dto';
-import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
+import { FilterUserDto } from './dto/filter-user.dto';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -39,7 +37,7 @@ export class UserController {
   })
   @ApiOperation({ summary: 'Encontrar todos los usuarios' })
   @UseGuards(JwtAuthGuard)
-  findAll(@Body() options: PaginationOptions) {
+  findAll(@Body() options: FilterUserDto) {
     return this.userService.findAll(options);
   }
 
@@ -50,7 +48,7 @@ export class UserController {
   })
   @ApiOperation({ summary: 'Encontrar todos los usuarios activos' })
   @UseGuards(JwtAuthGuard)
-  findAllActive(@Body() options: PaginationOptions) {
+  findAllActive(@Body() options: FilterUserDto) {
     return this.userService.findAll(options, true);
   }
 

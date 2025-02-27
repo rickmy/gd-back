@@ -17,10 +17,10 @@ import {
 import { RoleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { RoleEntity } from './entities/role.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { PaginationResult } from 'src/core/models/paginationResult';
-import { PaginationOptions } from 'src/core/models/paginationOptions';
+import { RolHasPermission } from '@prisma/client';
+import { FilterRolDto } from './dto/filter-rol.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
@@ -38,20 +38,20 @@ export class RoleController {
 
   @Post('all')
   @ApiOkResponse({
-    type: PaginationResult<RoleEntity>,
+    type: PaginationResult<RolHasPermission>,
     description: 'Roles encontrado',
   })
   @ApiOperation({ summary: 'Encontrar todos los roles' })
-  findAll(@Body() options: PaginationOptions) {
+  findAll(@Body() options: FilterRolDto) {
     return this.roleService.findAll(options);
   }
   @Post('active')
   @ApiOkResponse({
-    type: PaginationResult<RoleEntity>,
+    type: PaginationResult<RolHasPermission>,
     description: 'Roles activos encontrados',
   })
   @ApiOperation({ summary: 'Encontrar todos los roles activos' })
-  findAllActive(@Body() options: PaginationOptions) {
+  findAllActive(@Body() options: FilterRolDto) {
     return this.roleService.findAll(options, true);
   }
 

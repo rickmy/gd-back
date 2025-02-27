@@ -10,10 +10,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PayloadModel } from 'src/auth/models/payloadModel';
 import { UserDto } from './dto/user.dto';
 import { PaginationResult } from 'src/core/models/paginationResult';
-import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { mapUser } from './mapper/user.mapper';
 import { UserRepository } from './repository/user.repository';
-import { buildWhereConditions } from '@core/utils/buildWhereCondition.utils';
+import { FilterUserDto } from './dto/filter-user.dto';
+import { buildContainsCondition } from '@core/utils/buildWhereCondition.utils';
 
 @Injectable()
 export class UserService {
@@ -42,13 +42,13 @@ export class UserService {
   }
 
   async findAll(
-    options: PaginationOptions,
+    options: FilterUserDto,
     allActive?: boolean,
   ): Promise<PaginationResult<UserDto>> {
     try {
       const { page, limit } = options;
 
-      const basicFilter = buildWhereConditions(options, allActive, 'dni');
+      const basicFilter = this.buildWhereConditions(options);
 
       const users = await this.userRepository.findAll(basicFilter, limit, page);
 
@@ -169,5 +169,13 @@ export class UserService {
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
+  }
+
+  private buildWhereConditions(options: FilterUserDto) {
+    return {
+      dni: buildContainsCondition(options.identification),
+      name: buildContainsCondition(options.name),
+      email: buildContainsCondition(options.email),
+    };
   }
 }

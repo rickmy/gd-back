@@ -1,4 +1,3 @@
-import { PaginationOptions } from '@core/models/paginationOptions';
 import { Prisma } from '@prisma/client';
 
 export const buildContainsCondition = (
@@ -19,18 +18,3 @@ export const buildContainsNameCondition = (key: string, value?: string) => {
       }
     : undefined;
 };
-
-export function buildWhereConditions(
-  options: PaginationOptions,
-  allActive?: boolean,
-  keyId?: string,
-) {
-  const filters = {
-    state: allActive ? true : undefined,
-    [keyId]: buildContainsCondition(options.identification),
-    name: buildContainsCondition(options.name),
-    code: buildContainsCondition(options.code),
-    email: buildContainsCondition(options.email),
-  };
-  return filters;
-}

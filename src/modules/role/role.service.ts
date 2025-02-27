@@ -10,17 +10,17 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RoleWithPermission } from './dto/roleWithPermission.dto';
-import { PaginationOptions } from 'src/core/models/paginationOptions';
 import { PaginationResult } from 'src/core/models/paginationResult';
 import { ResourceRepository } from '@modules/permissions/repository/resource.repository';
 import { mapPermissionToDto } from '@modules/permissions/mappers/permission.mapper';
 import { ResourceWithPermission } from '@modules/permissions/dto/resource-with-permission.dto';
 import { RolRepository } from './repository/rol.repository';
 import { CreateRoleHasPermissionDto } from './dto/create-role-has-permission.dto';
-import { buildWhereConditions } from '@core/utils/buildWhereCondition.utils';
 import { RolDto } from './dto/rol.dto';
 import { mapRolToDto } from './mappers/mapRolToDto.mapper';
 import { mapRolWithPermissionToDto } from './mappers/mapRolWithPermissionToDto.mapper';
+import { FilterRolDto } from './dto/filter-rol.dto';
+import { buildContainsCondition } from '@core/utils/buildWhereCondition.utils';
 
 @Injectable()
 export class RoleService {
@@ -60,13 +60,13 @@ export class RoleService {
   }
 
   async findAll(
-    options: PaginationOptions,
+    options: FilterRolDto,
     allActive?: boolean,
   ): Promise<PaginationResult<RolDto>> {
     try {
       const { page, limit } = options;
 
-      const whereConditions = buildWhereConditions(options, allActive, 'rolId');
+      const whereConditions = this.buildWhereConditions(options);
 
       const roles = await this._rolRepository.findAll(
         whereConditions,
@@ -180,5 +180,12 @@ export class RoleService {
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
+  }
+
+  private buildWhereConditions(options: FilterRolDto) {
+    return {
+      name: buildContainsCondition(options.name),
+      code: buildContainsCondition(options.code),
+    };
   }
 }

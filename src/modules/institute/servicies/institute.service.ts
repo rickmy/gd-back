@@ -12,10 +12,7 @@ import { FilterInstituteDto } from '../dto/filter.institute.dto';
 import { mapInstituteToDto } from '../mappers/institute.mapper';
 import { InstituteRepository } from '../repository/institute.repository';
 import { InstituteValidator } from '../validation/institute.validator';
-import {
-  buildContainsCondition,
-  buildWhereConditions,
-} from '@core/utils/buildWhereCondition.utils';
+import { buildContainsCondition } from '@core/utils/buildWhereCondition.utils';
 
 @Injectable()
 export class InstituteService {
@@ -37,7 +34,7 @@ export class InstituteService {
     try {
       const { page, limit } = options;
 
-      const whereConditions = this.buildWhereConditions(options, allActive);
+      const whereConditions = this.buildWhereConditions(options);
 
       const institutes = await this.instituteRepository.findAll(
         whereConditions,
@@ -91,13 +88,8 @@ export class InstituteService {
     return new HttpException('Institute deleted successfully', HttpStatus.OK);
   }
 
-  private buildWhereConditions(
-    options: FilterInstituteDto,
-    allActive?: boolean,
-  ) {
-    const basicFilter = buildWhereConditions(options, allActive, 'instituteId');
+  private buildWhereConditions(options: FilterInstituteDto) {
     return {
-      ...basicFilter,
       codeAuth: buildContainsCondition(options.codeAuth),
     };
   }

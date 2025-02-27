@@ -1,13 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
-import { PermissionEntity } from './entities/permission.entity';
 import { mapPermissionToDto } from './mappers/permission.mapper';
 import { PermissionDto } from './dto/permission.dto';
 import { PermissionRepository } from './repository/permission.repository';
+import { TablePermissionDto } from './dto/table-permission.dto';
+import { ResourceRepository } from './repository/resource.repository';
 @Injectable()
 export class PermissionsService {
-  constructor(private permissionRepository: PermissionRepository) {}
+  constructor(
+    private permissionRepository: PermissionRepository,
+    private resourceRepository: ResourceRepository,
+  ) {}
 
   async create(permission: CreatePermissionDto): Promise<PermissionDto> {
     try {
@@ -17,7 +21,6 @@ export class PermissionsService {
       return mapPermissionToDto(
         createdPermission,
         createdPermission.action.name,
-        createdPermission.resource.name,
       );
     } catch (error) {
       throw new HttpException(
@@ -32,12 +35,22 @@ export class PermissionsService {
       const permissions = await this.permissionRepository.findAll();
 
       return permissions.map((permission) =>
-        mapPermissionToDto(
-          permission,
-          permission.action.name,
-          permission.resource.name,
-        ),
+        mapPermissionToDto(permission, permission.action.name),
       );
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
+  async findAllByResource() {
+    try {
+      const permissions = await this.resourceRepository.findAll();
+      return permissions.map((permission) => ({
+        resource: permission.name,
+        permissions: permission.permission.map((perm) =>
+          mapPermissionToDto(perm, perm.action.name),
+        ),
+      }));
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
@@ -50,11 +63,7 @@ export class PermissionsService {
         `Permiso con el id: ${permissionId}, no existe`,
         HttpStatus.NOT_FOUND,
       );
-    return mapPermissionToDto(
-      permission,
-      permission.action.name,
-      permission.resource.name,
-    );
+    return mapPermissionToDto(permission, permission.action.name);
   }
 
   async update(
@@ -70,11 +79,7 @@ export class PermissionsService {
         `Permiso con el id:${permissionId}, no existe`,
         HttpStatus.NOT_FOUND,
       );
-    return mapPermissionToDto(
-      permissionUpdate,
-      permissionUpdate.action.name,
-      permissionUpdate.resource.name,
-    );
+    return mapPermissionToDto(permissionUpdate, permissionUpdate.action.name);
   }
 
   async remove(permissionId: string): Promise<HttpException> {

@@ -22,9 +22,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/auth/auth.guard';
 import { PermissionDto } from './dto/permission.dto';
+import { TablePermissionDto } from './dto/table-permission.dto';
 @ApiBearerAuth()
-@ApiTags('permissions')
-@Controller('permissions')
+@ApiTags('permission')
+@Controller('permission')
 @UseGuards(JwtAuthGuard)
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
@@ -49,6 +50,17 @@ export class PermissionsController {
   @ApiOperation({ summary: 'Obtener todos los permisos' })
   findAll(): Promise<PermissionDto[]> {
     return this.permissionsService.findAll();
+  }
+
+  @Get('by-resource')
+  @ApiResponse({
+    type: TablePermissionDto,
+    status: 200,
+    description: 'Obtiene todos los permisos agrupado por recurso',
+  })
+  @ApiOperation({ summary: 'Obtener todos los permisos' })
+  findAllByResource() {
+    return this.permissionsService.findAllByResource();
   }
 
   @Get(':id')

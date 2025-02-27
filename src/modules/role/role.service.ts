@@ -48,7 +48,7 @@ export class RoleService {
       );
     const rolHasPermission = permissions.map((permission) => {
       return {
-        permissionId: permission.permissionId,
+        permissionId: permission,
         rolId: role.rolId,
       };
     });
@@ -189,13 +189,13 @@ export class RoleService {
 
     const permissionDelete = permissionDB.filter((permission) => {
       return !permissions.some((permissionUpdate) => {
-        return permissionUpdate.id === permission.id && permissionUpdate.state;
+        return permissionUpdate === permission.permissionId;
       });
     });
 
     const permissionCreate = permissions.filter((permission) => {
       return !permissionDB.some((permissionUpdate) => {
-        return permissionUpdate.id === permission.id;
+        return permissionUpdate.permissionId === permission;
       });
     });
 
@@ -219,7 +219,7 @@ export class RoleService {
     if (permissionCreate.length > 0) {
       const rolHasPermission = permissionCreate.map((permission) => {
         return {
-          permissionId: permission.permissionId,
+          permissionId: permission,
           rolId,
         };
       });

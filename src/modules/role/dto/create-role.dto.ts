@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
-import { PermissionEntity } from 'src/modules/permissions/entities/permission.entity';
 
 export class CreateRoleDto {
   @ApiProperty({ description: 'codigo del rol', example: 'admin' })
@@ -13,8 +12,9 @@ export class CreateRoleDto {
   name: string;
   @ApiProperty({
     description: 'permisos del rol',
-    example: [{ id: 1, name: 'create' }],
+    example: ['uuid'],
     isArray: true,
   })
-  permissions: PermissionEntity[];
+  @IsString({ message: 'los permisos deben ser un string', each: true })
+  permissions: string[];
 }
